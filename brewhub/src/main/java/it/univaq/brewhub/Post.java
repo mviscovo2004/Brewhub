@@ -24,7 +24,7 @@ public class Post {
     private String contenuto;
     private TipoPost tipo;
     private LocalDateTime dataCreazione;
-    private File immagine;
+    private File media=null;
     private List<Utente> miPiace=new ArrayList<Utente>();
 
     private List<Commento> commenti = new ArrayList<Commento>();
@@ -47,12 +47,12 @@ public class Post {
     }
 
     // Costruttore principale
-    public Post(String titolo,String contenuto, Utente autore, TipoPost tipo, File immagine) {
+    public Post(String titolo,String contenuto, Utente autore, TipoPost tipo, File media) {
     	this.titolo=titolo;
         this.contenuto = contenuto;
         this.autore = autore;
         this.tipo = tipo;
-        this.immagine=immagine;
+        this.media=media;
         this.dataCreazione = LocalDateTime.now();
     }
    
@@ -78,10 +78,20 @@ public class Post {
         return tipo;
     }
     
-    public File getImmagine() {
-        return immagine;
+    public File getMedia() {
+    	return media;
     }
 
+    public List<Utente> getMiPiace() {
+		return miPiace;
+	}
+    
+    @JsonIgnore
+    public Utente getMiPiaceSingolo(int i) {
+    	return miPiace.get(i);
+    }
+    
+    
     public LocalDateTime getDataCreazione() {
         return dataCreazione;
     }
@@ -116,9 +126,18 @@ public class Post {
         this.dataCreazione = dataCreazione;
     }
     
-    public void setImmagine(File immagine) {
-		this.immagine = immagine;
+    public void setMedia(File media) {
+    	this.media = media;
+    }
+    
+    public void setMiPiace(List<Utente> miPiace) {
+		this.miPiace = miPiace;
 	}
+    
+    @JsonIgnore
+    public void setMiPiaceSingolo(int i,Utente utente) {
+    	miPiace.set(i, utente);
+    }
     
    public void setCommenti(List<Commento> commenti) {
 	   this.commenti = commenti;

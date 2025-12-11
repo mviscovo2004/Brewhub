@@ -87,13 +87,16 @@ public class RegisterView {
 		Button btnFoto=new Button("Scegli foto profilo");
 		btnRegistrati.setDefaultButton(true);
 		
-		
+		HBox fotoBox=new HBox(20);
+		Label lblFile=new Label("Nessuna foto selezionata");
+		fotoBox.setAlignment(Pos.CENTER);
 		
 		Hyperlink linkOspite=new Hyperlink("Continua come ospite");
 		
 		persona.getChildren().addAll(fldNome,fldCognome);
 		bottoni.getChildren().addAll(btnAccedi,btnRegistrati);
-		register.getChildren().addAll(lblTitolo,btnFoto,persona,cbxTipo,fldUsername,fldPassword,bottoni,linkOspite,lblErrore);
+		fotoBox.getChildren().addAll(btnFoto,lblFile);
+		register.getChildren().addAll(lblTitolo,fotoBox,persona,cbxTipo,fldUsername,fldPassword,bottoni,linkOspite,lblErrore);
 		
 		btnAccedi.setOnAction(e->{
 			LoginView login=new LoginView(stage);
@@ -107,6 +110,7 @@ public class RegisterView {
 			File fotoSelezionata=fileFoto.showOpenDialog(stage);
 			if(fotoSelezionata!=null) {
 				immagine=new Image(fotoSelezionata.toURI().toString());
+				lblFile.setText(fotoSelezionata.getName());
 				
 			}
 		});

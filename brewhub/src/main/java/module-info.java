@@ -5,6 +5,8 @@ module it.univaq.brewhub {
     requires jbcrypt;
 	requires com.fasterxml.jackson.annotation;
 	requires javafx.graphics;
+	requires javafx.media;
+	requires javafx.base;
     
     opens it.univaq.brewhub;
     
