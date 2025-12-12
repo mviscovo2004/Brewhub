@@ -201,14 +201,12 @@ public class Utente {
       pstmt.setString(3, u.getCognome());
       // Hashiamo la password prima di salvarla
       String hash = BCrypt.hashpw(u.getPassword(), BCrypt.gensalt());
-      System.out.println("DEBUG - Password originale: " + u.getPassword());
-      System.out.println("DEBUG - Hash generato: " + hash);
+
       pstmt.setString(4, hash);
       pstmt.setString(5, u.getTipo().name());
       pstmt.setString(6, u.getFotoProfilo());
 
       pstmt.executeUpdate();
-      System.out.println("DEBUG - Utente registrato: " + u.getUsername());
     }
   }
 
@@ -241,42 +239,85 @@ public class Utente {
 
       if (rs.next()) {
         String hashSalvato = rs.getString("password_hash");
-        System.out.println("DEBUG - Username trovato: " + username);
-        System.out.println("DEBUG - Password inserita: " + passwordInserita);
-        System.out.println("DEBUG - Hash salvato nel DB: " + hashSalvato);
-        System.out.println("DEBUG - Hash length: " + (hashSalvato != null ? hashSalvato.length() : "NULL"));
 
         // Verifica password con BCrypt
         if (hashSalvato != null && BCrypt.checkpw(passwordInserita, hashSalvato)) {
-          System.out.println("DEBUG - Password corretta!");
+
           // Ricostruiamo l'oggetto Utente dai dati del DB
           Utente u = new Utente();
           u.setUsername(rs.getString("username"));
           u.setNome(rs.getString("nome"));
           u.setCognome(rs.getString("cognome"));
           u.setPasswordCrypto(hashSalvato);
-          
+
           String tipoStr = rs.getString("tipo");
-          System.out.println("DEBUG - Tipo letto dal DB: " + tipoStr);
+
           try {
             u.setTipo(TipoUtente.valueOf(tipoStr));
           } catch (IllegalArgumentException e) {
-            System.out.println("DEBUG - Errore nel parsing del tipo: " + tipoStr);
             throw e;
           }
-          
+
           u.setFotoProfilo(rs.getString("foto_uri"));
           return u;
-        } else {
-          System.out.println("DEBUG - Password NON corretta!");
         }
-      } else {
-        System.out.println("DEBUG - Username non trovato!");
       }
     } catch (SQLException e) {
-      System.out.println("DEBUG - Errore SQL nel login: " + e.getMessage());
+
       e.printStackTrace();
     }
     return null; // Login fallito
+  }
+
+  // In it/univaq/brewhub/Utente.java
+
+  public void aggiornaProfilo() throws SQLException {
+    // Se la password è stata modificata (quindi diversa dall'hash salvato), la
+    // ri-hashiamo
+    // Nota: assumiamo che se this.password è diverso da null e non inizia con
+    // "$2a$", è una nuova password in chiaro
+    String sql;
+    boolean cambioPassword = this.password != null && !this.password.equals(this.pwCrypto);
+
+    if (cambioPassword) {
+      sql = "UPDATE utenti SET nome = ?, cognome = ?, foto_uri = ?, password_hash = ? WHERE username = ?";
+    } else {
+      sql = "UPDATE utenti SET nome = ?, cognome = ?, foto_uri = ? WHERE username = ?";
+    }
+
+    try (Connection conn = DatabaseManager.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, this.nome);
+      pstmt.setString(2, this.cognome);
+      pstmt.setString(3, this.fotoProfilo);
+
+      if (cambioPassword) {
+        String hash = BCrypt.hashpw(this.password, BCrypt.gensalt());
+        this.pwCrypto = hash; // Aggiorniamo l'hash in memoria
+        pstmt.setString(4, hash);
+        pstmt.setString(5, this.username);
+      } else {
+        pstmt.setString(4, this.username);
+      }
+
+      pstmt.executeUpdate();
+
+    }
+  }
+
+  public void eliminaAccount() throws SQLException {
+    String sql = "DELETE FROM utenti WHERE username = ?";
+
+    try (Connection conn = DatabaseManager.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, this.username);
+
+      int affectedRows = pstmt.executeUpdate();
+      if (affectedRows <= 0) {
+        throw new SQLException("Impossibile eliminare l'account: utente non trovato.");
+      }
+    }
   }
 }
