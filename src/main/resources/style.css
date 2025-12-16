@@ -44,38 +44,58 @@
    ============================================ */
 
 .sidebar {
-    -fx-background-color: #F5E6D3;
-    -fx-border-color: #D4A574;
+    -fx-background-color: #FFFBF5; /* O bianco #FFFFFF per look più moderno */
+    -fx-border-color: #efefef;
     -fx-border-width: 0 1 0 0;
-    -fx-padding: 15;
+    -fx-padding: 10 0 10 0; /* Padding verticale, zero orizzontale */
 }
 
-.sidebar-title {
-    -fx-text-fill: #2C1810;
-    -fx-font-size: 15;
+/* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
+.sidebar-section-label {
+    -fx-text-fill: #878A8C; /* Grigio tipico di Reddit */
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
+    -fx-padding: 16 24 8 24; /* Spaziatura specifica */
+    -fx-font-family: "Segoe UI", sans-serif;
 }
 
-.category-button {
-    -fx-padding: 10 15 10 15;
-    -fx-font-size: 13;
-    -fx-background-color: #FFFBF5;
+/* Bottoni di navigazione (Home, Popular, ecc.) */
+.nav-btn {
+    -fx-background-color: transparent;
     -fx-text-fill: #2C1810;
-    -fx-border-color: #D4A574;
-    -fx-border-radius: 5;
-    -fx-background-radius: 5;
-    -fx-border-width: 1;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 8 24 8 24; /* Padding laterale generoso */
     -fx-cursor: hand;
+    -fx-background-radius: 0; /* Nessun bordo arrotondato o leggero se preferisci */
+    -fx-border-width: 0;
 }
 
-.category-button:hover {
-    -fx-background-color: #F5E6D3;
-    -fx-border-color: #8D6E63;
+.nav-btn:hover {
+    -fx-background-color: #F5E6D3; /* Colore crema leggero al passaggio */
 }
 
-.category-button:pressed {
-    -fx-background-color: #D4A574;
-    -fx-text-fill: #FFF8F3;
+.nav-btn:pressed {
+    -fx-background-color: #e6ceb3;
+}
+
+/* Separatore sottile */
+.sidebar-separator {
+    -fx-background-color: transparent;
+    -fx-border-color: #edeff1;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 8 0 8 0;
+    -fx-margin: 8 0 8 0;
+}
+
+/* ScrollPane pulito per la sidebar */
+.sidebar-scroll {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.sidebar-scroll > .viewport {
+    -fx-background-color: transparent;
 }
 
 /* ============================================

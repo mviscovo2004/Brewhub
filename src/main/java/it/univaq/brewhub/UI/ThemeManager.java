@@ -1,39 +1,36 @@
 package it.univaq.brewhub.UI;
 
+// Importazioni JavaFX
 import javafx.scene.Scene;
 
-/**
- * Gestore del tema per l'applicazione BrewHub
- * Applica il tema caffè a tutta l'applicazione
- */
+// Gestione del Tema Caffè per l'applicazione
 public class ThemeManager {
     
+    // Risorsa CSS del tema
     private static final String CSS_RESOURCE = "style.css";
     
-    /**
-     * Applica il tema caffè a una Scene
-     * @param scene La Scene a cui applicare il tema
-     */
+    // Applica il tema caffè a una scena JavaFX
     public static void applyTheme(Scene scene) {
+
+        // Caricamento del file CSS
         try {
+
+            // Aggiungi il foglio di stile alla scena
             String cssResource = ThemeManager.class.getResource("/" + CSS_RESOURCE).toExternalForm();
             scene.getStylesheets().add(cssResource);
         } catch (Exception e) {
+
+            // Gestione errore caricamento CSS
             System.err.println("Errore nel caricamento del tema CSS: " + e.getMessage());
         }
     }
     
-    /**
-     * Applica il tema caffè usando lo stile inline
-     * @return Una stringa CSS con i colori del tema caffè
-     */
+    // Ottiene i colori principali del tema caffè
     public static String getCoffeeThemeColors() {
         return "-fx-font-family: 'Segoe UI', 'Arial', sans-serif;";
     }
     
-    /**
-     * Colori predefiniti del tema caffè
-     */
+    // Definizione dei colori del tema caffè
     public static class Colors {
         public static final String DARK_COFFEE = "#2C1810";      // Nero caffè
         public static final String MEDIUM_COFFEE = "#5D4037";    // Marrone medio
@@ -47,11 +44,10 @@ public class ThemeManager {
         public static final String ACCENT_BROWN = "#A0522D";     // Marrone scuro accento
     }
     
-    /**
-     * Stili predefiniti per componenti comuni
-     */
+    // Definizione degli stili CSS per i componenti UI
     public static class Styles {
         
+        // Stili per bottoni primari
         public static String buttonPrimary() {
             return String.format(
                 "-fx-padding: 10 30 10 30; " +
@@ -66,6 +62,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per bottoni di successo
         public static String buttonSuccess() {
             return String.format(
                 "-fx-padding: 10 30 10 30; " +
@@ -80,6 +77,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per bottoni secondari
         public static String buttonSecondary() {
             return String.format(
                 "-fx-padding: 10 30 10 30; " +
@@ -94,6 +92,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per bottoni di pericolo
         public static String buttonDanger() {
             return String.format(
                 "-fx-padding: 10 30 10 30; " +
@@ -108,6 +107,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per campi di testo
         public static String textField() {
             return String.format(
                 "-fx-padding: 10; " +
@@ -121,6 +121,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per header
         public static String header() {
             return String.format(
                 "-fx-background-color: %s; " +
@@ -130,6 +131,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per card
         public static String card() {
             return String.format(
                 "-fx-background-color: %s; " +
@@ -142,6 +144,7 @@ public class ThemeManager {
             );
         }
         
+        // Stili per sidebar
         public static String sidebar() {
             return String.format(
                 "-fx-background-color: %s; " +

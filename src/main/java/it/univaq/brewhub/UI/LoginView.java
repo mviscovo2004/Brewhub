@@ -1,5 +1,6 @@
 package it.univaq.brewhub.UI;
 
+// Importazioni JavaFX e classi del progetto
 import it.univaq.brewhub.Utente;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -8,113 +9,144 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-
+// Vista per il Login
 public class LoginView {
-	private final Stage stage;
-	
-	public LoginView(Stage stage) {
-		this.stage=stage;
-	}
-	
-	public Parent getView() {
-		stage.setHeight(600);
-		stage.setWidth(500);
-		stage.setResizable(false);
-		stage.setTitle("Login - BrewHub");
-		stage.centerOnScreen();
-		
-		VBox login=new VBox(15);
-		login.setAlignment(Pos.CENTER);
-		login.setPadding(new javafx.geometry.Insets(40, 20, 40, 20));
-		login.setStyle("-fx-background-color: " + ThemeManager.Colors.WHITE_CREAM + ";");
-		
-		VBox formBox=new VBox(12);
-		formBox.setAlignment(Pos.CENTER);
-		formBox.getStyleClass().add("form-box");
-		
-		HBox bottoni=new HBox(10);
-		bottoni.setAlignment(Pos.CENTER);
-		
-		Label lblErrore=new Label();
-		lblErrore.setVisible(false);
-		lblErrore.getStyleClass().add("error-label");
-		lblErrore.setWrapText(true);
-		
-		Label lblTitolo=new Label("BrewHub");
-		lblTitolo.getStyleClass().add("title-label");
-		
-		Label lblSottotitolo=new Label("Accedi al tuo account");
-		lblSottotitolo.getStyleClass().add("subtitle-label");
-		
-		TextField fldUsername=new TextField();
-		fldUsername.setPromptText("Username");
-		fldUsername.getStyleClass().add("text-field");
-		fldUsername.setPrefHeight(40);
-		fldUsername.setPrefWidth(300);
-		
-		PasswordField fldPassword= new PasswordField();
-		fldPassword.setPromptText("Password");
-		fldPassword.getStyleClass().add("password-field");
-		fldPassword.setPrefHeight(40);
-		fldPassword.setPrefWidth(300);
+    // Riferimento allo stage principale
+    private final Stage stage;
+    
+    // Costruttore
+    public LoginView(Stage stage) {
+        this.stage = stage;
+    }
+    
+    // Metodo per ottenere la vista del Login
+    public Parent getView() {
 
-		Button btnAccedi=new Button("Accedi");
-		btnAccedi.setDefaultButton(true);
-		btnAccedi.setStyle(ThemeManager.Styles.buttonPrimary());
-		btnAccedi.setPrefWidth(200);
-		btnAccedi.setPrefHeight(40);
-		
-		Button btnRegistrati=new Button("Registrati");
-		btnRegistrati.setStyle(ThemeManager.Styles.buttonSecondary());
-		btnRegistrati.setPrefWidth(200);
-		btnRegistrati.setPrefHeight(40);
-		
-		Hyperlink linkOspite=new Hyperlink("Continua come ospite");
-		linkOspite.getStyleClass().add("hyperlink");
-		
-		bottoni.getChildren().addAll(btnAccedi,btnRegistrati);
-		formBox.getChildren().addAll(lblTitolo,lblSottotitolo,fldUsername,fldPassword,bottoni,lblErrore);
-		login.getChildren().addAll(formBox,linkOspite);
-		
-		btnAccedi.setOnAction(e->{
-			String user=fldUsername.getText();
-			String pw=fldPassword.getText();
-			lblErrore.setVisible(false);
-			if(user.isBlank() || pw.isBlank()) {
-				lblErrore.setText("⚠ Inserisci username e password");
-				lblErrore.setVisible(true);
-				
-			} else {
-				Utente profilo = new Utente().login(user, pw);
-				if(profilo == null) {
-					lblErrore.setText("✗ Credenziali non valide");
-					lblErrore.setVisible(true);
-					fldPassword.clear();
-				} else {
-					HomeView home=new HomeView(stage, profilo);
-					stage.getScene().setRoot(home.getView());
-				}
-			}
-		});
-		
-		btnRegistrati.setOnAction(e->{
-			
-			RegisterView register=new RegisterView(stage);
-			stage.getScene().setRoot(register.getView());
-			
-		});
-		
-		linkOspite.setOnAction(e->{
-			String user="guest";
-			Utente profilo=new Utente(user);
-			HomeView home=new HomeView(stage,profilo);
-			stage.getScene().setRoot(home.getView());
-		});
-		
-		return login;
-	}
+        // Configurazione stage
+        stage.setHeight(600);
+        stage.setWidth(800);
+        stage.setResizable(false);
+        stage.setTitle("Brewhub - Login");
+        stage.centerOnScreen();
+        
+        // --- LAYOUT ---
+        StackPane root = new StackPane();
+        root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        
+        // Card centrale di Login
+        VBox loginCard = new VBox(20);
+        loginCard.setAlignment(Pos.CENTER);
+        loginCard.setMaxSize(400, 480);
+        loginCard.getStyleClass().add("form-box");
+        
+        // Titolo e Sottotitolo
+        Label lblTitolo = new Label("BrewHub");
+        lblTitolo.getStyleClass().add("title-label");
+        Label lblSottotitolo = new Label("Accedi al tuo account");
+        lblSottotitolo.getStyleClass().add("subtitle-label");
+        
+        // Messaggio Errore
+        Label lblErrore = new Label();
+        lblErrore.setVisible(false);
+        lblErrore.getStyleClass().add("error-label");
+        lblErrore.setWrapText(true);
+        
+        // Campo usename
+        TextField fldUsername = new TextField();
+        fldUsername.setPromptText("Username");
+        fldUsername.getStyleClass().add("text-field");
+        
+        // Campo password
+        PasswordField fldPassword = new PasswordField();
+        fldPassword.setPromptText("Password");
+        fldPassword.getStyleClass().add("password-field");
+
+        // Bottone accedi
+        Button btnAccedi = new Button("Accedi");
+        btnAccedi.setDefaultButton(true);
+        btnAccedi.getStyleClass().add("button-primary"); // Stile dal CSS
+        btnAccedi.setMaxWidth(Double.MAX_VALUE); // Bottone largo
+        
+        // Bottone registrati
+        Button btnRegistrati = new Button("Non hai un account? Registrati");
+        btnRegistrati.getStyleClass().add("button-secondary");
+        btnRegistrati.setMaxWidth(Double.MAX_VALUE);
+        
+        // Link continua come ospite
+        Hyperlink linkOspite = new Hyperlink("Continua come ospite");
+        linkOspite.getStyleClass().add("hyperlink");
+        
+        // Contenitore input
+        VBox inputs = new VBox(15);
+        inputs.setAlignment(Pos.CENTER);
+        inputs.getChildren().addAll(fldUsername, fldPassword);
+
+        // Contenitore bottoni
+        VBox buttons = new VBox(10);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.getChildren().addAll(btnAccedi, btnRegistrati, linkOspite);
+        
+        // Aggiunta componenti alla card di login
+        loginCard.getChildren().addAll(lblTitolo, lblSottotitolo, lblErrore, inputs, buttons);
+        
+        // Aggiunta card al root
+        root.getChildren().add(loginCard);
+        
+        
+        // --- LOGICA ---
+        // Azione bottone accedi
+        btnAccedi.setOnAction(e -> {
+            // Recupero credenziali
+            String user = fldUsername.getText();
+            String pw = fldPassword.getText();
+            lblErrore.setVisible(false);
+            
+            // Controllo campi vuoti
+            if (user.isBlank() || pw.isBlank()) {
+                // Mostra errore
+                lblErrore.setText("⚠ Inserisci username e password");
+                lblErrore.setVisible(true);
+            } else {
+                // Tentativo login
+                Utente profilo = new Utente().login(user, pw);
+
+                // Verifica risultato login
+                if (profilo == null) {
+                    // Mostra errore
+                    lblErrore.setText("✗ Credenziali non valide");
+                    lblErrore.setVisible(true);
+                    fldPassword.clear();
+                } else {
+                    // Login riuscito, vai alla Home
+                    HomeView home = new HomeView(stage, profilo);
+                    stage.getScene().setRoot(home.getView());
+                }
+            }
+        });
+        
+        // Azione bottone registrati
+        btnRegistrati.setOnAction(e -> {
+            // Vai alla vista di registrazione
+            RegisterView register = new RegisterView(stage);
+            stage.getScene().setRoot(register.getView());
+        });
+        
+        // Azione link continua come ospite
+        linkOspite.setOnAction(e -> {
+            // Login come guest
+            String user = "guest";
+            Utente profilo = new Utente(user);
+            
+            // Vai alla Home come ospite
+            HomeView home = new HomeView(stage, profilo);
+            stage.getScene().setRoot(home.getView());
+        });
+        
+        // Ritorna il root della vista
+        return root;
+    }
 }

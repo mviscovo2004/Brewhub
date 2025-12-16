@@ -1,16 +1,17 @@
 package it.univaq.brewhub.UI;
 
+// Importazioni JavaFX e classi del progetto
 import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import it.univaq.brewhub.Commento;
 import it.univaq.brewhub.Post;
 import it.univaq.brewhub.Post.TipoPost;
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.MediaManager;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -25,737 +26,686 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+// Vista principale Home
 public class HomeView {
+    // Riferimento allo stage principale
+    private final Stage stage;
+
+    // Utente loggato
+    private final Utente utenteLoggato;
+
+    // Costruttore
+    public HomeView(Stage stage, Utente utenteLoggato) {
+        this.stage = stage;
+        this.utenteLoggato = utenteLoggato;
+    }
+
+    // Metodo per ottenere la vista principale
+    public Parent getView() {
+
+        // Configurazione finestra
+        stage.setResizable(true);
+        stage.setMaximized(true);
+        stage.setTitle("BrewHub - Home");
+        stage.centerOnScreen();
+
+        // --- LAYOUT PRINCIPALE ---
+        BorderPane root = new BorderPane();
+        root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
-	private final Stage stage;
-	private final Utente utenteLoggato;
-
-	// --- COSTRUTTORE ---
-	public HomeView(Stage stage, Utente utenteLoggato) {
-		this.stage = stage;
-		this.utenteLoggato = utenteLoggato;
-	}
-
-	// --- METODO PER RITORNARE LA UI ---
-	public Parent getView() {
-
-		// IMPOSTAZIONI FINESTRA
-		stage.setWidth(1280);
-		stage.setHeight(720);
-		stage.setResizable(true);
-		stage.setMaximized(true);
-		stage.setTitle("BrewHub - Home");
-		stage.centerOnScreen();
-
-		// --- HEADER ---
-		HBox header = new HBox(20);
-		header.setPadding(new javafx.geometry.Insets(12, 20, 12, 20));
-		header.setStyle("-fx-background-color: " + ThemeManager.Colors.MEDIUM_COFFEE
-				+ "; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 2);");
-		header.setAlignment(Pos.CENTER_LEFT);
-
-		// LOGO
-		Label logo = new Label("☕ BrewHub");
-		logo.setStyle(
-				"-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM + ";");
-
-		// BARRA DI RICERCA
-		TextField searchField = new TextField();
-		searchField.setPromptText("🔍 Cerca post o comunità...");
-		searchField.setPrefWidth(350);
-		searchField.setStyle("-fx-padding: 8; -fx-font-size: 13; -fx-control-inner-background: "
-				+ ThemeManager.Colors.WHITE_CREAM + "; -fx-border-radius: 5; -fx-background-radius: 5;");
-
-		// BOTTONI HEADER
-		Button profileBtn = new Button("👤 " + utenteLoggato.getUsername());
-		profileBtn.setStyle(
-				"-fx-padding: 8 15 8 15; -fx-font-size: 13; -fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: "
-						+ ThemeManager.Colors.WHITE_CREAM
-						+ "; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
-
-		profileBtn.setOnAction(e -> {
-			if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-				showAlert(AlertType.WARNING, "Accesso Limitato", "Devi registrarti per personalizzare il tuo profilo.");
-				return;
-			}
-			ProfileView profileView = new ProfileView(stage, utenteLoggato);
-			stage.getScene().setRoot(profileView.getView());
-		});
-		Button logoutBtn = new Button("🚪 Logout");
-		logoutBtn.setStyle("-fx-padding: 8 15 8 15; -fx-font-size: 13; -fx-background-color: "
-				+ ThemeManager.Colors.ACCENT_BROWN + "; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM
-				+ "; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
-
-		// METODO PER LOGOUT
-		logoutBtn.setOnAction(e -> {
-			LoginView login = new LoginView(stage);
-			stage.getScene().setRoot(login.getView());
-		});
-
-		Region spacer = new Region();
-		javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-		header.getChildren().addAll(logo, searchField, spacer, profileBtn, logoutBtn);
-
-		// --- SIDEBAR ---
-		VBox sidebar = new VBox(0);
-		sidebar.setPadding(new javafx.geometry.Insets(0));
-		sidebar.setPrefWidth(240);
-		sidebar.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + "; -fx-border-color: "
-				+ ThemeManager.Colors.COPPER + "; -fx-border-width: 0 1 0 0;");
-
-		ScrollPane sidebarScroll = new ScrollPane(sidebar);
-		sidebarScroll.setFitToWidth(true);
-		sidebarScroll.setPrefWidth(240);
-		sidebarScroll.getStyleClass().add("scroll-pane");
-
-		// --- SEZIONE PROFILO ---
-		VBox profileSection = new VBox(10);
-		profileSection.setPadding(new javafx.geometry.Insets(15, 15, 15, 15));
-		profileSection.setStyle("-fx-background-color: " + ThemeManager.Colors.WHITE_CREAM + "; -fx-border-color: "
-				+ ThemeManager.Colors.COPPER + "; -fx-border-width: 0 0 1 0;");
-
-		HBox profileHeader = new HBox(10);
-		profileHeader.setAlignment(Pos.CENTER_LEFT);
-		Label profileIcon = new Label("👤");
-		profileIcon.setStyle("-fx-font-size: 24px;");
-
-		VBox profileInfo = new VBox(2);
-		Label userName = new Label(utenteLoggato.getUsername());
-		userName.setStyle(
-				"-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-		Label userType = new Label(utenteLoggato.getTipo().toString());
-		userType.setStyle("-fx-font-size: 11px; -fx-text-fill: " + ThemeManager.Colors.PALE_COFFEE + ";");
-		profileInfo.getChildren().addAll(userName, userType);
-		profileHeader.getChildren().addAll(profileIcon, profileInfo);
-		profileSection.getChildren().add(profileHeader);
-
-		// --- SEZIONE CATEGORIE ---
-		VBox categorySection = new VBox(10);
-		categorySection.setPadding(new javafx.geometry.Insets(15));
-		categorySection.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + ";");
-
-		Label catTitle = new Label("📚 CATEGORIE");
-		catTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: "
-				+ ThemeManager.Colors.DARK_COFFEE + "; -fx-letter-spacing: 1;");
-
-		Button cat1 = new Button("☕ Torrefattori");
-		cat1.getStyleClass().add("category-button");
-		cat1.setPrefWidth(210);
-
-		Button cat2 = new Button("🫘 Caffè");
-		cat2.getStyleClass().add("category-button");
-		cat2.setPrefWidth(210);
-
-		Button cat3 = new Button("🎉 Eventi");
-		cat3.getStyleClass().add("category-button");
-		cat3.setPrefWidth(210);
-
-		Separator sep1 = new Separator();
-		sep1.setStyle("-fx-padding: 5 0 5 0;");
-
-		categorySection.getChildren().addAll(catTitle, cat1, cat2, cat3);
-
-		// --- SEZIONE I MIEI POST ---
-		VBox myPostsSection = new VBox(10);
-		myPostsSection.setPadding(new javafx.geometry.Insets(15));
-		myPostsSection.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + ";");
-
-		Label myPostsTitle = new Label("✍️ I MIEI POST");
-		myPostsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: "
-				+ ThemeManager.Colors.DARK_COFFEE + "; -fx-letter-spacing: 1;");
-
-		Button myPostsBtn = new Button("📄 Visualizza i miei post");
-		myPostsBtn.setStyle("-fx-padding: 8 12 8 12; -fx-font-size: 12; -fx-background-color: "
-				+ ThemeManager.Colors.WHITE_CREAM + "; -fx-border-color: " + ThemeManager.Colors.COPPER
-				+ "; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand; -fx-text-fill: "
-				+ ThemeManager.Colors.DARK_COFFEE + ";");
-		myPostsBtn.setPrefWidth(210);
-		myPostsBtn.setWrapText(true);
-
-		Separator sep2 = new Separator();
-		sep2.setStyle("-fx-padding: 5 0 5 0;");
-
-		myPostsSection.getChildren().addAll(sep1, myPostsTitle, myPostsBtn, sep2);
-
-		// --- SEZIONE ARCHIVIO ---
-		VBox archiveSection = new VBox(10);
-		archiveSection.setPadding(new javafx.geometry.Insets(15));
-		archiveSection.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + ";");
-
-		Label archiveTitle = new Label("⭐ ARCHIVIO");
-		archiveTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: "
-				+ ThemeManager.Colors.DARK_COFFEE + "; -fx-letter-spacing: 1;");
-
-		Button archiveBtn = new Button("📑 Visualizza archivio");
-		archiveBtn.setStyle(
-				"-fx-padding: 8 12 8 12; -fx-font-size: 12; -fx-background-color: " + ThemeManager.Colors.ACCENT_GREEN
-						+ "; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand; -fx-text-fill: "
-						+ ThemeManager.Colors.WHITE_CREAM + "; -fx-font-weight: bold;");
-		archiveBtn.setPrefWidth(210);
-		archiveBtn.setWrapText(true);
-
-		Separator sep3 = new Separator();
-		sep3.setStyle("-fx-padding: 5 0 5 0;");
-
-		archiveSection.getChildren().addAll(archiveTitle, archiveBtn, sep3);
-
-		// --- SEZIONE STATISTICHE ---
-		VBox statsSection = new VBox(10);
-		statsSection.setPadding(new javafx.geometry.Insets(15));
-		statsSection.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + ";");
-
-		Label statsTitle = new Label("📊 STATISTICHE");
-		statsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: "
-				+ ThemeManager.Colors.DARK_COFFEE + "; -fx-letter-spacing: 1;");
-
-		HBox statBox1 = new HBox(10);
-		Label statLabel1 = new Label("Post creati:");
-		statLabel1.setStyle("-fx-font-size: 11px; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-		Label statValue1 = new Label("0");
-		statValue1.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: "
-				+ ThemeManager.Colors.MEDIUM_COFFEE + ";");
-		Region spacer1 = new Region();
-		javafx.scene.layout.HBox.setHgrow(spacer1, javafx.scene.layout.Priority.ALWAYS);
-		statBox1.getChildren().addAll(statLabel1, spacer1, statValue1);
-
-		HBox statBox2 = new HBox(10);
-		Label statLabel2 = new Label("Nel tuo archivio:");
-		statLabel2.setStyle("-fx-font-size: 11px; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-		Label statValue2 = new Label(String.valueOf(utenteLoggato.getArchivio().size()));
-		statValue2.setStyle(
-				"-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + ThemeManager.Colors.ACCENT_GREEN + ";");
-		Region spacer2 = new Region();
-		javafx.scene.layout.HBox.setHgrow(spacer2, javafx.scene.layout.Priority.ALWAYS);
-		statBox2.getChildren().addAll(statLabel2, spacer2, statValue2);
-
-		statsSection.getChildren().addAll(statsTitle, statBox1, statBox2);
-
-		// --- AGGREGAZIONE SIDEBAR ---
-		sidebar.getChildren().addAll(profileSection, categorySection);
-
-		// --- MODIFICA: Nascondi sezioni personali per Ospiti ---
-		// Aggiungi "I miei post", "Archivio" e "Statistiche" SOLO se NON è un ospite
-		if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
-			sidebar.getChildren().addAll(myPostsSection, archiveSection, statsSection);
-		}
-
-		ScrollPane sidebarPane = new ScrollPane(sidebar);
-		sidebarPane.setFitToWidth(true);
-		sidebarPane.setPrefWidth(240);
-		sidebarPane.getStyleClass().add("scroll-pane");
-
-		// --- FEED POST ---
-		VBox feed = new VBox(15);
-		feed.setPadding(new javafx.geometry.Insets(15));
-
-		// MESSAGGIO DI BENVENUTO
-		Label benvenuto = new Label("🎯 Benvenuto su BrewHub");
-		benvenuto.setStyle(
-				"-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-		feed.getChildren().add(benvenuto);
-
-		// CARICA I POST DAL DATABASE
-		caricaPostDalDatabase(feed);
-
-		// --- DASHBOARD ---
-
-		VBox dashboard = new VBox(12);
-		dashboard.setPadding(new javafx.geometry.Insets(15));
-		dashboard.getStyleClass().add("dashboard");
-
-		// TITOLO
-		Label dashTitle = new Label("✍️ Crea un nuovo post");
-		dashTitle.setStyle(
-				"-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-
-		TextField fldTitolo = new TextField();
-		fldTitolo.setPromptText("Titolo del post...");
-		fldTitolo.getStyleClass().add("text-field");
-		fldTitolo.setPrefHeight(38);
-
-		TextArea postArea = new TextArea();
-		postArea.getStyleClass().add("text-area");
-
-		// MENU A TENDINA - TIPO POST
-		ChoiceBox<Post.TipoPost> cbxTipo = new ChoiceBox<TipoPost>();
-		cbxTipo.getStyleClass().add("choice-box");
-		cbxTipo.setPrefWidth(150);
-		cbxTipo.getItems().setAll(TipoPost.values());
-		cbxTipo.setValue(TipoPost.TESTO);
-
-		// BOX PER POST CON MEDIA (FOTO/VIDEO)
-		HBox mediaBox = new HBox(10);
-
-		// METODO PER CAMBIO UI E SELEZIONE FILE
-		cbxTipo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-
-			mediaBox.getChildren().clear();
-			Label lblFile = new Label("Ancora nessun media selezionato...");
-			Button btnCaricaFile = new Button("Seleziona il media che vuoi caricare");
-			btnCaricaFile.setStyle("-fx-padding: 8 15 8 15; -fx-font-size: 12; -fx-background-color: "
-					+ ThemeManager.Colors.MEDIUM_COFFEE + "; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM
-					+ "; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand;");
-			FileChooser fileChooser = new FileChooser();
-
-			if (newVal == TipoPost.FOTO) { // RAMO PER SELEZIONE FOTO
-
-				btnCaricaFile.setOnAction(e -> {
-					fileChooser.setTitle("Seleziona un'immagine");
-					fileChooser.getExtensionFilters()
-							.add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.jpeg", "*.png"));
-
-					File selectedFile = fileChooser.showOpenDialog(stage);
-
-					if (selectedFile != null) {
-						// Inizializza la cartella media
-						MediaManager.initMediaFolder();
-						// Copia il file nella cartella media
-						String percorsoMedia = MediaManager.copyMediaToFolder(selectedFile);
-						if (percorsoMedia != null) {
-							mediaBox.setUserData(percorsoMedia);
-							lblFile.setText(selectedFile.getName());
-						} else {
-							lblFile.setText("Errore nel caricamento dell'immagine");
-						}
-					}
-				});
-
-				mediaBox.getChildren().addAll(btnCaricaFile, lblFile);
-
-			} else if (newVal == TipoPost.VIDEO) { // RAMO PER SELEZIONE VIDEO
-				btnCaricaFile.setOnAction(e -> {
-					fileChooser.setTitle("Seleziona un video");
-					fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Video", "*.mp4"));
-
-					File selectedFile = fileChooser.showOpenDialog(stage);
-
-					if (selectedFile != null) {
-						// Inizializza la cartella media
-						MediaManager.initMediaFolder();
-						// Copia il file nella cartella media
-						String percorsoMedia = MediaManager.copyMediaToFolder(selectedFile);
-						if (percorsoMedia != null) {
-							mediaBox.setUserData(percorsoMedia);
-							lblFile.setText(selectedFile.getName());
-						} else {
-							lblFile.setText("Errore nel caricamento del video");
-						}
-					}
-				});
-
-				mediaBox.getChildren().addAll(btnCaricaFile, lblFile);
-			}
-
-		});
-
-		postArea.setPromptText("Scrivi qui il tuo post...");
-		postArea.setPrefRowCount(4);
-		postArea.setWrapText(true);
-
-		Button publishBtn = new Button("📤 Pubblica");
-		publishBtn.setStyle(ThemeManager.Styles.buttonSuccess());
-		publishBtn.setPrefHeight(38);
-		publishBtn.setOnAction(e -> {
-			if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-				showAlert(AlertType.WARNING, "Accesso Limitato",
-						"Gli ospiti non possono pubblicare post. Registrati per partecipare!");
-				return;
-			}
-			String titolo = fldTitolo.getText();
-			String content = postArea.getText().trim();
-			TipoPost tipo = cbxTipo.getValue();
-			Post post;
-
-			if (tipo == null) {
-				showAlert(Alert.AlertType.ERROR, "Errore", "Seleziona la tipologia del post.");
-				return;
-			}
-
-			switch (tipo) {
-				case TESTO:
-					if (content.isBlank()) {
-						showAlert(AlertType.ERROR, "ERRORE", "Il contenuto del post non può essere vuoto  ");
-						return;
-					} else if (titolo.isBlank()) {
-						showAlert(AlertType.ERROR, "ERRORE", "Scrivere un titolo!");
-						return;
-					}
-					post = new Post(titolo, content, utenteLoggato, tipo, null);
-					try {
-						post.salvaPost();
-						feed.getChildren().add(1, creaCardPost(post));
-						showAlert(AlertType.INFORMATION, "Successo", "Post pubblicato!");
-					} catch (SQLException ex) {
-						showAlert(AlertType.ERROR, "Errore Database", ex.getMessage());
-					}
-					break;
-
-				case FOTO:
-					String imgPath = (String) mediaBox.getUserData();
-					if (imgPath == null) {
-						showAlert(AlertType.ERROR, "ERRORE", "Seleziona prima un'immagine!  ");
-						return;
-					} else if (titolo.isBlank()) {
-						showAlert(AlertType.ERROR, "ERRORE", "Scrivere un titolo!");
-						return;
-					}
-					File imgFile = MediaManager.getMediaFile(imgPath);
-					post = new Post(titolo, content, utenteLoggato, tipo, imgFile);
-					try {
-						post.salvaPost();
-						feed.getChildren().add(1, creaCardPost(post));
-						showAlert(AlertType.INFORMATION, "Successo", "Post pubblicato!");
-					} catch (SQLException ex) {
-						showAlert(AlertType.ERROR, "Errore Database", ex.getMessage());
-					}
-					break;
-
-				case VIDEO:
-					String videoPath = (String) mediaBox.getUserData();
-					if (videoPath == null) {
-						showAlert(AlertType.ERROR, "ERRORE", "Seleziona prima un video! ");
-						return;
-					} else if (titolo.isBlank()) {
-						showAlert(AlertType.ERROR, "ERRORE", "Scrivere un titolo!");
-						return;
-					}
-					File videoFile = MediaManager.getMediaFile(videoPath);
-					post = new Post(titolo, content, utenteLoggato, tipo, videoFile);
-					try {
-						post.salvaPost();
-						feed.getChildren().add(1, creaCardPost(post));
-						showAlert(AlertType.INFORMATION, "Successo", "Post pubblicato!");
-					} catch (SQLException ex) {
-						showAlert(AlertType.ERROR, "Errore Database", ex.getMessage());
-					}
-					break;
-				default:
-					showAlert(AlertType.ERROR, "ERRORE", "Tipo di post non supportato  :) ");
-					return;
-			}
-
-			// PULIZIA CAMPI
-			postArea.clear();
-			mediaBox.getChildren().clear();
-			cbxTipo.setValue(TipoPost.TESTO);
-			fldTitolo.clear();
-
-		});
-
-		HBox dashButtonBox = new HBox(10);
-		dashButtonBox.setAlignment(Pos.CENTER_LEFT);
-		dashButtonBox.getChildren().addAll(cbxTipo, publishBtn);
-
-		dashboard.getChildren().addAll(dashTitle, fldTitolo, postArea, mediaBox, dashButtonBox);
-		ScrollPane feedScroll = new ScrollPane(feed);
-		feedScroll.setFitToWidth(true);
-		feedScroll.getStyleClass().add("scroll-pane");
-		feedScroll.setStyle("-fx-padding: 0; -fx-control-inner-background: " + ThemeManager.Colors.WHITE_CREAM + ";");
-
-		// COMBINAZIONE FEED E DASHBOARD
-		VBox feedArea = new VBox(20, dashboard, feedScroll);
-		feedArea.setPadding(new javafx.geometry.Insets(15));
-		feedArea.setPrefWidth(600);
-		feedArea.setStyle("-fx-background-color: " + ThemeManager.Colors.WHITE_CREAM + ";");
-
-		// --- LAYOUT PRINCIPALE ---
-		HBox mainContent = new HBox(sidebarPane, feedArea);
-		HBox.setHgrow(feedArea, Priority.ALWAYS);
-
-		BorderPane root = new BorderPane();
-		root.setTop(header);
-		root.setCenter(mainContent);
-
-		return root;
-	}
-
-	// --- ALERT PER ERRORE SUI POST ---
-	private void showAlert(AlertType type, String title, String message) {
-		Alert alert = new Alert(type);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
-
-	}
-
-	// --- METODO PER CREAZIONE CARD POST ---
-	private VBox creaCardPost(Post post) {
-
-		// --- CARD PER POST ---
-		VBox card = new VBox(10);
-		card.setPadding(new javafx.geometry.Insets(18));
-		card.getStyleClass().add("post-card");
-
-		// HEADER CARD
-		HBox headerBox = new HBox(10);
-		headerBox.setAlignment(Pos.CENTER_LEFT);
-
-		Label autore = new Label(post.getAutore().getUsername());
-		autore.getStyleClass().add("post-author");
-
-		Label titolo = new Label(post.getTitolo());
-		titolo.getStyleClass().add("post-title");
-
-		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-		Label data = new Label(post.getDataCreazione().format(fmt));
-		data.getStyleClass().add("post-date");
-
-		Region spacer = new Region();
-		javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-		// BOTTONE ARCHIVIO
-		Button btnArchive = new Button("⭐ Salva");
-		btnArchive.getStyleClass().add("save-button");
-		btnArchive.setOnAction(e -> {
-			if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-				showAlert(AlertType.WARNING, "Accesso Limitato",
-						"Gli ospiti non possono salvare i post nell'archivio.");
-				return;
-			}
-			// CONTROLLO SUL SALVATAGGIO
-			boolean exists = utenteLoggato.getArchivio().stream()
-					.anyMatch(p -> p.getTitolo().equals(post.getTitolo()) &&
-							p.getAutore().getUsername().equals(post.getAutore().getUsername()));
-
-			if (!exists) {
-				utenteLoggato.getArchivio().add(post);
-				btnArchive.setText("✓ Salvato");
-				btnArchive.getStyleClass().clear();
-				btnArchive.getStyleClass().add("save-button-saved");
-				btnArchive.setDisable(true);
-			} else {
-				showAlert(Alert.AlertType.WARNING, "Archivio", "Questo post è già nel tuo archivio.");
-			}
-		});
-
-		headerBox.getChildren().addAll(autore, data, spacer, btnArchive);
-		card.getChildren().addAll(headerBox, titolo);
-
-		// CONTENUTO MEDIA E TESTO
-		if (post.getTipo() == TipoPost.TESTO) {
-			Label contenuto = new Label(post.getContenuto());
-			contenuto.getStyleClass().add("post-content");
-			contenuto.setWrapText(true);
-			card.getChildren().add(contenuto);
-
-		} else if (post.getTipo() == TipoPost.FOTO) {
-
-			// GESTIONE FOTO
-			try {
-				File dirImg = post.getMedia();
-				Image img = new Image(dirImg.toURI().toString(), 550, 0, true, true);
-				ImageView imgView = new ImageView(img);
-				imgView.setFitWidth(550);
-				imgView.setPreserveRatio(true);
-				VBox immagine = new VBox(imgView);
-				immagine.setAlignment(Pos.CENTER);
-				card.getChildren().add(immagine);
-			} catch (Exception e) {
-				card.getChildren().add(new Label("Impossibile caricare l'immagine."));
-			}
-
-			// GESTIONE TESTO SE PRESENTE
-			if (!post.getContenuto().isBlank()) {
-				Label contenuto = new Label(post.getContenuto());
-				contenuto.setWrapText(true);
-				card.getChildren().add(contenuto);
-			}
-
-		} else if (post.getTipo() == TipoPost.VIDEO) {
-
-			// GESTIONE VIDEO
-			try {
-				File dirVideo = post.getMedia();
-				Media video = new Media(dirVideo.toURI().toString());
-				MediaPlayer player = new MediaPlayer(video);
-				MediaView view = new MediaView(player);
-
-				view.setFitWidth(550);
-				view.setPreserveRatio(true);
-
-				// --- CREAZIONE BARRA DEI CONTROLLI ---
-				HBox controls = new HBox(10);
-				controls.setAlignment(Pos.CENTER);
-				controls.setPadding(new javafx.geometry.Insets(8));
-				controls.setStyle("-fx-background-color: " + ThemeManager.Colors.CREAM + "; -fx-background-radius: 5;");
-
-				// BOTTONE PLAY
-				Button btnPlay = new Button("▶ Play");
-				btnPlay.setStyle("-fx-padding: 6 16 6 16; -fx-font-size: 12; -fx-background-color: "
-						+ ThemeManager.Colors.MEDIUM_COFFEE + "; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM
-						+ "; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand;");
-				btnPlay.setOnAction(e -> {
-					if (player.getStatus() == MediaPlayer.Status.PLAYING) {
-						player.pause();
-						btnPlay.setText("▶ Play");
-					} else {
-						player.play();
-						btnPlay.setText("⏸ Pausa");
-					}
-				});
-
-				// SLIDER PER SCORRERE IL TEMPO
-				Slider timeSlider = new Slider();
-				timeSlider.setStyle("-fx-padding: 5;");
-				javafx.scene.layout.HBox.setHgrow(timeSlider, javafx.scene.layout.Priority.ALWAYS);
-
-				player.setOnReady(() -> {
-					timeSlider.setMax(video.getDuration().toSeconds());
-				});
-
-				player.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
-					if (!timeSlider.isValueChanging()) {
-						timeSlider.setValue(newTime.toSeconds());
-					}
-				});
-
-				// GESTIONE SPOSTAMENTO SU SLIDER
-				timeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-					if (timeSlider.isValueChanging()) {
-						player.seek(Duration.seconds(newVal.doubleValue()));
-					}
-				});
-
-				// GESTIONE CLICK SULLO SLIDER
-				timeSlider.setOnMouseClicked(e -> {
-					player.seek(Duration.seconds(timeSlider.getValue()));
-				});
-
-				// SLIDER VOLUME
-				Label lblVol = new Label("🔊");
-				lblVol.setStyle("-fx-font-size: 12;");
-				Slider volSlider = new Slider(0, 1, 0.5);
-				volSlider.setPrefWidth(80);
-				volSlider.setStyle("-fx-padding: 0;");
-				player.volumeProperty().bind(volSlider.valueProperty());
-
-				controls.getChildren().addAll(btnPlay, timeSlider, lblVol, volSlider);
-
-				// UNIONE VIDEO E CONTROLLI
-				VBox videoBox = new VBox(5, view, controls);
-				videoBox.setAlignment(Pos.CENTER);
-				card.getChildren().add(videoBox);
-			} catch (Exception e) {
-				card.getChildren().add(new Label("Impossibile caricare il video."));
-			}
-
-			// GESTIONE TESTO SE PRESENTE
-			if (!post.getContenuto().isBlank()) {
-				Label contenuto = new Label(post.getContenuto());
-				contenuto.getStyleClass().add("post-content");
-				contenuto.setWrapText(true);
-				card.getChildren().add(contenuto);
-			}
-		}
-
-		card.getChildren().add(new Separator());
-
-		// --- AREA AZIONI (LIKE & COMMENTI) ---
-		HBox actions = new HBox(15);
-		actions.setAlignment(Pos.CENTER_LEFT);
-		actions.setStyle("-fx-padding: 5;");
-
-		// GESTIONE LIKE
-		Button btnLike = new Button();
-		Runnable updateLikeLabel = () -> {
-			int likes = post.getMiPiace().size();
-			boolean liked = post.getMiPiace().stream()
-					.anyMatch(u -> u.getUsername().equals(utenteLoggato.getUsername()));
-			btnLike.setText(liked ? "❤️ " + likes : "🤍 " + likes);
-			if (liked) {
-				btnLike.getStyleClass().clear();
-				btnLike.getStyleClass().add("like-button-active");
-			} else {
-				btnLike.getStyleClass().clear();
-				btnLike.getStyleClass().add("like-button");
-			}
-		};
-		updateLikeLabel.run();
-
-		btnLike.setOnAction(e -> {
-			if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-				showAlert(AlertType.WARNING, "Accesso Limitato", "Devi registrarti per lasciare un mi piace.");
-				return;
-			}
-			boolean removed = post.getMiPiace().removeIf(u -> u.getUsername().equals(utenteLoggato.getUsername()));
-			if (!removed) {
-				post.getMiPiace().add(utenteLoggato);
-			}
-			updateLikeLabel.run();
-		});
-
-		actions.getChildren().add(btnLike);
-		card.getChildren().add(actions);
-
-		// --- SEZIONE COMMENTI ---
-		VBox commentsBox = new VBox(8);
-		commentsBox.getStyleClass().add("comments-box");
-
-		Label lblCommenti = new Label("💬 Commenti");
-		lblCommenti.getStyleClass().add("comments-label");
-
-		VBox commentsList = new VBox(6);
-		commentsList.setStyle("-fx-padding: 8 0 8 0;");
-
-		// FUNZIONE PER AGGIORNARE LA LISTA COMMENTI
-		Runnable refreshComments = () -> {
-			commentsList.getChildren().clear();
-			for (Commento c : post.getCommenti()) {
-				String autoreComm = (c.getUtente() != null) ? c.getUtente().getUsername() : "Anonimo";
-				Label l = new Label(autoreComm + ": " + c.getContenuto());
-				l.setStyle("-fx-font-size: 12px; -fx-text-fill: " + ThemeManager.Colors.DARK_COFFEE + ";");
-				l.setWrapText(true);
-				commentsList.getChildren().add(l);
-			}
-		};
-		refreshComments.run();
-
-		// AREA COMMENTO
-		HBox newCommentBox = new HBox(5);
-		newCommentBox.setStyle("-fx-padding: 8 0 0 0;");
-		TextField txtCommento = new TextField();
-		txtCommento.setPromptText("Scrivi un commento...");
-		txtCommento.getStyleClass().add("comment-field");
-		txtCommento.setPrefHeight(32);
-		javafx.scene.layout.HBox.setHgrow(txtCommento, javafx.scene.layout.Priority.ALWAYS);
-
-		Button btnInvia = new Button("Invia");
-		btnInvia.setStyle("-fx-padding: 8 20 8 20; -fx-font-size: 12; -fx-background-color: "
-				+ ThemeManager.Colors.MEDIUM_COFFEE + "; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM
-				+ "; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand;");
-		btnInvia.setPrefHeight(32);
-		btnInvia.setOnAction(e -> {
-			if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-				showAlert(AlertType.WARNING, "Accesso Limitato", "Devi registrarti per commentare i post.");
-				return;
-			}
-			if (!txtCommento.getText().isBlank()) {
-				Commento nuovo = new Commento(utenteLoggato, post, txtCommento.getText(), LocalDateTime.now());
-				post.getCommenti().add(nuovo);
-				txtCommento.clear();
-				refreshComments.run();
-			}
-		});
-
-		newCommentBox.getChildren().addAll(txtCommento, btnInvia);
-		commentsBox.getChildren().addAll(lblCommenti, commentsList, newCommentBox);
-
-		card.getChildren().add(commentsBox);
-
-		return card;
-	}
-
-	// --- METODO PER CARICARE POST DAL DATABASE ---
-	private void caricaPostDalDatabase(VBox feed) {
-		try {
-			List<Post> posts = Post.caricaTuttiPost();
-			for (Post post : posts) {
-				feed.getChildren().add(creaCardPost(post));
-			}
-		} catch (SQLException e) {
-			showAlert(Alert.AlertType.ERROR, "Errore", "Errore nel caricamento dei post: " + e.getMessage());
-		}
-	}
+        // --- HEADER ---
+        HBox header = new HBox(20);
+        header.getStyleClass().add("header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // Logo
+        Label logo = new Label("☕ BrewHub");
+        logo.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
+
+        // Barra di ricerca
+        TextField searchField = new TextField();
+        searchField.setPromptText("🔍 Cerca post o comunità...");
+        searchField.setPrefWidth(350);
+        searchField.getStyleClass().add("text-field");
+
+        // Spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Bottone Profilo
+        Button profileBtn = new Button("👤 " + utenteLoggato.getUsername());
+        profileBtn.getStyleClass().add("button");
+        profileBtn.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white;");
+
+        // Azione bottone profilo
+        profileBtn.setOnAction(e -> {
+
+            // Controllo tipo utente
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+
+                // Mostra avviso
+                showAlert(AlertType.WARNING, "Accesso Limitato", "Devi registrarti per personalizzare il tuo profilo.");
+                return;
+            }
+
+            // Vai alla vista profilo
+            ProfileView profileView = new ProfileView(stage, utenteLoggato);
+            stage.getScene().setRoot(profileView.getView());
+        });
+
+        // Bottone Logout
+        Button logoutBtn = new Button("🚪 Logout");
+        logoutBtn.getStyleClass().add("button-danger");
+
+        // Azione bottone logout
+        logoutBtn.setOnAction(e -> {
+
+            // Torna alla vista di login
+            LoginView login = new LoginView(stage);
+            stage.getScene().setRoot(login.getView());
+        });
+
+        // Aggiunta elementi all'header
+        header.getChildren().addAll(logo, searchField, spacer, profileBtn, logoutBtn);
+
+        // --- SIDEBAR ---
+        VBox sidebarContent = new VBox(0);
+        sidebarContent.setPrefWidth(260);
+        sidebarContent.getStyleClass().add("sidebar");
+
+        // Sezione feed
+        Label lblFeeds = new Label("FEEDS");
+        lblFeeds.getStyleClass().add("sidebar-section-label");
+
+        // Bottoni feed (home, popolari, tutti)
+        Button btnHome = creaNavButton("🏠  Home", true);
+        Button btnPopular = creaNavButton("🔥  Popolari", false);
+        Button btnAll = creaNavButton("📈  Tutti", false);
+
+        // Azioni simulate
+        btnHome.setOnAction(e -> System.out.println("Vai a Home"));
+
+        // Aggiunta elementi alla sidebar
+        sidebarContent.getChildren().addAll(lblFeeds, btnHome, btnPopular, btnAll);
+
+        // Separatore
+        addSeparator(sidebarContent);
+
+        // Sezione community
+        Label lblComm = new Label("COMMUNITY");
+        lblComm.getStyleClass().add("sidebar-section-label");
+
+        // Bottoni community (torrefattori, miscele, eventi)
+        Button btnTorrefattori = creaNavButton("☕  Torrefattori", false);
+        Button btnMiscele = creaNavButton("🫘  Miscele", false);
+        Button btnEventi = creaNavButton("🎉  Eventi", false);
+
+        // Aggiunta elementi community alla sidebar
+        sidebarContent.getChildren().addAll(lblComm, btnTorrefattori, btnMiscele, btnEventi);
+
+        
+       
+
+        // Sezione profilo utente (se non ospite)
+        if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
+
+            // Separatore
+             addSeparator(sidebarContent);
+
+            // Scheda utente
+            Label lblUser = new Label("IL TUO PROFILO");
+            lblUser.getStyleClass().add("sidebar-section-label");
+
+            // Bottoni profilo
+            Button btnProfile = creaNavButton("👤  Profilo", false);
+
+            // Azione bottone profilo
+            btnProfile.setOnAction(e -> {
+
+                // Vai alla vista profilo
+                ProfileView profileView = new ProfileView(stage, utenteLoggato);
+                stage.getScene().setRoot(profileView.getView());
+            });
+
+            // Bottoni i miei post e salvati
+            Button btnMyPosts = creaNavButton("✍️  I miei post", false);
+            Button btnSaved = creaNavButton("⭐  Salvati (" + utenteLoggato.getArchivio().size() + ")", false);
+
+            // Aggiunta elementi profilo alla sidebar
+            sidebarContent.getChildren().addAll(lblUser, btnProfile, btnMyPosts, btnSaved);
+        }
+
+        // Contenitore scrollabile per la sidebar
+        ScrollPane sidebarScroll = new ScrollPane(sidebarContent);
+        sidebarScroll.setFitToWidth(true);
+        sidebarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sidebarScroll.getStyleClass().add("sidebar-scroll");
+        sidebarScroll.setStyle("-fx-background-color: transparent;");
+
+        // --- FEED PRINCIPALE ---
+        VBox feedLayout = new VBox(20);
+        feedLayout.setPadding(new Insets(20));
+        feedLayout.setAlignment(Pos.TOP_CENTER);
+
+        // Dashboard creazione nuovo post
+        VBox dashboard = new VBox(12);
+        dashboard.getStyleClass().add("dashboard");
+        dashboard.setMaxWidth(700);
+
+        // Titolo dashboard
+        Label dashTitle = new Label("✍️ Crea un nuovo post");
+        dashTitle.getStyleClass().add("label");
+        dashTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        // Campo titolo per il post
+        TextField fldTitolo = new TextField();
+        fldTitolo.setPromptText("Titolo del post...");
+        fldTitolo.getStyleClass().add("text-field");
+
+        // Area testo per il contenuto del post
+        TextArea postArea = new TextArea();
+        postArea.setPromptText("Scrivi qui il tuo post...");
+        postArea.setPrefRowCount(3);
+        postArea.getStyleClass().add("text-area");
+
+        // Controlli post (tipo, media, pubblica)
+        HBox controlsBox = new HBox(10);
+        controlsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // ChoiceBox tipo post
+        ChoiceBox<Post.TipoPost> cbxTipo = new ChoiceBox<>();
+        cbxTipo.getItems().setAll(TipoPost.values());
+        cbxTipo.setValue(TipoPost.TESTO);
+        cbxTipo.getStyleClass().add("choice-box");
+
+        // Box per info media (file caricato)
+        HBox mediaInfoBox = new HBox(10);
+        mediaInfoBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Listener cambio tipo post
+        cbxTipo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+
+            // Reset info media
+            mediaInfoBox.getChildren().clear();
+            mediaInfoBox.setUserData(null);
+
+            // Se tipo è foto o video, mostra opzione caricamento
+            if (newVal == TipoPost.FOTO || newVal == TipoPost.VIDEO) {
+
+                // Bottone caricamento file
+                Button btnUpload = new Button(newVal == TipoPost.FOTO ? "Carica Foto" : "Carica Video");
+                btnUpload.getStyleClass().add("button-secondary");
+
+                // Label per mostrare nome file selezionato
+                Label lblFile = new Label("Nessun file");
+
+                // Azione bottone caricamento
+                btnUpload.setOnAction(e -> {
+
+                    // Apri file chooser
+                    FileChooser fc = new FileChooser();
+
+                    // Configura filtro in base al tipo
+                    fc.setTitle(newVal == TipoPost.FOTO ? "Seleziona una foto" : "Seleziona un video");
+                    if (newVal == TipoPost.FOTO)
+                        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png"));
+                    else
+                        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Video", "*.mp4"));
+
+                    // Mostra dialogo e ottieni file selezionato
+                    File f = fc.showOpenDialog(stage);
+
+                    // Se file selezionato, copialo nella cartella media e aggiorna UI
+                    if (f != null) {
+
+                        // Inizializza cartella media se necessario
+                        MediaManager.initMediaFolder();
+                        String path = MediaManager.copyMediaToFolder(f);
+
+                        // Aggiorna info media
+                        if (path != null) {
+                            mediaInfoBox.setUserData(path);
+                            lblFile.setText(f.getName());
+                        }
+                    }
+                });
+
+                // Aggiungi bottone e label al box info media
+                mediaInfoBox.getChildren().addAll(btnUpload, lblFile);
+            }
+        });
+
+        // Spacer orizzontale
+        Region dashSpacer = new Region();
+        HBox.setHgrow(dashSpacer, Priority.ALWAYS);
+
+        // Bottone pubblica post
+        Button publishBtn = new Button("Pubblica");
+        publishBtn.getStyleClass().add("button-success");
+
+        // Aggiunta controlli alla dashboard
+        controlsBox.getChildren().addAll(cbxTipo, mediaInfoBox, dashSpacer, publishBtn);
+        dashboard.getChildren().addAll(dashTitle, fldTitolo, postArea, controlsBox);
+
+        // Azione bottone pubblica
+        publishBtn.setOnAction(e -> {
+
+            // Controllo tipo utente
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+                // Ospiti non possono pubblicare
+                showAlert(AlertType.WARNING, "Stop", "Gli ospiti non possono pubblicare.");
+                return;
+            }
+
+            // Raccogli dati post
+            String titolo = fldTitolo.getText();
+            String content = postArea.getText();
+            TipoPost tipo = cbxTipo.getValue();
+            String mediaPath = (String) mediaInfoBox.getUserData();
+
+            // Controllo titolo
+            if (titolo.isBlank()) {
+                // Titolo obbligatorio
+                showAlert(AlertType.ERROR, "Errore", "Titolo mancante");
+                return;
+            }
+
+            // Controllo media se necessario
+            if (tipo != TipoPost.TESTO && mediaPath == null) {
+                // Media obbligatorio
+                showAlert(AlertType.ERROR, "Errore", "Media mancante");
+                return;
+            }
+
+            // Crea e salva post
+            try {
+                // Crea post
+                Post p = new Post(titolo, content, utenteLoggato, tipo,
+                        mediaPath != null ? MediaManager.getMediaFile(mediaPath) : null);
+
+                // Salva nel database
+                p.salvaPost();
+
+                // Aggiungi al feed in cima
+                int index = feedLayout.getChildren().contains(dashboard)
+                        ? feedLayout.getChildren().indexOf(dashboard) + 1
+                        : 0;
+                feedLayout.getChildren().add(index, creaCardPost(p));
+
+                // Reset campi
+                fldTitolo.clear();
+                postArea.clear();
+                mediaInfoBox.getChildren().clear();
+                cbxTipo.setValue(TipoPost.TESTO);
+                mediaInfoBox.setUserData(null);
+
+                // Conferma pubblicazione
+                showAlert(AlertType.INFORMATION, "Fatto", "Post pubblicato!");
+            } catch (SQLException ex) {
+
+                // Errore salvataggio
+                showAlert(AlertType.ERROR, "Errore DB", ex.getMessage());
+            }
+        });
+
+        // Aggiunta dashboard al feed
+        feedLayout.getChildren().add(dashboard);
+
+        // Caricamento post dal database
+        caricaPostDalDatabase(feedLayout);
+
+        // Contenitore scrollabile per il feed
+        ScrollPane feedScroll = new ScrollPane(feedLayout);
+        feedScroll.setFitToWidth(true);
+        feedScroll.getStyleClass().add("scroll-pane");
+        feedScroll.setStyle("-fx-background-color: transparent;");
+
+        // Aggiunta sezioni al layout principale
+        root.setTop(header);
+        root.setLeft(sidebarScroll);
+        root.setCenter(feedScroll);
+
+        // Ritorna il layout completo
+        return root;
+    }
+
+    // Metodo per creare la card di un post
+    private VBox creaCardPost(Post post) {
+        // Card post
+        VBox card = new VBox(10);
+        card.setMaxWidth(700);
+        card.getStyleClass().add("post-card");
+
+        // Header
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // Autore e data
+        Label authorLbl = new Label(post.getAutore().getUsername());
+        authorLbl.getStyleClass().add("post-author");
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        Label dateLbl = new Label(post.getDataCreazione().format(fmt));
+        dateLbl.getStyleClass().add("post-date");
+
+        // Spacer orizzontale
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Bottone salva post
+        Button btnSave = new Button("Salva");
+        btnSave.getStyleClass().add("save-button");
+
+        // Azione bottone salva
+        btnSave.setOnAction(e -> {
+            // Controllo tipo utente
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+                showAlert(AlertType.ERROR, "Stop", "Gli ospiti non possono salvare post.");
+                return;
+            }
+
+            // Aggiungi post all'archivio se non già presente
+            boolean exists = utenteLoggato.getArchivio().stream().anyMatch(p -> p.getTitolo().equals(post.getTitolo()));
+
+            // Aggiorna UI se salvato
+            if (!exists) {
+                // Aggiungi al archivio
+                utenteLoggato.getArchivio().add(post);
+                btnSave.setText("Salvato");
+                btnSave.getStyleClass().add("save-button-saved");
+            }
+        });
+
+        // Aggiunta elementi all'header
+        header.getChildren().addAll(authorLbl, dateLbl, spacer, btnSave);
+
+        // Titolo post
+        Label titleLbl = new Label(post.getTitolo());
+        titleLbl.getStyleClass().add("post-title");
+
+        // Aggiunta header e titolo alla card
+        card.getChildren().addAll(header, titleLbl);
+
+        // Media
+        if (post.getTipo() == TipoPost.FOTO && post.getMedia() != null) {
+            // Immagine
+            try {
+                // Caricamento immagine
+                ImageView iv = new ImageView(new Image(post.getMedia().toURI().toString()));
+                iv.setFitWidth(600);
+                iv.setPreserveRatio(true);
+
+                // Contenitore centrato
+                VBox mediaBox = new VBox(iv);
+                mediaBox.setAlignment(Pos.CENTER);
+
+                // Aggiunta mediaBox alla card
+                card.getChildren().add(mediaBox);
+            } catch (Exception e) {
+                // Errore caricamento immagine
+                card.getChildren().add(new Label("Errore caricamento immagine: " + e.getMessage()));
+            }
+        } else if (post.getTipo() == TipoPost.VIDEO && post.getMedia() != null) {
+            // Video
+            try {
+                // Caricamento video
+                Media m = new Media(post.getMedia().toURI().toString());
+                MediaPlayer mp = new MediaPlayer(m);
+                MediaView mv = new MediaView(mp);
+                mv.setFitWidth(600);
+                mv.setPreserveRatio(true);
+
+                // Controlli video
+                HBox controls = new HBox(10);
+                controls.setAlignment(Pos.CENTER);
+                controls.setPadding(new Insets(5, 0, 5, 0));
+
+                // Bottone Play
+                Button btnPlay = new Button("▶ Play");
+                btnPlay.getStyleClass().add("button-primary");
+
+                // Slider Tempo
+                Slider timeSlider = new Slider();
+                HBox.setHgrow(timeSlider, Priority.ALWAYS);
+
+                // Slider Volume
+                Label lblVol = new Label("🔊");
+                Slider volSlider = new Slider(0, 1, 0.5);
+                volSlider.setPrefWidth(80);
+                volSlider.getStyleClass().add("volume-slider");
+
+                // Azione bottone Play/Pausa
+                btnPlay.setOnAction(ev -> {
+                    // Toggle Play/Pausa
+                    if (mp.getStatus() == MediaPlayer.Status.PLAYING) {
+                        // Pausa
+                        mp.pause();
+                        btnPlay.setText("▶ Play");
+                    } else {
+                        // Play
+                        mp.play();
+                        btnPlay.setText("⏸ Pausa");
+                    }
+                });
+
+                // Aggiornamento automatico slider tempo
+                mp.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
+                    // Aggiorna slider solo se non in dragging
+                    if (!timeSlider.isValueChanging()) {
+                        timeSlider.setValue(newTime.toSeconds());
+                    }
+                });
+
+                // Setup Max Slider quando il video è pronto
+                mp.setOnReady(() -> {
+                    // Imposta il massimo dello slider alla durata del video
+                    timeSlider.setMax(m.getDuration().toSeconds());
+                });
+
+                // Seek manuale (trascinamento slider)
+                timeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    // Seek solo se l'utente sta interagendo con lo slider
+                    if (timeSlider.isValueChanging()) {
+                        // Esegui seek
+                        mp.seek(Duration.seconds(newVal.doubleValue()));
+                    }
+                });
+
+                // Seek al click
+                timeSlider.setOnMouseClicked(e -> {
+                    // Esegui seek
+                    mp.seek(Duration.seconds(timeSlider.getValue()));
+                });
+
+                // Binding Volume
+                mp.volumeProperty().bind(volSlider.valueProperty());
+
+                // Aggiunta controlli al box
+                controls.getChildren().addAll(btnPlay, timeSlider, lblVol, volSlider);
+
+                // Aggiunta mediaBox alla card
+                VBox mediaBox = new VBox(5, mv, controls);
+                mediaBox.setAlignment(Pos.CENTER);
+
+                // Aggiunta mediaBox alla card
+                card.getChildren().add(mediaBox);
+            } catch (Exception e) {
+                // Errore caricamento video
+                card.getChildren().add(new Label("Errore caricamento video: " + e.getMessage()));
+            }
+        }
+
+        // Contenuto testuale
+        if (post.getContenuto() != null && !post.getContenuto().isBlank()) {
+            // Testo
+            Label contentLbl = new Label(post.getContenuto());
+            contentLbl.getStyleClass().add("post-content");
+            contentLbl.setWrapText(true);
+
+            // Aggiunta contenuto alla card
+            card.getChildren().add(contentLbl);
+        }
+
+        // Separatore
+        card.getChildren().add(new Separator());
+
+        // Footer
+        HBox actions = new HBox(15);
+
+        // Mi Piace
+        Button btnLike = new Button("🤍 " + post.getMiPiace().size());
+        btnLike.getStyleClass().add("like-button");
+
+        // Azione bottone Mi Piace
+        btnLike.setOnAction(e -> {
+            // Controllo tipo utente
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+                // Ospiti non possono mettere mi piace
+                showAlert(AlertType.ERROR, "Stop", "Gli ospiti non possono mettere mi piace.");
+                return;
+            }
+
+            // Toggle Mi Piace
+            boolean removed = post.getMiPiace().removeIf(u -> u.getUsername().equals(utenteLoggato.getUsername()));
+
+            // Aggiungi se non rimosso
+            if (!removed)
+                post.getMiPiace().add(utenteLoggato);
+
+            // Aggiorna testo bottone
+            btnLike.setText((removed ? "🤍 " : "❤️ ") + post.getMiPiace().size());
+        });
+
+        // Aggiunta bottoni al footer
+        actions.getChildren().add(btnLike);
+
+        // Aggiunta footer alla card
+        card.getChildren().add(actions);
+
+        // Commenti
+        VBox commentsBox = new VBox(5);
+        commentsBox.getStyleClass().add("comments-box");
+
+        // Lista commenti
+        VBox commentsList = new VBox(5);
+
+        // Funzione per aggiornare i commenti
+        Runnable refreshComm = () -> {
+
+            // Aggiorna lista commenti
+            commentsList.getChildren().clear();
+
+            // Aggiungi commenti esistenti
+            for (Commento c : post.getCommenti()) {
+                // Singolo commento
+                String u = c.getUtente().getUsername();
+                Label l = new Label(u + ": " + c.getContenuto());
+                l.setWrapText(true);
+                commentsList.getChildren().add(l);
+            }
+        };
+
+        // Carica commenti iniziali
+        refreshComm.run();
+
+        // Input nuovo commento
+        HBox commInput = new HBox(5);
+
+        // Campo testo commento
+        TextField tfComm = new TextField();
+        tfComm.setPromptText("Commenta...");
+        tfComm.getStyleClass().add("comment-field");
+        HBox.setHgrow(tfComm, Priority.ALWAYS);
+
+        // Bottone invia commento
+        Button btnSend = new Button("Invia");
+        btnSend.getStyleClass().add("button-primary");
+
+        // Azione bottone invia commento
+        btnSend.setOnAction(e -> {
+            // Controllo tipo utente
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+                // Ospiti non possono commentare
+                showAlert(AlertType.ERROR, "Stop", "Gli ospiti non possono commentare.");
+                return;
+            }
+            // Aggiungi commento se non vuoto
+            if (!tfComm.getText().isBlank()) {
+                // Aggiungi commento al post
+                post.getCommenti().add(new Commento(utenteLoggato, post, tfComm.getText(), LocalDateTime.now()));
+                tfComm.clear();
+                refreshComm.run();
+            }
+        });
+        // Aggiunta input commento al box
+        commInput.getChildren().addAll(tfComm, btnSend);
+        commentsBox.getChildren().addAll(commentsList, commInput);
+
+        // Aggiunta box commenti alla card
+        card.getChildren().add(commentsBox);
+
+        // Ritorna la card completa
+        return card;
+    }
+
+    // Metodo per caricare i post dal database
+    private void caricaPostDalDatabase(VBox feed) {
+
+        // Caricamento post
+        try {
+
+            // Ottieni tutti i post
+            List<Post> posts = Post.caricaTuttiPost();
+
+            // Aggiungi ogni post al feed
+            for (Post p : posts)
+                feed.getChildren().add(creaCardPost(p));
+        } catch (SQLException e) {
+
+            // Errore caricamento post
+            e.printStackTrace();
+        }
+    }
+
+    // Metodo helper per mostrare alert
+    private void showAlert(AlertType type, String title, String msg) {
+
+        // Mostra alert
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
+    // Metodo helper per creare i bottoni di navigazione
+    private Button creaNavButton(String text, boolean isActive) {
+
+        // Crea bottone
+        Button btn = new Button(text);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.getStyleClass().add("nav-btn");
+
+        // Stile attivo
+        if (isActive) {
+            btn.setStyle("-fx-background-color: #F5E6D3; -fx-border-color: transparent;");
+        }
+
+        // Ritorna il bottone
+        return btn;
+    }
+
+    // Metodo helper per aggiungere separatori
+    private void addSeparator(VBox container) {
+
+        // Separatore
+        Region sep = new Region();
+        sep.setMinHeight(1);
+        sep.setStyle("-fx-background-color: #edeff1; -fx-margin: 5 20 5 20;");
+
+        // Contenitore per il separatore con padding
+        VBox box = new VBox(sep);
+        box.setPadding(new Insets(10, 20, 10, 20));
+
+        // Aggiunta al container
+        container.getChildren().add(box);
+    }
 }

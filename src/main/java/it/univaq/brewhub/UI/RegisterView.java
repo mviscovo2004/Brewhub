@@ -1,8 +1,8 @@
 package it.univaq.brewhub.UI;
 
+// Importazioni JavaFX e classi del progetto
 import java.io.File;
 import java.sql.SQLException;
-
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.Utente.TipoUtente;
 import it.univaq.brewhub.MediaManager;
@@ -15,197 +15,255 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+// Vista per la Registrazione
 public class RegisterView {
-	private final Stage stage;
-	private String immagine = null;
 
-	public RegisterView(Stage stage) {
-		this.stage = stage;
-	}
+    // Riferimento allo stage principale
+    private final Stage stage;
 
-	public Parent getView() {
-		stage.setResizable(false);
-		stage.setTitle("Registrazione - BrewHub");
-		stage.setWidth(600);
-		stage.setHeight(750);
+    // Percorso immagine profilo
+    private String immagine = null;
 
-		VBox register = new VBox(15);
-		register.setAlignment(Pos.TOP_CENTER);
-		register.setPadding(new javafx.geometry.Insets(30, 20, 30, 20));
-		register.setStyle("-fx-background-color: " + ThemeManager.Colors.WHITE_CREAM + ";");
+    // Costruttore
+    public RegisterView(Stage stage) {
+        this.stage = stage;
+    }
 
-		VBox formBox = new VBox(12);
-		formBox.setAlignment(Pos.CENTER);
-		formBox.getStyleClass().add("form-box");
+    // Metodo per ottenere la vista della Registrazione
+    public Parent getView() {
+        // Configurazione stage
+        stage.setResizable(false);
+        stage.setTitle("Brewhub - Registrazione");
+        stage.setWidth(600);
+        stage.setHeight(750);
 
-		HBox bottoni = new HBox(10);
-		bottoni.setAlignment(Pos.CENTER);
+        // --- LAYOUT ---
+        StackPane root = new StackPane();
+        root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
-		HBox persona = new HBox(15);
-		persona.setAlignment(Pos.CENTER);
+        // Card centrale di Registrazione
+        VBox formBox = new VBox(15);
+        formBox.setAlignment(Pos.CENTER);
+        formBox.setMaxWidth(480);
+        formBox.getStyleClass().add("form-box"); // Stile Card CSS
 
-		Label lblErrore = new Label();
-		lblErrore.setVisible(false);
-		lblErrore.getStyleClass().add("error-label");
-		lblErrore.setWrapText(true);
+        // Titolo
+        Label lblTitolo = new Label("Crea un account");
+        lblTitolo.getStyleClass().add("title-label");
 
-		Label lblTitolo = new Label("Crea un account");
-		lblTitolo.getStyleClass().add("title-label");
+        // Sottotitolo
+        Label lblSottotitolo = new Label("Registrati per iniziare");
+        lblSottotitolo.getStyleClass().add("subtitle-label");
 
-		Label lblSottotitolo = new Label("Registrati per iniziare");
-		lblSottotitolo.getStyleClass().add("subtitle-label");
+        // Messaggio Errore
+        Label lblErrore = new Label();
+        lblErrore.setVisible(false);
+        lblErrore.getStyleClass().add("error-label");
+        lblErrore.setWrapText(true);
 
-		TextField fldNome = new TextField();
-		fldNome.setPromptText("Nome");
-		fldNome.getStyleClass().add("text-field");
-		fldNome.setPrefHeight(40);
-		fldNome.setPrefWidth(150);
+        // Campi Dati
+        HBox persona = new HBox(10);
+        persona.setAlignment(Pos.CENTER);
 
-		TextField fldCognome = new TextField();
-		fldCognome.setPromptText("Cognome");
-		fldCognome.getStyleClass().add("text-field");
-		fldCognome.setPrefHeight(40);
-		fldCognome.setPrefWidth(150);
+        // Campo Nome
+        TextField fldNome = new TextField();
+        fldNome.setPromptText("Nome");
+        fldNome.getStyleClass().add("text-field");
+        fldNome.setPrefWidth(200);
 
-		TextField fldUsername = new TextField();
-		fldUsername.setPromptText("Username");
-		fldUsername.getStyleClass().add("text-field");
-		fldUsername.setPrefHeight(40);
-		fldUsername.setPrefWidth(300);
+        // Campo Cognome
+        TextField fldCognome = new TextField();
+        fldCognome.setPromptText("Cognome");
+        fldCognome.getStyleClass().add("text-field");
+        fldCognome.setPrefWidth(200);
 
-		PasswordField fldPassword = new PasswordField();
-		fldPassword.setPromptText("Password (min 8 caratteri)");
-		fldPassword.getStyleClass().add("password-field");
-		fldPassword.setPrefHeight(40);
-		fldPassword.setPrefWidth(300);
+        // Aggiunta campi al box persona
+        persona.getChildren().addAll(fldNome, fldCognome);
 
-		ChoiceBox<TipoUtente> cbxTipo = new ChoiceBox<TipoUtente>();
-		cbxTipo.getStyleClass().add("choice-box");
-		cbxTipo.setPrefWidth(300);
-		cbxTipo.getItems().setAll(TipoUtente.values());
-		cbxTipo.getItems().remove(TipoUtente.ADMIN);
-		cbxTipo.getItems().remove(TipoUtente.OSPITE);
-		cbxTipo.setValue(TipoUtente.UTENTE_MEDIO);
+        // Campo Username
+        TextField fldUsername = new TextField();
+        fldUsername.setPromptText("Username");
+        fldUsername.getStyleClass().add("text-field");
+        fldUsername.setMaxWidth(Double.MAX_VALUE);
 
-		Button btnAccedi = new Button("Accedi");
-		btnAccedi.setStyle(ThemeManager.Styles.buttonSecondary());
-		btnAccedi.setPrefWidth(180);
-		btnAccedi.setPrefHeight(40);
+        // Campo Password
+        PasswordField fldPassword = new PasswordField();
+        fldPassword.setPromptText("Password (min 8 caratteri)");
+        fldPassword.getStyleClass().add("password-field");
+        fldPassword.setMaxWidth(Double.MAX_VALUE);
 
-		Button btnRegistrati = new Button("Registrati");
-		btnRegistrati.setDefaultButton(true);
-		btnRegistrati.setStyle(ThemeManager.Styles.buttonSuccess());
-		btnRegistrati.setPrefWidth(180);
-		btnRegistrati.setPrefHeight(40);
+        // ChoiceBox Tipo Utente
+        ChoiceBox<TipoUtente> cbxTipo = new ChoiceBox<>();
+        cbxTipo.getStyleClass().add("choice-box");
+        cbxTipo.setMaxWidth(Double.MAX_VALUE);
+        cbxTipo.getItems().setAll(TipoUtente.values());
+        cbxTipo.getItems().remove(TipoUtente.ADMIN);
+        cbxTipo.getItems().remove(TipoUtente.OSPITE);
+        cbxTipo.setValue(TipoUtente.UTENTE_MEDIO);
 
-		Button btnFoto = new Button("📷 Scegli foto profilo");
-		btnFoto.setStyle("-fx-padding: 10 20 10 20; -fx-font-size: 13; -fx-background-color: "
-				+ ThemeManager.Colors.MEDIUM_COFFEE + "; -fx-text-fill: " + ThemeManager.Colors.WHITE_CREAM
-				+ "; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
-		btnFoto.setPrefHeight(40);
+        // Sezione Foto
+        HBox fotoBox = new HBox(15);
+        fotoBox.setAlignment(Pos.CENTER_LEFT);
 
-		HBox fotoBox = new HBox(15);
-		Label lblFile = new Label("Nessuna foto selezionata");
-		lblFile.setStyle("-fx-text-fill: " + ThemeManager.Colors.PALE_COFFEE + "; -fx-font-style: italic;");
-		fotoBox.setAlignment(Pos.CENTER);
+        // Bottone scegli foto
+        Button btnFoto = new Button("📷 Scegli foto");
+        btnFoto.getStyleClass().add("button-accent"); // Stile arancione/rame
 
-		Hyperlink linkOspite = new Hyperlink("Continua come ospite");
-		linkOspite.getStyleClass().add("hyperlink");
+        // Label nome file foto
+        Label lblFile = new Label("Nessuna foto");
+        lblFile.setStyle("-fx-font-style: italic; -fx-font-size: 11px;");
 
-		persona.getChildren().addAll(fldNome, fldCognome);
-		bottoni.getChildren().addAll(btnAccedi, btnRegistrati);
-		fotoBox.getChildren().addAll(btnFoto, lblFile);
-		formBox.getChildren().addAll(lblTitolo, lblSottotitolo, fotoBox, persona, cbxTipo, fldUsername, fldPassword,
-				bottoni, lblErrore);
-		register.getChildren().addAll(formBox, linkOspite);
+        // Aggiunta componenti al box foto
+        fotoBox.getChildren().addAll(btnFoto, lblFile);
 
-		btnAccedi.setOnAction(e -> {
-			LoginView login = new LoginView(stage);
-			stage.getScene().setRoot(login.getView());
-		});
+        // Bottoni Azione
+        VBox bottoni = new VBox(10);
+        bottoni.setAlignment(Pos.CENTER);
 
-		btnFoto.setOnAction(e -> {
-			FileChooser fileFoto = new FileChooser();
-			fileFoto.getExtensionFilters()
-					.add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.gif", "*.jpeg"));
-			fileFoto.setTitle("Selezione una foto");
-			File fotoSelezionata = fileFoto.showOpenDialog(stage);
-			if (fotoSelezionata != null) {
-				// Inizializza la cartella media
-				MediaManager.initMediaFolder();
-				// Copia il file nella cartella media
-				String percorsoMedia = MediaManager.copyMediaToFolder(fotoSelezionata);
-				if (percorsoMedia != null) {
-					immagine = percorsoMedia;
-					lblFile.setText(fotoSelezionata.getName());
-				} else {
-					lblFile.setText("Errore nel caricamento della foto");
-				}
-			}
-		});
+        // Bottone registrati
+        Button btnRegistrati = new Button("Registrati");
+        btnRegistrati.setDefaultButton(true);
+        btnRegistrati.getStyleClass().add("button-success");
+        btnRegistrati.setMaxWidth(Double.MAX_VALUE);
 
-		btnRegistrati.setOnAction(e -> {
-			lblErrore.setVisible(false);
-			String nome = fldNome.getText();
-			String cognome = fldCognome.getText();
-			TipoUtente tipo = cbxTipo.getValue();
-			String user = fldUsername.getText();
-			String pw = fldPassword.getText();
+        // Bottone accedi
+        Button btnAccedi = new Button("Hai già un account? Accedi");
+        btnAccedi.getStyleClass().add("button-secondary");
+        btnAccedi.setMaxWidth(Double.MAX_VALUE);
 
-			if (nome.isBlank() || cognome.isBlank() || user.isBlank() || pw.isBlank() || immagine == null) {
+        // Link continua come ospite
+        Hyperlink linkOspite = new Hyperlink("Continua come ospite");
+        linkOspite.getStyleClass().add("hyperlink");
 
-				lblErrore.setText("⚠ Completa tutti i campi, inclusa la foto profilo");
-				lblErrore.setVisible(true);
-			} else if (pw.length() < 8) {
-				lblErrore.setText("✗ Password troppo corta (minimo 8 caratteri)");
-				lblErrore.setVisible(true);
-			} else {
-				try {
-					System.out.println("DEBUG - Inizio registrazione utente: " + user);
-					Utente nuovoUtente = new Utente(nome, cognome, user, pw, tipo, immagine);
+        // Aggiunta bottoni al box azioni
+        bottoni.getChildren().addAll(btnRegistrati, btnAccedi, linkOspite);
 
-					
-					Utente dao = new Utente();
-					dao.registraUtente(nuovoUtente);
-					System.out.println("DEBUG - Registrazione completata, vado alla Home");
+        // Assemblaggio Card
+        formBox.getChildren().addAll(
+                lblTitolo, lblSottotitolo, lblErrore,
+                fotoBox, persona, cbxTipo, fldUsername, fldPassword,
+                bottoni);
 
-					// Passiamo alla Home
-					HomeView home = new HomeView(stage, nuovoUtente);
-					stage.getScene().setRoot(home.getView());
-					System.out.println("DEBUG - Home caricata con successo");
+        // Aggiunta form box al root
+        root.getChildren().add(formBox);
 
-				} catch (SQLException ex) {
-					System.out.println("DEBUG - Errore SQLException: " + ex.getMessage());
-					ex.printStackTrace();
-					if (ex.getMessage().contains("Username già registrato")) {
-						lblErrore.setText("✗ Username già registrato");
-					} else if (ex.getMessage().contains("PRIMARY KEY")) {
-						lblErrore.setText("✗ Username già esistente!");
-					} else {
-						lblErrore.setText("✗ Errore Database: " + ex.getMessage());
-					}
-					lblErrore.setVisible(true);
-				} catch (Exception ex) {
-					System.out.println("DEBUG - Errore generico: " + ex.getMessage());
-					ex.printStackTrace();
-					lblErrore.setText("✗ Errore: " + ex.getMessage());
-					lblErrore.setVisible(true);
-				}
+        // --- LOGICA EVENTI ---
+        // Azione bottone accedi
+        btnAccedi.setOnAction(e -> {
 
-			}
-		});
+            // Passa alla vista di Login
+            LoginView login = new LoginView(stage);
+            stage.getScene().setRoot(login.getView());
+        });
 
-		linkOspite.setOnAction(e -> {
-			Utente profilo = new Utente("guest");
-			HomeView home = new HomeView(stage, profilo);
-			stage.getScene().setRoot(home.getView());
-		});
+        // Azione bottone scegli foto
+        btnFoto.setOnAction(e -> {
+            
+            // Apertura FileChooser
+            FileChooser fileFoto = new FileChooser();
+            fileFoto.getExtensionFilters()
+                    .add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.gif", "*.jpeg"));
+            fileFoto.setTitle("Seleziona una foto");
 
-		return register;
+            // Selezione file
+            File fotoSelezionata = fileFoto.showOpenDialog(stage);
 
-	}
+            // Se un file è stato selezionato
+            if (fotoSelezionata != null) {
+
+                // Copia file nella cartella media dell'applicazione
+                MediaManager.initMediaFolder();
+                String percorsoMedia = MediaManager.copyMediaToFolder(fotoSelezionata);
+
+                // Se il copia è andato a buon fine
+                if (percorsoMedia != null) {
+
+                    // Aggiorna percorso immagine e label
+                    immagine = percorsoMedia;
+                    lblFile.setText(fotoSelezionata.getName());
+                } else {
+
+                    // Mostra errore
+                    lblFile.setText("Errore caricamento");
+                }
+            }
+        });
+
+        // Azione bottone registrati
+        btnRegistrati.setOnAction(e -> {
+            // Reset messaggio errore
+            lblErrore.setVisible(false);
+
+            // Recupero dati
+            String nome = fldNome.getText();
+            String cognome = fldCognome.getText();
+            TipoUtente tipo = cbxTipo.getValue();
+            String user = fldUsername.getText();
+            String pw = fldPassword.getText();
+
+            // Controllo campi vuoti e validità password
+            if (nome.isBlank() || cognome.isBlank() || user.isBlank() || pw.isBlank() || immagine == null) {
+
+                // Mostra errore
+                lblErrore.setText("⚠ Completa tutti i campi e carica una foto");
+                lblErrore.setVisible(true);
+            } else if (pw.length() < 8) {
+
+                // Mostra errore
+                lblErrore.setText("✗ Password troppo corta (minimo 8 caratteri)");
+                lblErrore.setVisible(true);
+            } else {
+
+                // Tentativo registrazione
+                try {
+
+                    // Crea nuovo utente e registra nel DB
+                    Utente nuovoUtente = new Utente(nome, cognome, user, pw, tipo, immagine);
+                    Utente dao = new Utente(); 
+                    dao.registraUtente(nuovoUtente);
+
+                    // Registrazione riuscita, vai alla Home
+                    HomeView home = new HomeView(stage, nuovoUtente);
+                    stage.getScene().setRoot(home.getView());
+                } catch (SQLException ex) {
+                    // Gestione errore di username già esistente
+                    if (ex.getMessage().contains("Username già registrato")
+                            || ex.getMessage().contains("PRIMARY KEY")) {
+
+                        // Mostra errore
+                        lblErrore.setText("✗ Username già esistente!");
+                    } else {
+
+                        // Mostra errore generico DB
+                        lblErrore.setText("✗ Errore Database: " + ex.getMessage());
+                    }
+                    lblErrore.setVisible(true);
+                    ex.printStackTrace();
+                } catch (Exception ex) {
+
+                    // Mostra errore generico
+                    lblErrore.setText("✗ Errore generico: " + ex.getMessage());
+                    lblErrore.setVisible(true);
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        // Azione link continua come ospite
+        linkOspite.setOnAction(e -> {
+
+            // Login come guest
+            Utente profilo = new Utente("guest");
+            HomeView home = new HomeView(stage, profilo);
+            stage.getScene().setRoot(home.getView());
+        });
+
+        // Ritorna il root della vista
+        return root;
+    }
 }
