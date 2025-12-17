@@ -1,7 +1,7 @@
 package it.univaq.brewhub;
 
 // Importazioni librerie Java e classi del progetto
-import java.io.File;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,7 +19,7 @@ public class Post {
     private String contenuto;
     private TipoPost tipo;
     private LocalDateTime dataCreazione;
-    private File media = null;
+    private String media = null;
     private List<Utente> miPiace = new ArrayList<Utente>();
     private List<Commento> commenti = new ArrayList<Commento>();
 
@@ -47,7 +47,7 @@ public class Post {
 
     // --- COSTRUTTORI ---
     // Costruttore completo
-    public Post(String titolo, String contenuto, Utente autore, TipoPost tipo, File media) {
+    public Post(String titolo, String contenuto, Utente autore, TipoPost tipo, String media) {
         this.titolo = titolo;
         this.contenuto = contenuto;
         this.autore = autore;
@@ -82,7 +82,7 @@ public class Post {
     }
 
     // Ritorna il file multimediale associato al post
-    public File getMedia() {
+    public String getMedia() {
         return media;
     }
 
@@ -138,7 +138,7 @@ public class Post {
     }
 
     // Imposta il file multimediale associato al post
-    public void setMedia(File media) {
+    public void setMedia(String media) {
         this.media = media;
     }
 
@@ -180,7 +180,7 @@ public class Post {
             pstmt.setString(5, this.dataCreazione.toString());
 
             // Salva il percorso relativo del media (es. media/uuid.ext)
-            pstmt.setString(6, this.media != null ? this.media.getPath().replace('\\', '/') : null);
+            pstmt.setString(6, this.media != null ? this.media.replace('\\', '/') : null);
 
             // Esegui l'inserimento
             pstmt.executeUpdate();
@@ -235,9 +235,7 @@ public class Post {
                 // Se è presente un media URI
                 if (mediaUri != null) {
 
-                    // Usa MediaManager per risolvere il percorso relativo
-                    File mediaFile = MediaManager.getMediaFile(mediaUri);
-                    post.setMedia(mediaFile);
+                    post.setMedia(mediaUri);
                 }
                 
                 // Aggiungi il post alla lista

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import it.univaq.brewhub.Commento;
 import it.univaq.brewhub.Post;
 import it.univaq.brewhub.Post.TipoPost;
@@ -143,14 +144,11 @@ public class HomeView {
         // Aggiunta elementi community alla sidebar
         sidebarContent.getChildren().addAll(lblComm, btnTorrefattori, btnMiscele, btnEventi);
 
-        
-       
-
         // Sezione profilo utente (se non ospite)
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
 
             // Separatore
-             addSeparator(sidebarContent);
+            addSeparator(sidebarContent);
 
             // Scheda utente
             Label lblUser = new Label("IL TUO PROFILO");
@@ -321,7 +319,7 @@ public class HomeView {
             try {
                 // Crea post
                 Post p = new Post(titolo, content, utenteLoggato, tipo,
-                        mediaPath != null ? MediaManager.getMediaFile(mediaPath) : null);
+                        mediaPath != null ? mediaPath : null);
 
                 // Salva nel database
                 p.salvaPost();
@@ -426,11 +424,14 @@ public class HomeView {
         card.getChildren().addAll(header, titleLbl);
 
         // Media
-        if (post.getTipo() == TipoPost.FOTO && post.getMedia() != null) {
+        if (post.getTipo() == TipoPost.FOTO && !post.getMedia().isBlank()) {
             // Immagine
+            System.out.println("Debug: Caricata immagine da " + post.getMedia());
             try {
                 // Caricamento immagine
-                ImageView iv = new ImageView(new Image(post.getMedia().toURI().toString()));
+                ImageView iv = new ImageView();
+                caricaFoto(iv, post.getMedia());
+                System.out.println("Debug: Caricata immagine da " + post.getMedia());
                 iv.setFitWidth(600);
                 iv.setPreserveRatio(true);
 
@@ -448,11 +449,13 @@ public class HomeView {
             // Video
             try {
                 // Caricamento video
-                Media m = new Media(post.getMedia().toURI().toString());
-                MediaPlayer mp = new MediaPlayer(m);
-                MediaView mv = new MediaView(mp);
+                MediaView mv = new MediaView();
                 mv.setFitWidth(600);
                 mv.setPreserveRatio(true);
+
+                MediaPlayer mp = caricaVideo(mv, post.getMedia());
+
+                if (mp == null) throw new Exception("Video non valido");
 
                 // Controlli video
                 HBox controls = new HBox(10);
@@ -498,7 +501,7 @@ public class HomeView {
                 // Setup Max Slider quando il video è pronto
                 mp.setOnReady(() -> {
                     // Imposta il massimo dello slider alla durata del video
-                    timeSlider.setMax(m.getDuration().toSeconds());
+                    timeSlider.setMax(mp.getMedia().getDuration().toSeconds());
                 });
 
                 // Seek manuale (trascinamento slider)
@@ -707,5 +710,55 @@ public class HomeView {
 
         // Aggiunta al container
         container.getChildren().add(box);
+    }
+
+    private void caricaFoto(ImageView view, String path) {
+
+        // Carica l'immagine dal percorso specificato e la imposta nell'ImageView
+        try {
+
+            // Controlla se il percorso è valido
+            if (path != null && !path.isEmpty()) {
+
+                // Carica l'immagine
+                File file = path.startsWith("/") || path.startsWith("media") ? MediaManager.getMediaFile(path)
+                        : new File(path);
+
+                // Imposta l'immagine nell'ImageView
+                if (file != null && file.exists()) {
+                    Image img = new Image(file.toURI().toString());
+                    view.setImage(img);
+                } else {
+                    view.setImage(null);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private MediaPlayer caricaVideo(MediaView view, String path) {
+
+        // Carica il video dal percorso specificato e lo imposta nel MediaView
+        try {
+
+            // Controlla se il percorso è valido
+            if (path != null && !path.isEmpty()) {
+
+                // Carica il file
+                File file = path.startsWith("/") || path.startsWith("media") ? MediaManager.getMediaFile(path)
+                        : new File(path);
+
+                if (file != null && file.exists()) {
+                    Media video = new Media(file.toURI().toString());
+                    MediaPlayer mp = new MediaPlayer(video);
+                    view.setMediaPlayer(mp);
+                    return mp;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
