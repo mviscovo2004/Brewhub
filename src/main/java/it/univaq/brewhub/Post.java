@@ -20,8 +20,8 @@ public class Post {
     private TipoPost tipo;
     private LocalDateTime dataCreazione;
     private String media = null;
-    private List<Utente> miPiace = new ArrayList<Utente>();
-    private List<Commento> commenti = new ArrayList<Commento>();
+    private List<Utente> miPiace = new ArrayList<>();
+    private List<Commento> commenti = new ArrayList<>();
 
     // Enum per i tipi di Post
     public enum TipoPost {

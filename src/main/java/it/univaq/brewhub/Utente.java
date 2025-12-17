@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 // Classe Utente che rappresenta un utente dell'applicazione
@@ -47,9 +48,9 @@ public class Utente {
   private TipoUtente tipo;
 
   // Liste per archivio post, follower e following
-  private List<Post> archivio = new ArrayList<Post>();
-  private List<Utente> follower = new ArrayList<Utente>();
-  private List<Utente> following = new ArrayList<Utente>();
+  private List<Post> archivio = new ArrayList<>();
+  private List<Utente> follower = new ArrayList<>();
+  private List<Utente> following = new ArrayList<>();
 
   // --- COSTRUTTORI ---
   // Costruttore vuoto per db

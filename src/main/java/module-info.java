@@ -2,7 +2,6 @@ module it.univaq.brewhub {
     requires transitive javafx.controls;
     requires transitive java.sql;
     requires jbcrypt;
-	requires com.fasterxml.jackson.annotation;
 	requires javafx.graphics;
 	requires javafx.media;
 	requires javafx.base;

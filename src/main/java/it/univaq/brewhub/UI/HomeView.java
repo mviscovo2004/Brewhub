@@ -246,7 +246,7 @@ public class HomeView {
                     // Configura filtro in base al tipo
                     fc.setTitle(newVal == TipoPost.FOTO ? "Seleziona una foto" : "Seleziona un video");
                     if (newVal == TipoPost.FOTO)
-                        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png"));
+                        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.jpeg", "*.webp"));
                     else
                         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Video", "*.mp4"));
 
