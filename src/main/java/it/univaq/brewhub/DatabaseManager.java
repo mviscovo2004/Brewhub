@@ -1,28 +1,41 @@
 package it.univaq.brewhub;
 
-// Importazioni librerie Java
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import it.univaq.brewhub.utility.Log;
 
-// Gestione della connessione e inizializzazione del database SQLite
+/**
+ * Gestione della connessione e inizializzazione del database SQLite.
+ * Fornisce metodi statici per ottenere connessioni e creare lo schema del DB.
+ */
 public class DatabaseManager {
 
     // Il file del DB verrà creato nella cartella del progetto
+    /** URL di connessione JDBC per SQLite. */
     private static final String URL = "jdbc:sqlite:brewhub.db";
 
-    // Ottiene una connessione al database
+    /**
+     * Ottiene una connessione attiva al database SQLite.
+     * 
+     * @return Connection oggetto connessione JDBC.
+     * @throws SQLException In caso di errore di connessione.
+     */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL);
     }
 
-    // Inizializza il database creando le tabelle necessarie
+    /**
+     * Inizializza il database creando le tabelle necessarie se non esistono.
+     * Abilita inoltre il supporto per le chiavi esterne.
+     * Tabelle gestite: utenti, post, commenti.
+     */
     public static void init() {
         try (Connection conn = getConnection();
                 Statement stmt = conn.createStatement()) {
 
-            // Abilita le chiavi esterne
+            // Abilita le chiavi esterne per garantire integrità referenziale
             stmt.execute("PRAGMA foreign_keys = ON");
 
             // Creazione tabella Utenti
@@ -60,15 +73,24 @@ public class DatabaseManager {
                     ")";
             stmt.execute(sqlCommenti);
 
-            // Indici utili
+            // Creazione tabella Likes
+            String sqlLikes = "CREATE TABLE IF NOT EXISTS likes (" +
+                    "post_id INTEGER NOT NULL, " +
+                    "username TEXT NOT NULL, " +
+                    "PRIMARY KEY (post_id, username), " +
+                    "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    ")";
+            stmt.execute(sqlLikes);
+
+            // Indici per ottimizzare le query frequenti
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_post_autore ON post(autore_username)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_commenti_post ON commenti(post_id)");
 
             // Log di successo
-            System.out.println("Database inizializzato correttamente (tabelle utenti, post, commenti).");
+            Log.info("Database inizializzato correttamente (tabelle utenti, post, commenti).");
 
         } catch (SQLException e) {
-
             // Gestione errore inizializzazione DB
             System.err.println("Errore inizializzazione DB: " + e.getMessage());
         }

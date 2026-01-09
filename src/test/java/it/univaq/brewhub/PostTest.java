@@ -7,29 +7,46 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import it.univaq.brewhub.Post.TipoPost;
+import it.univaq.brewhub.dao.impl.PostDAOImpl;
+import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
 
+/**
+ * Classe di test per la gestione dei Post (Post.java).
+ * Verifica il corretto funzionamento dei costruttori, dei metodi getter/setter
+ * e delle interazioni con il database (CRUD).
+ */
 public class PostTest {
 
+    /**
+     * Test del costruttore per post di tipo TESTO.
+     * Verifica che l'oggetto venga creato correttamente con tutti i parametri
+     * passati.
+     */
+    @Test
     public void testCostruttoreTesto() {
         String titolo = "Test post";
         String contenuto = "Contenuto test post";
         Utente u = new Utente();
         TipoPost tipo = TipoPost.TESTO;
-        String media = null;
+        String media = null; // Nessun media per post di testo
 
         Post p = new Post(titolo, contenuto, u, tipo, media);
 
-        assertEquals(titolo, p.getTitolo(), "Lo titolo del post non corrisponde");
-        assertEquals(contenuto, p.getContenuto(), "Lo contenuto del post non corrisponde");
+        // Asserzioni per verificare la corrispondenza dei campi
+        assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
+        assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
         assertEquals(tipo, p.getTipo(), "Il tipo del post non corrisponde");
-        assertNull(p.getMedia(), "La media del post deve essere null");
+        assertNull(p.getMedia(), "Il campo media del post deve essere null per tipo TESTO");
     }
 
+    /**
+     * Test del costruttore per post di tipo FOTO.
+     * Verifica l'assegnazione corretta del percorso media.
+     */
     @Test
     public void testCostruttoreFoto() {
         String titolo = "Test post";
@@ -40,14 +57,18 @@ public class PostTest {
 
         Post p = new Post(titolo, contenuto, u, tipo, foto);
 
-        assertEquals(titolo, p.getTitolo(), "Lo titolo del post non corrisponde");
-        assertEquals(contenuto, p.getContenuto(), "Lo contenuto del post non corrisponde");
+        // Asserzioni standard
+        assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
+        assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
         assertEquals(tipo, p.getTipo(), "Il tipo del post non corrisponde");
-        assertEquals(foto, p.getMedia(), "La foto del post non corrisponde");
-
+        assertEquals(foto, p.getMedia(), "Il percorso della foto non corrisponde");
     }
 
+    /**
+     * Test del costruttore per post di tipo VIDEO.
+     */
+    @Test
     public void testCostruttoreVideo() {
         String titolo = "Test post";
         String contenuto = "Contenuto test post";
@@ -57,65 +78,111 @@ public class PostTest {
 
         Post p = new Post(titolo, contenuto, u, tipo, video);
 
-        assertEquals(titolo, p.getTitolo(), "Lo titolo del post non corrisponde");
-        assertEquals(contenuto, p.getContenuto(), "Lo contenuto del post non corrisponde");
+        assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
+        assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
         assertEquals(tipo, p.getTipo(), "Il tipo del post non corrisponde");
-        assertEquals(video, p.getMedia(), "Il video del post non corrisponde");
+        assertEquals(video, p.getMedia(), "Il percorso del video non corrisponde");
     }
 
+    /**
+     * Test completo di tutti i metodi Setter e Getter.
+     * Verifica che ogni proprietà possa essere impostata e letta correttamente.
+     */
+    @Test
     public void testSetterGetter() {
         Post p = new Post();
 
+        // Titolo
         p.setTitolo("Test post");
         assertEquals("Test post", p.getTitolo());
 
+        // Contenuto
         p.setContenuto("Contenuto test post");
         assertEquals("Contenuto test post", p.getContenuto());
 
-        p.setAutore(new Utente());
-        assertEquals(new Utente(), p.getAutore());
+        // Autore
+        Utente u = new Utente();
+        p.setAutore(u);
+        assertEquals(u, p.getAutore());
 
+        // Tipo
         p.setTipo(TipoPost.TESTO);
         assertEquals(TipoPost.TESTO, p.getTipo());
 
+        // Media
         p.setMedia("media/foto.jpg");
         assertEquals("media/foto.jpg", p.getMedia());
 
-        p.setMiPiace(new ArrayList<Utente>());
-        assertEquals(new ArrayList<Utente>(), p.getMiPiace());
+        // Mi Piace (Lista)
+        List<Utente> likes = new ArrayList<>();
+        p.setMiPiace(likes);
+        assertEquals(likes, p.getMiPiace());
 
-        p.setCommenti(new ArrayList<Commento>());
-        assertEquals(new ArrayList<Commento>(), p.getCommenti());
+        // Commenti (Lista)
+        List<Commento> comments = new ArrayList<>();
+        p.setCommenti(comments);
+        assertEquals(comments, p.getCommenti());
 
-        p.setDataCreazione(LocalDateTime.now());
-        assertEquals(LocalDateTime.now(), p.getDataCreazione());
-
-        p.setMiPiaceSingolo(0, new Utente());
-        assertEquals(new Utente(), p.getMiPiaceSingolo(0));
-
-        p.setCommentoSingolo(0, new Commento());
-        assertEquals(new Commento(), p.getCommentoSingolo(0));
+        // Data Creazione
+        LocalDateTime now = LocalDateTime.now();
+        p.setDataCreazione(now);
+        assertEquals(now, p.getDataCreazione());
     }
 
+    /**
+     * Test di integrazione con il Database.
+     * Verifica il ciclo di vita di un Post:
+     * 1. Lettura stato iniziale
+     * 2. Salvataggio (INSERT)
+     * 3. Verifica presenza (SELECT)
+     * 4. Eliminazione (DELETE)
+     * 5. Verifica pulizia
+     * 
+     * @throws SQLException in caso di errori di connessione o query.
+     */
     @Test
     public void testMetodiDB() throws SQLException {
+        PostDAOImpl postDAO = new PostDAOImpl();
+        UtenteDAOImpl utenteDAO = new UtenteDAOImpl();
+
+        // Setup autore fittizio per soddisfare i vincoli FK se presenti
+        Utente autore = new Utente("NomeTest", "CognomeTest", "testUserPost", "password",
+                Utente.TipoUtente.APPASSIONATO, null);
+        try {
+            utenteDAO.create(autore);
+        } catch (SQLException e) {
+            // Ignora se già esiste
+        }
+
+        // Creazione oggetto Post da testare
         Post p = new Post();
-        p.salvaPost();
+        p.setAutore(autore);
+        p.setTitolo("Titolo Test DB");
+        p.setContenuto("Contenuto Test DB");
+        p.setTipo(TipoPost.TESTO);
+        p.setDataCreazione(LocalDateTime.now()); // Data attuale
 
-        List<Post> post = Post.caricaTuttiPost();
-        assertEquals(1, post.size());
+        // 1. Setup preliminare: conta quanti post esistono
+        int initialSize = postDAO.findAll().size();
 
-        p.eliminaPost();
+        // 2. Azione: Salva il post nel database
+        postDAO.create(p);
 
-        post = Post.caricaTuttiPost();
-        assertEquals(0, post.size());
+        // 3. Verifica: Controlla che il numero totale di post sia aumentato di 1
+        List<Post> post = postDAO.findAll();
+        assertEquals(initialSize + 1, post.size(), "Il numero di post dovrebbe aumentare di 1 dopo il salvataggio");
+
+        // 4. Azione: Elimina il post appena creato (Cleanup)
+        postDAO.delete(p.getId());
+
+        // 5. Verifica: Controlla che il numero totale sia tornato quello iniziale
+        post = postDAO.findAll();
+        assertEquals(initialSize, post.size(),
+                "Il numero di post dovrebbe tornare quello iniziale dopo l'eliminazione");
+
+        // Cleanup utente
+        utenteDAO.delete(autore.getUsername());
 
     }
-
-    @BeforeAll
-    public void init() {
-
-    }
-
 }

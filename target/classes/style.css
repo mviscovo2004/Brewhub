@@ -4,14 +4,22 @@
 
 /* COLORI PRINCIPALI */
 :root {
-    -coffee-dark: #2C1810;        /* Nero caffè scuro */
-    -coffee-medium: #5D4037;      /* Marrone caffè medio */
-    -coffee-light: #8D6E63;       /* Marrone caffè chiaro */
-    -coffee-pale: #A1887F;        /* Marrone pallido */
-    -cream: #F5E6D3;              /* Crema */
-    -white-cream: #FFF8F3;        /* Bianco panna */
-    -accent-copper: #D4A574;      /* Rame/Beige caldo */
-    -accent-gold: #C9A876;        /* Oro caffè */
+    -coffee-dark: #2C1810;
+    /* Nero caffè scuro */
+    -coffee-medium: #5D4037;
+    /* Marrone caffè medio */
+    -coffee-light: #8D6E63;
+    /* Marrone caffè chiaro */
+    -coffee-pale: #A1887F;
+    /* Marrone pallido */
+    -cream: #F5E6D3;
+    /* Crema */
+    -white-cream: #FFF8F3;
+    /* Bianco panna */
+    -accent-copper: #D4A574;
+    /* Rame/Beige caldo */
+    -accent-gold: #C9A876;
+    /* Oro caffè */
 }
 
 /* ============================================
@@ -30,7 +38,7 @@
 .header {
     -fx-background-color: #5D4037;
     -fx-padding: 12 20 12 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 2);
 }
 
 .header .label {
@@ -44,18 +52,22 @@
    ============================================ */
 
 .sidebar {
-    -fx-background-color: #FFFBF5; /* O bianco #FFFFFF per look più moderno */
+    -fx-background-color: #FFFBF5;
+    /* O bianco #FFFFFF per look più moderno */
     -fx-border-color: #efefef;
     -fx-border-width: 0 1 0 0;
-    -fx-padding: 10 0 10 0; /* Padding verticale, zero orizzontale */
+    -fx-padding: 10 0 10 0;
+    /* Padding verticale, zero orizzontale */
 }
 
 /* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
 .sidebar-section-label {
-    -fx-text-fill: #878A8C; /* Grigio tipico di Reddit */
+    -fx-text-fill: #878A8C;
+    /* Grigio tipico di Reddit */
     -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-padding: 16 24 8 24; /* Spaziatura specifica */
+    -fx-padding: 16 24 8 24;
+    /* Spaziatura specifica */
     -fx-font-family: "Segoe UI", sans-serif;
 }
 
@@ -65,14 +77,17 @@
     -fx-text-fill: #2C1810;
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 8 24 8 24; /* Padding laterale generoso */
+    -fx-padding: 8 24 8 24;
+    /* Padding laterale generoso */
     -fx-cursor: hand;
-    -fx-background-radius: 0; /* Nessun bordo arrotondato o leggero se preferisci */
+    -fx-background-radius: 0;
+    /* Nessun bordo arrotondato o leggero se preferisci */
     -fx-border-width: 0;
 }
 
 .nav-btn:hover {
-    -fx-background-color: #F5E6D3; /* Colore crema leggero al passaggio */
+    -fx-background-color: #F5E6D3;
+    /* Colore crema leggero al passaggio */
 }
 
 .nav-btn:pressed {
@@ -94,7 +109,8 @@
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
-.sidebar-scroll > .viewport {
+
+.sidebar-scroll>.viewport {
     -fx-background-color: transparent;
 }
 
@@ -163,6 +179,11 @@
 
 .button-accent:hover {
     -fx-background-color: #C9A876;
+}
+
+.button-small {
+    -fx-padding: 4 10;
+    -fx-font-size: 11px;
 }
 
 /* ============================================
@@ -443,4 +464,43 @@
 
 .main-content {
     -fx-background-color: #FFFBF5;
+}
+
+/* ============================================
+   UTILITY E STILI INLINE CONVERTITI
+   ============================================ */
+
+/* Logo principale header */
+.header-logo {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* Bottone profilo in header */
+.header-profile-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+}
+
+/* Label titolo dashboard */
+.dashboard-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+}
+
+/* Separatore custom */
+.custom-separator {
+    -fx-background-color: #edeff1;
+}
+
+/* Label username non editabile */
+.text-field-readonly {
+    -fx-opacity: 0.7;
+}
+
+/* Label file mancante form */
+.label-info-italic {
+    -fx-font-style: italic;
+    -fx-font-size: 11px;
 }

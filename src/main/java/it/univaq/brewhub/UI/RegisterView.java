@@ -1,9 +1,11 @@
 package it.univaq.brewhub.UI;
 
-// Importazioni JavaFX e classi del progetto
 import java.io.File;
 import java.sql.SQLException;
 import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.business.SessionManager;
+import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
+import it.univaq.brewhub.utility.Log;
 import it.univaq.brewhub.Utente.TipoUtente;
 import it.univaq.brewhub.MediaManager;
 import javafx.geometry.Pos;
@@ -20,23 +22,35 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-// Vista per la Registrazione
+/**
+ * Gestisce l'interfaccia grafica per la registrazione di nuovi utenti.
+ * Permette l'inserimento di dati anagrafici, credenziali e foto profilo.
+ */
 public class RegisterView {
 
-    // Riferimento allo stage principale
+    /** Riferimento allo stage principale dell'applicazione. */
     private final Stage stage;
 
-    // Percorso immagine profilo
+    /** Percorso dell'immagine del profilo selezionata (se presente). */
     private String immagine = null;
 
-    // Costruttore
+    /**
+     * Costruttore della vista di registrazione.
+     * 
+     * @param stage Lo stage principale.
+     */
     public RegisterView(Stage stage) {
         this.stage = stage;
     }
 
-    // Metodo per ottenere la vista della Registrazione
+    /**
+     * Crea e restituisce il layout principale della schermata di registrazione.
+     * Configura il form di input e la logica di validazione e salvataggio.
+     *
+     * @return Parent Il nodo radice della vista.
+     */
     public Parent getView() {
-        // Configurazione stage
+        // Configurazione form properties
         stage.setResizable(false);
         stage.setTitle("Brewhub - Registrazione");
         stage.setWidth(600);
@@ -50,7 +64,7 @@ public class RegisterView {
         VBox formBox = new VBox(15);
         formBox.setAlignment(Pos.CENTER);
         formBox.setMaxWidth(480);
-        formBox.getStyleClass().add("form-box"); // Stile Card CSS
+        formBox.getStyleClass().add("form-box");
 
         // Titolo
         Label lblTitolo = new Label("Crea un account");
@@ -65,24 +79,24 @@ public class RegisterView {
         lblErrore.setVisible(false);
         lblErrore.getStyleClass().add("error-label");
         lblErrore.setWrapText(true);
+        lblErrore.setId("lblErrore");
 
-        // Campi Dati
+        // Campi Dati Anagrafici
         HBox persona = new HBox(10);
         persona.setAlignment(Pos.CENTER);
 
-        // Campo Nome
         TextField fldNome = new TextField();
         fldNome.setPromptText("Nome");
         fldNome.getStyleClass().add("text-field");
         fldNome.setPrefWidth(200);
+        fldNome.setId("fldNome");
 
-        // Campo Cognome
         TextField fldCognome = new TextField();
         fldCognome.setPromptText("Cognome");
         fldCognome.getStyleClass().add("text-field");
         fldCognome.setPrefWidth(200);
+        fldCognome.setId("fldCognome");
 
-        // Aggiunta campi al box persona
         persona.getChildren().addAll(fldNome, fldCognome);
 
         // Campo Username
@@ -90,18 +104,22 @@ public class RegisterView {
         fldUsername.setPromptText("Username");
         fldUsername.getStyleClass().add("text-field");
         fldUsername.setMaxWidth(Double.MAX_VALUE);
+        fldUsername.setId("fldUsername");
 
         // Campo Password
         PasswordField fldPassword = new PasswordField();
         fldPassword.setPromptText("Password (min 8 caratteri)");
         fldPassword.getStyleClass().add("password-field");
         fldPassword.setMaxWidth(Double.MAX_VALUE);
+        fldPassword.setId("fldPassword");
 
         // ChoiceBox Tipo Utente
         ChoiceBox<TipoUtente> cbxTipo = new ChoiceBox<>();
         cbxTipo.getStyleClass().add("choice-box");
         cbxTipo.setMaxWidth(Double.MAX_VALUE);
+        cbxTipo.setId("cbxTipo");
         cbxTipo.getItems().setAll(TipoUtente.values());
+        // Rimuove tipi non selezionabili in registrazione pubblica
         cbxTipo.getItems().remove(TipoUtente.ADMIN);
         cbxTipo.getItems().remove(TipoUtente.OSPITE);
         cbxTipo.setValue(TipoUtente.UTENTE_MEDIO);
@@ -110,37 +128,32 @@ public class RegisterView {
         HBox fotoBox = new HBox(15);
         fotoBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Bottone scegli foto
         Button btnFoto = new Button("📷 Scegli foto");
-        btnFoto.getStyleClass().add("button-accent"); // Stile arancione/rame
+        btnFoto.getStyleClass().add("button-accent");
+        btnFoto.setId("btnFoto");
 
-        // Label nome file foto
         Label lblFile = new Label("Nessuna foto");
         lblFile.setStyle("-fx-font-style: italic; -fx-font-size: 11px;");
 
-        // Aggiunta componenti al box foto
         fotoBox.getChildren().addAll(btnFoto, lblFile);
 
         // Bottoni Azione
         VBox bottoni = new VBox(10);
         bottoni.setAlignment(Pos.CENTER);
 
-        // Bottone registrati
         Button btnRegistrati = new Button("Registrati");
         btnRegistrati.setDefaultButton(true);
         btnRegistrati.getStyleClass().add("button-success");
         btnRegistrati.setMaxWidth(Double.MAX_VALUE);
+        btnRegistrati.setId("btnRegistrati");
 
-        // Bottone accedi
         Button btnAccedi = new Button("Hai già un account? Accedi");
         btnAccedi.getStyleClass().add("button-secondary");
         btnAccedi.setMaxWidth(Double.MAX_VALUE);
 
-        // Link continua come ospite
         Hyperlink linkOspite = new Hyperlink("Continua come ospite");
         linkOspite.getStyleClass().add("hyperlink");
 
-        // Aggiunta bottoni al box azioni
         bottoni.getChildren().addAll(btnRegistrati, btnAccedi, linkOspite);
 
         // Assemblaggio Card
@@ -149,121 +162,95 @@ public class RegisterView {
                 fotoBox, persona, cbxTipo, fldUsername, fldPassword,
                 bottoni);
 
-        // Aggiunta form box al root
         root.getChildren().add(formBox);
 
         // --- LOGICA EVENTI ---
-        // Azione bottone accedi
-        btnAccedi.setOnAction(e -> {
 
-            // Passa alla vista di Login
+        // Navigazione a Login
+        btnAccedi.setOnAction(e -> {
             LoginView login = new LoginView(stage);
             stage.getScene().setRoot(login.getView());
         });
 
-        // Azione bottone scegli foto
+        // Selezione foto profilo
         btnFoto.setOnAction(e -> {
-            
-            // Apertura FileChooser
-            FileChooser fileFoto = new FileChooser();
-            fileFoto.getExtensionFilters()
-                    .add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.gif", "*.jpeg"));
-            fileFoto.setTitle("Seleziona una foto");
+            File fotoSelezionata = openFileChooser(stage);
 
-            // Selezione file
-            File fotoSelezionata = fileFoto.showOpenDialog(stage);
-
-            // Se un file è stato selezionato
             if (fotoSelezionata != null) {
-
-                // Copia file nella cartella media dell'applicazione
                 MediaManager.initMediaFolder();
                 String percorsoMedia = MediaManager.copyMediaToFolder(fotoSelezionata);
 
-                // Se il copia è andato a buon fine
                 if (percorsoMedia != null) {
-
-                    // Aggiorna percorso immagine e label
                     immagine = percorsoMedia;
                     lblFile.setText(fotoSelezionata.getName());
                 } else {
-
-                    // Mostra errore
                     lblFile.setText("Errore caricamento");
                 }
             }
         });
 
-        // Azione bottone registrati
+        // Submit Registrazione
         btnRegistrati.setOnAction(e -> {
-            // Reset messaggio errore
             lblErrore.setVisible(false);
 
-            // Recupero dati
             String nome = fldNome.getText();
             String cognome = fldCognome.getText();
             TipoUtente tipo = cbxTipo.getValue();
             String user = fldUsername.getText();
             String pw = fldPassword.getText();
 
-            // Controllo campi vuoti e validità password
+            // Validazione
             if (nome.isBlank() || cognome.isBlank() || user.isBlank() || pw.isBlank() || immagine == null) {
-
-                // Mostra errore
                 lblErrore.setText("⚠ Completa tutti i campi e carica una foto");
                 lblErrore.setVisible(true);
             } else if (pw.length() < 8) {
-
-                // Mostra errore
                 lblErrore.setText("✗ Password troppo corta (minimo 8 caratteri)");
                 lblErrore.setVisible(true);
             } else {
-
-                // Tentativo registrazione
                 try {
-
-                    // Crea nuovo utente e registra nel DB
+                    // Creazione e salvataggio utente tramite DAO
                     Utente nuovoUtente = new Utente(nome, cognome, user, pw, tipo, immagine);
-                    Utente dao = new Utente(); 
-                    dao.registraUtente(nuovoUtente);
+                    UtenteDAOImpl dao = new UtenteDAOImpl();
+                    dao.create(nuovoUtente);
 
-                    // Registrazione riuscita, vai alla Home
+                    // Login automatico post-registrazione in Sessione
+                    SessionManager.getInstance().login(nuovoUtente);
+
+                    // Navigazione
                     HomeView home = new HomeView(stage, nuovoUtente);
                     stage.getScene().setRoot(home.getView());
                 } catch (SQLException ex) {
-                    // Gestione errore di username già esistente
                     if (ex.getMessage().contains("Username già registrato")
                             || ex.getMessage().contains("PRIMARY KEY")) {
-
-                        // Mostra errore
                         lblErrore.setText("✗ Username già esistente!");
                     } else {
-
-                        // Mostra errore generico DB
                         lblErrore.setText("✗ Errore Database: " + ex.getMessage());
                     }
                     lblErrore.setVisible(true);
-                    ex.printStackTrace();
+                    Log.error("Errore durante il login automatico", ex);
                 } catch (Exception ex) {
-
-                    // Mostra errore generico
                     lblErrore.setText("✗ Errore generico: " + ex.getMessage());
                     lblErrore.setVisible(true);
-                    ex.printStackTrace();
+                    Log.error("Errore durante la registrazione", ex);
                 }
             }
         });
 
-        // Azione link continua come ospite
+        // Accesso come ospite
         linkOspite.setOnAction(e -> {
-
-            // Login come guest
             Utente profilo = new Utente("guest");
             HomeView home = new HomeView(stage, profilo);
             stage.getScene().setRoot(home.getView());
         });
 
-        // Ritorna il root della vista
         return root;
+    }
+
+    protected File openFileChooser(Stage stage) {
+        FileChooser fileFoto = new FileChooser();
+        fileFoto.getExtensionFilters()
+                .add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.gif", "*.jpeg"));
+        fileFoto.setTitle("Seleziona una foto");
+        return fileFoto.showOpenDialog(stage);
     }
 }

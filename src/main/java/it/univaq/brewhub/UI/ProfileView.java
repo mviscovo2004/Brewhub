@@ -1,11 +1,12 @@
 package it.univaq.brewhub.UI;
 
-// Importazioni JavaFX e classi del progetto
 import java.io.File;
 import java.sql.SQLException;
 import java.util.Optional;
 import it.univaq.brewhub.MediaManager;
 import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
+import it.univaq.brewhub.utility.Log;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
@@ -24,31 +25,51 @@ import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-// Vista per il Profilo Utente
+/**
+ * Gestisce la vista del profilo utente.
+ * Permette di visualizzare e modificare le informazioni personali (nome,
+ * cognome, foto, password)
+ * e di eliminare l'account.
+ */
 public class ProfileView {
 
-    // Riferimento allo stage principale e all'utente
+    /** Riferimento allo stage principale dell'applicazione. */
     private final Stage stage;
+    /** Oggetto utente di cui si sta visualizzando/modificando il profilo. */
     private final Utente utente;
 
-    // Percorso della nuova foto selezionata
+    /**
+     * Percorso della nuova foto profilo selezionata (opzionale, null se non
+     * cambiata).
+     */
     private String nuovoPercorsoFoto = null;
 
-    // Costruttore
+    /**
+     * Costruttore della vista profilo.
+     * 
+     * @param stage  Lo stage principale.
+     * @param utente L'utente loggato di cui gestire il profilo.
+     */
     public ProfileView(Stage stage, Utente utente) {
         this.stage = stage;
         this.utente = utente;
         this.nuovoPercorsoFoto = utente.getFotoProfilo();
     }
 
-    // Metodo per ottenere la vista del Profilo
+    /**
+     * Crea e restituisce l'interfaccia grafica per la gestione del profilo.
+     * Include form di modifica dati, upload foto e azioni di
+     * salvataggio/eliminazione.
+     *
+     * @return Parent Il nodo radice della vista.
+     */
     public Parent getView() {
 
         // Contenitore principale
         StackPane root = new StackPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
-        // Box del form
+        // Box del form centrale
         VBox formBox = new VBox(15);
         formBox.setAlignment(Pos.CENTER);
         formBox.setMaxWidth(450);
@@ -58,42 +79,36 @@ public class ProfileView {
         Label lblTitolo = new Label("Il mio Profilo");
         lblTitolo.getStyleClass().add("title-label");
 
-        // Foto profilo
+        // Componente Foto profilo
         ImageView imgView = new ImageView();
         imgView.setFitWidth(120);
         imgView.setFitHeight(120);
 
-        // Carica l'anteprima della foto profilo attuale
+        // Caricamento anteprima foto attuale
         caricaAnteprimaFoto(imgView, utente.getFotoProfilo());
 
-        // Ritaglia l'immagine in un cerchio
+        // Maschera ritaglio circolare per la foto
         Circle clip = new Circle(60, 60, 60);
         imgView.setClip(clip);
 
-        // Bottone per cambiare foto
+        // Bottone per caricamento nuova foto
         Button btnCambiaFoto = new Button("📷 Cambia Foto");
         btnCambiaFoto.getStyleClass().add("button-secondary");
 
-        // Azione bottone cambia foto
+        // Azione cambio foto
         btnCambiaFoto.setOnAction(e -> {
-
-            // Apri file chooser per selezionare nuova immagine
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Scegli nuova foto profilo");
             fileChooser.getExtensionFilters()
                     .add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.jpeg"));
-            
-            // Mostra la finestra di dialogo
+
             File file = fileChooser.showOpenDialog(stage);
 
-            // Se è stata selezionata un'immagine, copiala nella cartella media e aggiorna l'anteprima
             if (file != null) {
-
-                // Copia l'immagine nella cartella media del progetto
+                // Copia la foto nelle risorse e aggiorna anteprima
                 MediaManager.initMediaFolder();
                 String path = MediaManager.copyMediaToFolder(file);
 
-                // Aggiorna il percorso della nuova foto e l'anteprima
                 if (path != null) {
                     nuovoPercorsoFoto = path;
                     caricaAnteprimaFoto(imgView, file.getAbsolutePath());
@@ -101,183 +116,145 @@ public class ProfileView {
             }
         });
 
-        // Box foto e bottone
+        // Box contenitore foto
         VBox fotoBox = new VBox(10, imgView, btnCambiaFoto);
         fotoBox.setAlignment(Pos.CENTER);
 
-        // Campi di input
+        // Campi di input dettaglio utente
         VBox inputs = new VBox(8);
         inputs.setAlignment(Pos.CENTER_LEFT);
 
-        // Campo username (non modificabile)
+        // Username (read-only)
         Label lblUser = new Label("Username:");
         lblUser.getStyleClass().add("label");
         TextField fldUsername = new TextField(utente.getUsername());
         fldUsername.setEditable(false);
         fldUsername.getStyleClass().add("text-field");
-        fldUsername.setStyle("-fx-opacity: 0.7;");
+        fldUsername.getStyleClass().add("text-field-readonly");
 
-        // Campo nome
+        // Nome
         Label lblNome = new Label("Nome:");
         lblNome.getStyleClass().add("label");
         TextField fldNome = new TextField(utente.getNome());
         fldNome.getStyleClass().add("text-field");
 
-        // Campo cognome
+        // Cognome
         Label lblCognome = new Label("Cognome:");
         lblCognome.getStyleClass().add("label");
         TextField fldCognome = new TextField(utente.getCognome());
         fldCognome.getStyleClass().add("text-field");
 
-        // Campo nuova password
+        // Password
         Label lblPw = new Label("Sicurezza:");
         lblPw.getStyleClass().add("label");
         PasswordField fldNuovaPass = new PasswordField();
         fldNuovaPass.setPromptText("Nuova Password (lascia vuoto per mantenere)");
         fldNuovaPass.getStyleClass().add("password-field");
 
-        // Aggiunta campi al contenitore
         inputs.getChildren().addAll(lblUser, fldUsername, lblNome, fldNome, lblCognome, fldCognome, lblPw,
                 fldNuovaPass);
 
-        // Box azioni
+        // Bottoni azioni
         HBox actionBox = new HBox(10);
         actionBox.setAlignment(Pos.CENTER);
 
-        // Bottone annulla
         Button btnAnnulla = new Button("Indietro");
         btnAnnulla.getStyleClass().add("button-secondary");
 
-        // Bottone salva
         Button btnSalva = new Button("Salva");
         btnSalva.getStyleClass().add("button-success");
 
-        // Bottone elimina account
         Button btnElimina = new Button("🗑 Elimina");
         btnElimina.getStyleClass().add("button-danger");
 
-        // Azioni bottone elimina
+        // Azione Elimina Account
         btnElimina.setOnAction(e -> {
-
-            // Conferma eliminazione account
             Alert alert = new Alert(AlertType.CONFIRMATION);
             alert.setTitle("Elimina Profilo");
             alert.setHeaderText("Attenzione: Azione Irreversibile!");
             alert.setContentText(
                     "Sei sicuro di voler eliminare definitivamente il tuo account?\nTutti i dati verranno persi.");
 
-            // Gestione risposta
             Optional<ButtonType> result = alert.showAndWait();
 
-            // Se confermato, elimina l'account
             if (result.isPresent() && result.get() == ButtonType.OK) {
-
-                // Elimina account dal database
                 try {
-
-                    // Chiamata al metodo di eliminazione account
-                    utente.eliminaAccount();
-
-                    // Notifica eliminazione avvenuta e torna al login
+                    new UtenteDAOImpl().delete(utente.getUsername());
                     showAlert(AlertType.INFORMATION, "Account Eliminato", "Il tuo account è stato eliminato.");
                     LoginView login = new LoginView(stage);
                     stage.getScene().setRoot(login.getView());
                 } catch (SQLException ex) {
-
-                    // Mostra errore in caso di problemi
                     showAlert(AlertType.ERROR, "Errore", "Impossibile eliminare l'account: " + ex.getMessage());
                 }
             }
         });
 
-        // Azioni bottone annulla
+        // Azione Annulla
         btnAnnulla.setOnAction(e -> tornaAllaHome());
 
-        // Azioni bottone salva
+        // Azione Salva Modifiche
         btnSalva.setOnAction(e -> {
-
-            // Recupera i nuovi dati
             String nuovoNome = fldNome.getText().trim();
             String nuovoCognome = fldCognome.getText().trim();
             String nuovaPw = fldNuovaPass.getText();
 
-            // Controllo campi obbligatori
             if (nuovoNome.isEmpty() || nuovoCognome.isEmpty()) {
-
-                // Mostra errore
                 showAlert(AlertType.ERROR, "Errore", "Nome e Cognome obbligatori.");
                 return;
             }
 
-            // Aggiorna i dati dell'utente
+            // Aggiornamento oggetto utente locale
             utente.setNome(nuovoNome);
             utente.setCognome(nuovoCognome);
             utente.setFotoProfilo(nuovoPercorsoFoto);
 
-            // Aggiorna la password solo se è stata inserita
+            // Aggiornamento password opzionale
             if (!nuovaPw.isEmpty()) {
-
-                // Controllo lunghezza minima password
                 if (nuovaPw.length() < 8) {
-
-                    //  Mostra errore
                     showAlert(AlertType.ERROR, "Errore", "Password min. 8 caratteri.");
                     return;
                 }
                 utente.setPassword(nuovaPw);
             }
 
-            // Salva le modifiche nel database
+            // Persistenza su DB tramite DAO
             try {
-
-                // Chiamata al metodo di aggiornamento profilo
-                utente.aggiornaProfilo();
-
-                // Notifica successo e torna alla home
+                new UtenteDAOImpl().update(utente);
                 showAlert(AlertType.INFORMATION, "Successo", "Profilo aggiornato!");
                 tornaAllaHome();
             } catch (SQLException ex) {
-
-                // Mostra errore in caso di problemi
                 showAlert(AlertType.ERROR, "Errore DB", ex.getMessage());
             }
         });
 
-        // Aggiunta bottoni al box azioni
         actionBox.getChildren().addAll(btnAnnulla, btnElimina, btnSalva);
-
-        // Aggiunta componenti al form box
         formBox.getChildren().addAll(lblTitolo, fotoBox, inputs, actionBox);
-
-        // Aggiunta form box al root
         root.getChildren().add(formBox);
 
-        // Ritorna il root della vista
         return root;
     }
 
-    // Metodo per tornare alla Home
+    /**
+     * Naviga verso la vista Home passando l'utente aggiornato.
+     */
     private void tornaAllaHome() {
-
-        // Torna alla vista Home con l'utente aggiornato
         HomeView home = new HomeView(stage, utente);
         stage.getScene().setRoot(home.getView());
     }
 
-    // Metodo per caricare l'anteprima della foto profilo
+    /**
+     * Helper per caricare e impostare l'immagine nell'ImageView.
+     * Gestisce i path relativi e assoluti.
+     *
+     * @param view L'imageView di destinazione.
+     * @param path Il percorso del file immagine.
+     */
     private void caricaAnteprimaFoto(ImageView view, String path) {
-
-        // Carica l'immagine dal percorso specificato e la imposta nell'ImageView
         try {
-
-            // Controlla se il percorso è valido
             if (path != null && !path.isEmpty()) {
-
-                // Carica l'immagine
                 File file = path.startsWith("/") || path.startsWith("media") ? MediaManager.getMediaFile(path)
                         : new File(path);
-                
-                // Imposta l'immagine nell'ImageView
+
                 if (file != null && file.exists()) {
                     Image img = new Image(file.toURI().toString());
                     view.setImage(img);
@@ -286,14 +263,18 @@ public class ProfileView {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error("Errore eliminazione account", e);
         }
     }
 
-    // Metodo di utilità per mostrare alert
+    /**
+     * Mostra un alert di sistema generico.
+     * 
+     * @param type  Il tipo di alert (es. ERROR, INFORMATION).
+     * @param title Il titolo della finestra di alert.
+     * @param msg   Il messaggio contenuto nell'alert.
+     */
     private void showAlert(AlertType type, String title, String msg) {
-        
-        // Mostra un alert con il messaggio specificato
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);

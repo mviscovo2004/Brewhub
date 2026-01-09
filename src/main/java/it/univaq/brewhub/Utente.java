@@ -1,44 +1,45 @@
 package it.univaq.brewhub;
 
-// Importazioni librerie Java e classi del progetto
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mindrot.jbcrypt.BCrypt;
-
-// Classe Utente che rappresenta un utente dell'applicazione
+/**
+ * Modello che rappresenta l'Utente nel sistema.
+ * POJO puro: la logica di persistenza è delegata a UtenteDAO.
+ */
 public class Utente {
 
-  // Attributi dell'utente
+  // Attributi anagrafici e credenziali
+  /** Foto del profilo dell'utente (URI/Path). */
   private String fotoProfilo;
+  /** Nome dell'utente. */
   private String nome;
+  /** Cognome dell'utente. */
   private String cognome;
+  /** Username univoco dell'utente. */
   private String username;
+  /** Password dell'utente (in chiaro, usata solo transitoriamente). */
   private String password;
+  /** Hash della password (salvata nel DB). */
   private String pwCrypto;
 
-  // Tipi di utente supportati
+  /**
+   * Enumerazione dei tipi di utente disponibili nel sistema.
+   */
   public enum TipoUtente {
-
-    // Definizione tipi utente
     BARISTA("Barista"),
     APPASSIONATO("Appassionato"),
+    TORREFATTORE("Torrefattore"),
     UTENTE_MEDIO("Utente medio"),
     ADMIN("Admin"),
     OSPITE("Ospite");
 
-    String label;
+    private final String label;
 
-    // Costruttore enum
-    private TipoUtente(String label) {
+    TipoUtente(String label) {
       this.label = label;
     }
 
-    // toString override per ottenere la rappresentazione testuale
     @Override
     public String toString() {
       return label;
@@ -47,365 +48,319 @@ public class Utente {
 
   private TipoUtente tipo;
 
-  // Liste per archivio post, follower e following
+  // Liste per le relazioni e i contenuti
   private List<Post> archivio = new ArrayList<>();
   private List<Utente> follower = new ArrayList<>();
   private List<Utente> following = new ArrayList<>();
 
-  // --- COSTRUTTORI ---
-  // Costruttore vuoto per db
+  /**
+   * Costruttore di default.
+   */
   public Utente() {
-
   }
 
-  // Costruttore per ospite
+  /**
+   * Costruttore per utente ospite o temporaneo.
+   *
+   * @param username Lo username.
+   */
   public Utente(String username) {
     this.username = username;
     this.password = null;
     this.tipo = TipoUtente.OSPITE;
   }
 
-  // Costruttore per utente registrato/da registrare
+  /**
+   * Costruttore completo per creare un nuovo utente.
+   *
+   * @param nome        Il nome.
+   * @param cognome     Il cognome.
+   * @param username    Lo username.
+   * @param password    La password in chiaro.
+   * @param tipo        Il tipo di utente.
+   * @param fotoProfilo L'URI della foto profilo.
+   */
   public Utente(String nome, String cognome, String username, String password, TipoUtente tipo, String fotoProfilo) {
     this.nome = nome;
     this.cognome = cognome;
     this.username = username;
     this.password = password;
-    this.pwCrypto = BCrypt.hashpw(password, BCrypt.gensalt());
+    // L'hash verrà ricalcolato dal DAO se necessario, o qui se vogliamo mantenere
+    // logica domain.
+    // Per coerenza con DAOImpl, lasciamo che il campo pwCrypto gestisca l'hash.
     this.tipo = tipo;
     this.fotoProfilo = fotoProfilo;
   }
 
   // --- GETTER ---
-  // Ritorna il nome dell'utente
+
+  /**
+   * Restituisce il nome dell'utente.
+   *
+   * @return Il nome.
+   */
   public String getNome() {
     return nome;
   }
 
-  // Ritorna il cognome dell'utente
+  /**
+   * Restituisce il cognome dell'utente.
+   *
+   * @return Il cognome.
+   */
   public String getCognome() {
     return cognome;
   }
 
-  // Ritorna lo username dell'utente
+  /**
+   * Restituisce lo username dell'utente.
+   *
+   * @return Lo username.
+   */
   public String getUsername() {
     return username;
   }
 
-  // Ritorna la password in chiaro dell'utente
-  protected String getPassword() {
+  // Rendo pubblico getPassword per permettere al DAO di leggerla
+  /**
+   * Restituisce la password in chiaro.
+   *
+   * @return La password.
+   */
+  public String getPassword() {
     return password;
   }
 
-  // Ritorna la password criptata dell'utente
+  /**
+   * Restituisce l'hash della password cifrata.
+   *
+   * @return L'hash della password.
+   */
   public String getPasswordCrypto() {
     return pwCrypto;
   }
 
-  // Ritorna il tipo di utente
+  /**
+   * Restituisce il tipo di utente.
+   *
+   * @return Il tipo di utente.
+   */
   public TipoUtente getTipo() {
     return tipo;
   }
 
-  // Ritorna l'archivio dei post dell'utente
+  /**
+   * Restituisce la lista dei post nell'archivio dell'utente.
+   *
+   * @return La lista dei post.
+   */
   public List<Post> getArchivio() {
     return archivio;
   }
 
-  // Ritorna un singolo post dall'archivio
+  /**
+   * Restituisce un singolo post dall'archivio dato l'indice.
+   *
+   * @param i L'indice.
+   * @return Il post.
+   */
   public Post getSingoloPost(int i) {
     return archivio.get(i);
   }
 
-  // Ritorna il numero di post nell'archivio
+  /**
+   * Restituisce il numero di post nell'archivio.
+   *
+   * @return Il numero di post.
+   */
   public int getNumPost() {
     return archivio.size();
   }
 
-  // Ritorna la lista dei follower dell'utente
+  /**
+   * Restituisce la lista dei follower.
+   *
+   * @return La lista dei follower.
+   */
   public List<Utente> getFollower() {
     return follower;
   }
 
-  // Ritorna un singolo follower
+  /**
+   * Restituisce un singolo follower dato l'indice.
+   *
+   * @param i L'indice.
+   * @return Il follower.
+   */
   public Utente getSingoloFollower(int i) {
     return follower.get(i);
   }
 
-  // Ritorna il numero di follower
+  /**
+   * Restituisce il numero di follower.
+   *
+   * @return Il numero di follower.
+   */
   public int getNumFollower() {
     return follower.size();
   }
 
-  // Ritorna la lista degli utenti seguiti
+  /**
+   * Restituisce la lista degli utenti seguiti (following).
+   *
+   * @return La lista dei following.
+   */
   public List<Utente> getFollowing() {
     return following;
   }
 
-  // Ritorna un singolo utente seguito
+  /**
+   * Restituisce un singolo utente seguito dato l'indice.
+   *
+   * @param i L'indice.
+   * @return L'utente seguito.
+   */
   public Utente getSingoloFollowing(int i) {
     return following.get(i);
   }
 
-  // Ritorna il numero di utenti seguiti
+  /**
+   * Restituisce il numero di utenti seguiti.
+   *
+   * @return Il numero di following.
+   */
   public int getNumFollowing() {
     return following.size();
   }
 
-  // Ritorna il percorso della foto profilo
+  /**
+   * Restituisce l'URI della foto profilo.
+   *
+   * @return L'URI della foto profilo.
+   */
   public String getFotoProfilo() {
     return fotoProfilo;
   }
 
   // --- SETTER ---
-  // Imposta il nome dell'utente
+
+  /**
+   * Imposta il nome dell'utente.
+   *
+   * @param nome Il nome.
+   */
   public void setNome(String nome) {
     this.nome = nome;
   }
 
-  // Imposta il cognome dell'utente
+  /**
+   * Imposta il cognome dell'utente.
+   *
+   * @param cognome Il cognome.
+   */
   public void setCognome(String cognome) {
     this.cognome = cognome;
   }
 
-  // Imposta lo username dell'utente
+  /**
+   * Imposta lo username dell'utente.
+   *
+   * @param username Lo username.
+   */
   public void setUsername(String username) {
     this.username = username;
   }
 
-  // Imposta la password in chiaro dell'utente
+  /**
+   * Imposta la password in chiaro.
+   *
+   * @param password La password.
+   */
   public void setPassword(String password) {
     this.password = password;
   }
 
-  // Imposta la password criptata dell'utente
+  /**
+   * Imposta l'hash della password cifrata.
+   *
+   * @param pwCrypto L'hash della password.
+   */
   public void setPasswordCrypto(String pwCrypto) {
     this.pwCrypto = pwCrypto;
   }
 
-  // Imposta l'archivio dei post dell'utente
+  /**
+   * Imposta l'archivio dei post dell'utente.
+   *
+   * @param archivio La lista dei post.
+   */
   public void setArchivio(List<Post> archivio) {
     this.archivio = archivio;
   }
 
-  // Imposta un singolo post nell'archivio
+  /**
+   * Imposta un singolo post nell'archivio all'indice specificato.
+   *
+   * @param post Il post.
+   * @param i    L'indice.
+   */
   public void setSingoloPost(Post post, int i) {
     archivio.set(i, post);
   }
 
-  // Imposta la lista dei follower dell'utente
+  /**
+   * Imposta la lista dei follower.
+   *
+   * @param follower La lista dei follower.
+   */
   public void setFollower(List<Utente> follower) {
     this.follower = follower;
   }
 
-  // Imposta un singolo follower
+  /**
+   * Imposta un singolo follower nella lista all'indice specificato.
+   *
+   * @param utente Il follower.
+   * @param i      L'indice.
+   */
   public void setSingoloFollower(Utente utente, int i) {
     follower.set(i, utente);
   }
 
-  // Imposta la lista degli utenti seguiti
+  /**
+   * Imposta la lista degli utenti seguiti.
+   *
+   * @param following La lista dei following.
+   */
   public void setFollowing(List<Utente> following) {
     this.following = following;
   }
 
-  // Imposta un singolo utente seguito
+  /**
+   * Imposta un singolo utente seguito nella lista all'indice specificato.
+   *
+   * @param utente L'utente seguito.
+   * @param i      L'indice.
+   */
   public void setSingoloFollowing(Utente utente, int i) {
     following.set(i, utente);
   }
 
-  // Imposta il tipo di utente
+  /**
+   * Imposta il tipo di utente.
+   *
+   * @param tipo Il tipo di utente.
+   */
   public void setTipo(TipoUtente tipo) {
     this.tipo = tipo;
   }
 
-  // Imposta il percorso della foto profilo
+  /**
+   * Imposta l'URI della foto profilo.
+   *
+   * @param fotoProfilo L'URI della foto profilo.
+   */
   public void setFotoProfilo(String fotoProfilo) {
     this.fotoProfilo = fotoProfilo;
-  }
-
-  // --- METODI DATABASE ---
-  // Registra un nuovo utente nel database
-  public void registraUtente(Utente u) throws SQLException {
-
-    // Controlla se lo username esiste già
-    if (usernameEsiste(u.getUsername())) {
-      // Lancia eccezione se esiste
-      throw new SQLException("Username già registrato");
-    }
-
-    // Query SQL per inserimento nuovo utente
-    String sql = "INSERT INTO utenti(username, nome, cognome, password_hash, tipo, foto_uri) VALUES(?,?,?,?,?,?)";
-
-    // Esegui l'inserimento nel database
-    try (Connection conn = DatabaseManager.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      // Imposta i parametri della query
-      pstmt.setString(1, u.getUsername());
-      pstmt.setString(2, u.getNome());
-      pstmt.setString(3, u.getCognome());
-
-      // Hash della password
-      String hash = BCrypt.hashpw(u.getPassword(), BCrypt.gensalt());
-
-      // Continua a impostare i parametri
-      pstmt.setString(4, hash);
-      pstmt.setString(5, u.getTipo().name());
-      pstmt.setString(6, u.getFotoProfilo());
-
-      // Esegui l'update
-      pstmt.executeUpdate();
-    }
-  }
-
-  // Controlla se uno username esiste già nel database
-  private boolean usernameEsiste(String username) throws SQLException {
-
-    // Query SQL per controllo esistenza username
-    String sql = "SELECT COUNT(*) FROM utenti WHERE username = ?";
-
-    // Esegui la query
-    try (Connection conn = DatabaseManager.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      // Imposta il parametro della query
-      pstmt.setString(1, username);
-
-      // Esegui la query
-      ResultSet rs = pstmt.executeQuery();
-
-      // Controlla il risultato
-      if (rs.next()) {
-        // Ritorna true se esiste, false altrimenti
-        return rs.getInt(1) > 0;
-      }
-    }
-    return false;
-  }
-
-  // Effettua il login di un utente con username e password
-  public Utente login(String username, String passwordInserita) {
-
-    // Query SQL per recupero utente
-    String sql = "SELECT * FROM utenti WHERE username = ?";
-
-    // Esegui la query
-    try (Connection conn = DatabaseManager.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      // Imposta il parametro della query
-      pstmt.setString(1, username);
-
-      // Esegui la query
-      ResultSet rs = pstmt.executeQuery();
-
-      // Verifica se l'utente esiste e la password è corretta
-      if (rs.next()) {
-
-        // Recupera l'hash della password salvata
-        String hashSalvato = rs.getString("password_hash");
-
-        // Confronta la password inserita con l'hash salvato
-        if (hashSalvato != null && BCrypt.checkpw(passwordInserita, hashSalvato)) {
-
-          // Crea l'oggetto Utente
-          Utente u = new Utente();
-          u.setUsername(rs.getString("username"));
-          u.setNome(rs.getString("nome"));
-          u.setCognome(rs.getString("cognome"));
-          u.setPasswordCrypto(hashSalvato);
-
-          // Imposta il tipo di utente
-          String tipoStr = rs.getString("tipo");
-
-          // Gestione tipo utente non valido
-          try {
-            u.setTipo(TipoUtente.valueOf(tipoStr));
-          } catch (IllegalArgumentException e) {
-            throw e;
-          }
-
-          // Imposta la foto profilo
-          u.setFotoProfilo(rs.getString("foto_uri"));
-
-          // Ritorna l'utente autenticato
-          return u;
-        }
-      }
-    } catch (SQLException e) {
-      // Gestione eccezione SQL
-      e.printStackTrace();
-    }
-
-    // Ritorna null se login fallito
-    return null;
-  }
-
-  // Aggiorna le informazioni del profilo utente nel database
-  public void aggiornaProfilo() throws SQLException {
-
-    // Query SQL per aggiornamento profilo
-    String sql;
-
-    // Verifica se la password è stata cambiata
-    boolean cambioPassword = this.password != null && !this.password.equals(this.pwCrypto);
-
-    // Costruisci la query in base al cambio password
-    if (cambioPassword) {
-
-      // Aggiorna anche la password
-      sql = "UPDATE utenti SET nome = ?, cognome = ?, foto_uri = ?, password_hash = ? WHERE username = ?";
-    } else {
-
-      // Aggiorna senza cambiare la password
-      sql = "UPDATE utenti SET nome = ?, cognome = ?, foto_uri = ? WHERE username = ?";
-    }
-
-    // Esegui l'aggiornamento nel database
-    try (Connection conn = DatabaseManager.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      // Imposta i parametri della query
-      pstmt.setString(1, this.nome);
-      pstmt.setString(2, this.cognome);
-      pstmt.setString(3, this.fotoProfilo);
-
-      // Gestione cambio password
-      if (cambioPassword) {
-        // Hash della nuova password
-        String hash = BCrypt.hashpw(this.password, BCrypt.gensalt());
-        this.pwCrypto = hash; 
-
-        // Imposta il parametro con la password
-        pstmt.setString(4, hash);
-        pstmt.setString(5, this.username);
-      } else {
-
-        // Imposta il parametro senza password
-        pstmt.setString(4, this.username);
-      }
-
-      // Esegui l'update
-      pstmt.executeUpdate();
-
-    }
-  }
-
-  // Elimina l'account utente dal database
-  public void eliminaAccount() throws SQLException {
-
-    // Query SQL per eliminazione utente
-    String sql = "DELETE FROM utenti WHERE username = ?";
-
-    // Esegui l'eliminazione nel database
-    try (Connection conn = DatabaseManager.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      // Imposta il parametro della query
-      pstmt.setString(1, this.username);
-
-      // Esegui l'update e controlla il risultato
-      int affectedRows = pstmt.executeUpdate();
-      if (affectedRows <= 0) {
-
-        // Nessuna riga eliminata, utente non trovato
-        throw new SQLException("Impossibile eliminare l'account: utente non trovato.");
-      }
-    }
   }
 }
