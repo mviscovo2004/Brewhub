@@ -52,6 +52,7 @@ public class LoginView {
         // --- LAYOUT ---
         StackPane root = new StackPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        root.getStyleClass().add("login-root");
 
         // Card centrale che contiene il form di Login
         VBox loginCard = new VBox(20);
@@ -87,18 +88,18 @@ public class LoginView {
         // Bottone principale di accesso
         Button btnAccedi = new Button("Accedi");
         btnAccedi.setDefaultButton(true); // Attivabile con Enter
-        btnAccedi.getStyleClass().add("button-primary");
+        btnAccedi.getStyleClass().add("login-btn-primary");
         btnAccedi.setId("loginButton");
         btnAccedi.setMaxWidth(Double.MAX_VALUE);
 
         // Bottone per navigare alla registrazione
         Button btnRegistrati = new Button("Non hai un account? Registrati");
-        btnRegistrati.getStyleClass().add("button-secondary");
+        btnRegistrati.getStyleClass().add("login-btn-secondary");
         btnRegistrati.setMaxWidth(Double.MAX_VALUE);
 
         // Link per accesso rapido come ospite
         Hyperlink linkOspite = new Hyperlink("Continua come ospite");
-        linkOspite.getStyleClass().add("hyperlink");
+        linkOspite.getStyleClass().add("login-guest-link");
 
         // Contenitore per i campi di input
         VBox inputs = new VBox(15);
@@ -124,7 +125,7 @@ public class LoginView {
 
             // Validazione input
             if (user.isBlank() || pw.isBlank()) {
-                lblErrore.setText("⚠ Inserisci username e password");
+                lblErrore.setText("\u26A0 Inserisci username e password");
                 lblErrore.setVisible(true);
             } else {
                 // Tentativo di login tramite DAO
@@ -133,7 +134,7 @@ public class LoginView {
                     Utente profilo = dao.login(user, pw);
 
                     if (profilo == null) {
-                        lblErrore.setText("✗ Credenziali non valide");
+                        lblErrore.setText("\u2717 Credenziali non valide");
                         lblErrore.setVisible(true);
                         fldPassword.clear();
                     } else {
@@ -145,7 +146,7 @@ public class LoginView {
                         stage.getScene().setRoot(home.getView());
                     }
                 } catch (Exception ex) {
-                    lblErrore.setText("✗ Errore Login: " + ex.getMessage());
+                    lblErrore.setText("\u2717 Errore Login: " + ex.getMessage());
                     lblErrore.setVisible(true);
                     Log.error("Errore durante il login", ex);
                 }

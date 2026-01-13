@@ -1,6 +1,7 @@
 it\univaq\brewhub\dao\UtenteDAO.class
 it\univaq\brewhub\dao\impl\UtenteDAOImpl.class
 it\univaq\brewhub\utility\Log.class
+it\univaq\brewhub\UI\components\PostCard.class
 it\univaq\brewhub\Commento.class
 it\univaq\brewhub\UI\RegisterView.class
 it\univaq\brewhub\UI\LoginView.class

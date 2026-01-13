@@ -85,6 +85,10 @@ public interface PostDAO {
      */
     List<Post> findByAuthor(String username) throws SQLException;
 
+    List<Post> findByCategory(int categoryId) throws SQLException;
+
+    List<Post> findByUserType(String userType) throws SQLException;
+
     /**
      * Recupera un post tramite il suo ID.
      * 
@@ -93,4 +97,30 @@ public interface PostDAO {
      * @throws SQLException
      */
     Post findById(int id) throws SQLException;
+
+    /**
+     * Recupera i post ordinati per popolarità (numero di like).
+     * 
+     * @return Lista di post più popolari.
+     * @throws SQLException Errore Database.
+     */
+    List<Post> findPopular() throws SQLException;
+
+    /**
+     * Recupera i post a cui l'utente ha messo "mi piace".
+     * 
+     * @param username Username dell'utente.
+     * @return Lista di post piaciuti.
+     * @throws SQLException Errore Database.
+     */
+    List<Post> findLikedBy(String username) throws SQLException;
+
+    /**
+     * Recupera il feed personalizzato per l'utente (solo post di chi segue).
+     * 
+     * @param username Username dell'utente.
+     * @return Lista di post personalizzata.
+     * @throws SQLException Errore Database.
+     */
+    List<Post> findFeedForUser(String username) throws SQLException;
 }

@@ -1,5 +1,4 @@
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\Utente.java
-C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\DbDumper.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\UI\UserProfileView.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\module-info.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\dao\UtenteDAO.java
@@ -7,6 +6,7 @@ C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\bu
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\UI\RegisterView.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\dao\impl\CommentoDAOImpl.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\dao\impl\PostDAOImpl.java
+C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\UI\components\PostCard.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\App.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\Notifica.java
 C:\Users\Marco\Desktop\Brewhub-review\brewhub\src\main\java\it\univaq\brewhub\UI\HomeView.java

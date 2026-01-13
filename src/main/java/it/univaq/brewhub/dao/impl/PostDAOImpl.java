@@ -26,7 +26,7 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public void create(Post post) throws SQLException {
-        String sql = "INSERT INTO post(autore_username, titolo, contenuto, tipo, data_creazione, media_uri) VALUES(?,?,?,?,?,?)";
+        String sql = "INSERT INTO post(autore_username, titolo, contenuto, tipo, data_creazione, media_uri, category_id) VALUES(?,?,?,?,?,?,?)";
 
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -37,6 +37,12 @@ public class PostDAOImpl implements PostDAO {
             pstmt.setString(4, post.getTipo().name());
             pstmt.setString(5, post.getDataCreazione().toString());
             pstmt.setString(6, post.getMedia() != null ? post.getMedia().replace('\\', '/') : null);
+
+            if (post.getCategoria() != null) {
+                pstmt.setInt(7, post.getCategoria().getId());
+            } else {
+                pstmt.setNull(7, java.sql.Types.INTEGER);
+            }
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
@@ -56,11 +62,47 @@ public class PostDAOImpl implements PostDAO {
     @Override
     public void delete(int id) throws SQLException {
         if (id > 0) {
-            String sql = "DELETE FROM post WHERE id = ?";
-            try (Connection conn = DatabaseManager.getConnection();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, id);
-                pstmt.executeUpdate();
+            String deleteSaved = "DELETE FROM saved_posts WHERE post_id = ?";
+            String deleteLikes = "DELETE FROM likes WHERE post_id = ?";
+            String deleteComments = "DELETE FROM commenti WHERE post_id = ?";
+            String deletePost = "DELETE FROM post WHERE id = ?";
+
+            try (Connection conn = DatabaseManager.getConnection()) {
+                boolean originalAutoCommit = conn.getAutoCommit();
+                conn.setAutoCommit(false);
+
+                try {
+                    // 1. Delete from saved_posts (Archive)
+                    try (PreparedStatement ps = conn.prepareStatement(deleteSaved)) {
+                        ps.setInt(1, id);
+                        ps.executeUpdate();
+                    }
+
+                    // 2. Delete likes
+                    try (PreparedStatement ps = conn.prepareStatement(deleteLikes)) {
+                        ps.setInt(1, id);
+                        ps.executeUpdate();
+                    }
+
+                    // 3. Delete comments
+                    try (PreparedStatement ps = conn.prepareStatement(deleteComments)) {
+                        ps.setInt(1, id);
+                        ps.executeUpdate();
+                    }
+
+                    // 4. Delete the post itself
+                    try (PreparedStatement ps = conn.prepareStatement(deletePost)) {
+                        ps.setInt(1, id);
+                        ps.executeUpdate();
+                    }
+
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                    throw e;
+                } finally {
+                    conn.setAutoCommit(originalAutoCommit);
+                }
             }
         }
     }
@@ -68,32 +110,33 @@ public class PostDAOImpl implements PostDAO {
     @Override
     public List<Post> findAll() throws SQLException {
         String sql = "SELECT * FROM post ORDER BY data_creazione DESC";
-        return executeQuery(sql, null);
+        return executeQuery(sql);
     }
 
     @Override
     public List<Post> search(String query) throws SQLException {
         String sql = "SELECT * FROM post WHERE titolo LIKE ? OR contenuto LIKE ? ORDER BY data_creazione DESC";
-        return executeQuery(sql, "%" + query + "%");
+        String p = "%" + query + "%";
+        return executeQuery(sql, p, p);
     }
 
     /**
      * Esegue la query e mappa il result set in una lista di oggetti Post.
      *
-     * @param sql         La query SQL da eseguire.
-     * @param searchParam Il parametro di ricerca da associare, o null se non
-     *                    applicabile.
+     * @param sql    La query SQL da eseguire.
+     * @param params I parametri opzionali per la query.
      * @return Una lista di oggetti Post.
      * @throws SQLException Se si verifica un errore di accesso al database.
      */
-    private List<Post> executeQuery(String sql, String searchParam) throws SQLException {
+    private List<Post> executeQuery(String sql, Object... params) throws SQLException {
         List<Post> posts = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            if (searchParam != null) {
-                pstmt.setString(1, searchParam);
-                pstmt.setString(2, searchParam);
+            if (params != null) {
+                for (int i = 0; i < params.length; i++) {
+                    pstmt.setObject(i + 1, params[i]);
+                }
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -216,9 +259,96 @@ public class PostDAOImpl implements PostDAO {
         return null;
     }
 
-    /**
-     * Helper method to map a ResultSet row to a Post object.
-     */
+    @Override
+    public List<Post> findByCategory(int categoryId) throws SQLException {
+        String sql = "SELECT * FROM post WHERE category_id = ? ORDER BY data_creazione DESC";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, categoryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<Post> posts = new ArrayList<>();
+                while (rs.next()) {
+                    posts.add(mapResultSetToPost(rs));
+                }
+                return posts;
+            }
+        }
+    }
+
+    @Override
+    public List<Post> findByUserType(String userType) throws SQLException {
+        // Supponendo che userType sia una stringa che corrisponde al campo 'tipo' nella
+        // tabella utenti
+        String sql = "SELECT p.*, c.nome as categoria_nome FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "WHERE u.tipo = ? ORDER BY p.data_creazione DESC";
+
+        // Note: mapResultSetToPost might need adjustment if using explicit columns or
+        // trying to map joined cols
+        // But mapResultSetToPost expects "id", "autore_username", etc. which are
+        // present in p.*
+        // Check if mapResultSetToPost handles potential ambiguity or not.
+        // With p.* we get all post columns. u.username is joined on autore_username.
+        // Let's use a simpler query if column names overlap.
+        // Actually, mapResultSetToPost uses column names like "id". "post.id" and
+        // "notifiche.id" may conflict if joined.
+        // Here we join with Utenti. Utenti has "username", "nome", "cognome", "tipo",
+        // "password_hash", "foto_uri".
+        // Post has "id", "autore_username", "titolo" ...
+        // No strict overlap on "id" usually since users have username PK.
+        // Wait, "foto_uri" might be in both if I added it to Post? No, Post has
+        // media_uri.
+        // So SELECT * should be fine mostly, but cleaner to specify p.*
+
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, userType);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<Post> posts = new ArrayList<>();
+                while (rs.next()) {
+                    posts.add(mapResultSetToPost(rs));
+                }
+                return posts;
+            }
+        }
+    }
+
+    @Override
+    public List<Post> findPopular() throws SQLException {
+        // Ordina per numero di like (join con tabella likes)
+        String sql = "SELECT p.*, COUNT(l.post_id) as like_count " +
+                "FROM post p " +
+                "LEFT JOIN likes l ON p.id = l.post_id " +
+                "GROUP BY p.id " +
+                "ORDER BY like_count DESC, p.data_creazione DESC " +
+                "LIMIT 50";
+        // Nota: executeQuery gestisce SELECT * ma qui abbiamo una colonna in più.
+        // mapResultSetToPost ignorerà la colonna extra senza problemi.
+        return executeQuery(sql);
+    }
+
+    @Override
+    public List<Post> findLikedBy(String username) throws SQLException {
+        String sql = "SELECT p.* " +
+                "FROM post p " +
+                "JOIN likes l ON p.id = l.post_id " +
+                "WHERE l.username = ? " +
+                "ORDER BY p.data_creazione DESC";
+        return executeQuery(sql, username);
+    }
+
+    @Override
+    public List<Post> findFeedForUser(String username) throws SQLException {
+        // Seleziona post degli utenti seguiti dall'utente corrente
+        String sql = "SELECT p.* " +
+                "FROM post p " +
+                "JOIN followers f ON p.autore_username = f.followed_username " +
+                "WHERE f.follower_username = ? " +
+                "ORDER BY p.data_creazione DESC";
+        return executeQuery(sql, username);
+    }
+
     private Post mapResultSetToPost(ResultSet rs) throws SQLException {
         Post post = new Post();
         post.setId(rs.getInt("id"));
@@ -238,6 +368,39 @@ public class PostDAOImpl implements PostDAO {
 
         post.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
         post.setMedia(rs.getString("media_uri"));
+
+        // Mappa Categoria - requires JOIN or lazy load.
+        // Better to use JOIN in queries, but for now let's lazy load or just check if
+        // column exists/is populated
+        // The simple find methods select * from post.
+        // We can do a quick lookup if category_id > 0
+        int catId = rs.getInt("category_id");
+        if (!rs.wasNull() && catId > 0) {
+            it.univaq.brewhub.Categoria c = new it.univaq.brewhub.Categoria();
+            c.setId(catId);
+            // We can fetch name quickly or do a JOIN.
+            // JOIN is better performance wise but requires changing all SQL queries.
+            // Let's do a sub-query fetch here for simplicity given existing structure
+            // OR update findAll/search queries to use JOIN.
+            // Let's just fetch name via DAO helper or simple query.
+            // Actually, let's keep it simple: just ID is enough? No, UI needs name.
+            // Ideally we change all SELECT * FROM post to SELECT p.*, c.nome as cat_nome
+            // FROM post p LEFT JOIN categorie c ON p.category_id = c.id
+            // But let's simplify: lazy fetch.
+            // No, lazy fetch in a loop is N+1.
+            // Let's assume we can fetch it.
+            // For now, I'll instantiate a simple DAO here or use a helper query.
+            try (PreparedStatement psCat = rs.getStatement().getConnection()
+                    .prepareStatement("SELECT nome FROM categorie WHERE id = ?")) {
+                psCat.setInt(1, catId);
+                try (ResultSet rsCat = psCat.executeQuery()) {
+                    if (rsCat.next()) {
+                        c.setNome(rsCat.getString("nome"));
+                    }
+                }
+            }
+            post.setCategoria(c);
+        }
 
         // Caricamento Commenti tramite DAO
         post.setCommenti(commentoDAO.findByPost(post));

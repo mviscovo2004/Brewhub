@@ -115,6 +115,39 @@ public class DatabaseManager {
                                         ")";
                         stmt.execute(sqlNotifiche);
 
+                        // Creazione tabella Categorie
+                        String sqlCategorie = "CREATE TABLE IF NOT EXISTS categorie (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "nome TEXT NOT NULL UNIQUE, " +
+                                        "icona TEXT" +
+                                        ")";
+                        stmt.execute(sqlCategorie);
+
+                        // Alter table post per aggiungere category_id se non esiste (SQLite non ha IF
+                        // NOT EXISTS per column add,
+                        // quindi usiamo try-catch o controlliamo pragma, ma per semplicità qui facciamo
+                        // try-catch mirato per l'alter)
+                        try {
+                                stmt.execute("ALTER TABLE post ADD COLUMN category_id INTEGER REFERENCES categorie(id) ON DELETE SET NULL");
+                        } catch (SQLException e) {
+                                // Colonna probabilmente già esistente
+                        }
+
+                        try {
+                                stmt.execute("ALTER TABLE categorie ADD COLUMN icona TEXT");
+                        } catch (SQLException e) {
+                                // Colonna probabilmente già esistente
+                        }
+
+                        // Popolamento categorie default se vuota
+                        try (java.sql.ResultSet rsCat = stmt.executeQuery("SELECT COUNT(*) FROM categorie")) {
+                                if (rsCat.next() && rsCat.getInt(1) == 0) {
+                                        stmt.execute("INSERT INTO categorie(nome) VALUES('Torrefattori')");
+                                        stmt.execute("INSERT INTO categorie(nome) VALUES('Miscele')");
+                                        stmt.execute("INSERT INTO categorie(nome) VALUES('Eventi')");
+                                }
+                        }
+
                         // Indici per ottimizzare le query frequenti
                         stmt.execute("CREATE INDEX IF NOT EXISTS idx_post_autore ON post(autore_username)");
                         stmt.execute("CREATE INDEX IF NOT EXISTS idx_commenti_post ON commenti(post_id)");

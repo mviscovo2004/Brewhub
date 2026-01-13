@@ -31,6 +31,12 @@
     -fx-font-family: "Segoe UI", "Arial", sans-serif;
 }
 
+.login-root {
+    -fx-background-color: linear-gradient(to bottom right, #3E2723, #5D4037, #8D6E63);
+    -fx-background-image: url("https://www.transparenttextures.com/patterns/mocha-grunge.png");
+    /* Optional texture if valid, otherwise just gradient */
+}
+
 /* ============================================
    HEADER
    ============================================ */
@@ -240,14 +246,16 @@
 }
 
 .title-label {
-    -fx-text-fill: #2C1810;
-    -fx-font-size: 28;
+    -fx-text-fill: #3E2723;
+    -fx-font-size: 32;
+    -fx-font-family: "Segoe UI Light";
     -fx-font-weight: bold;
 }
 
 .subtitle-label {
     -fx-text-fill: #8D6E63;
-    -fx-font-size: 13;
+    -fx-font-size: 14;
+    -fx-font-weight: normal;
 }
 
 .error-label {
@@ -271,12 +279,71 @@
 }
 
 .form-box {
-    -fx-background-color: #FFFBF5;
-    -fx-border-color: #D4A574;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 30;
-    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.1), 5, 0, 0, 2);
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 20, 0, 0, 5);
+}
+
+/* Custom Login Buttons */
+.login-btn-primary {
+    -fx-background-color: linear-gradient(to right, #5D4037, #3E2723);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 12 20;
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.3), 8, 0, 0, 2);
+}
+
+.login-btn-primary:hover {
+    -fx-background-color: linear-gradient(to right, #6D4C41, #4E342E);
+    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.5), 10, 0, 0, 3);
+}
+
+.login-btn-primary:pressed {
+    -fx-effect: none;
+    -fx-translate-y: 1;
+}
+
+.login-btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5D4037;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-border-color: #8D6E63;
+    -fx-border-width: 1.5;
+    -fx-cursor: hand;
+}
+
+.login-btn-secondary:hover {
+    -fx-background-color: #FFF8E1;
+    /* Light cream hover */
+    -fx-border-color: #5D4037;
+    -fx-text-fill: #3E2723;
+}
+
+.login-guest-link {
+    -fx-text-fill: #A1887F;
+    -fx-font-size: 13px;
+    -fx-underline: false;
+    -fx-cursor: hand;
+    -fx-padding: 5;
+}
+
+.login-guest-link:hover {
+    -fx-text-fill: #5D4037;
+    -fx-underline: true;
+}
+
+.login-guest-link:visited {
+    -fx-text-fill: #A1887F;
 }
 
 .dashboard {
@@ -385,28 +452,119 @@
    ============================================ */
 
 .comments-box {
-    -fx-background-color: #F9Fbe7;
-    /* Very light subtle background */
-    -fx-background-color: #FAFAFA;
-    -fx-padding: 15;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-border-width: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 10 0 0 0;
+    -fx-border-color: #EFEBE9;
+    -fx-border-width: 1 0 0 0;
+    /* Top separator only */
 }
 
-.comments-label {
+.comment-row {
+    -fx-padding: 8 0;
+    -fx-border-color: rgba(141, 110, 99, 0.1);
+    -fx-border-width: 0 0 1 0;
+    /* Bottom separator for items */
+}
+
+.comment-author {
     -fx-font-weight: bold;
-    -fx-font-size: 13;
-    -fx-text-fill: #2C1810;
+    -fx-fill: #3E2723;
+    -fx-font-size: 13px;
+}
+
+.comment-text {
+    -fx-fill: #3E2723;
+    -fx-font-size: 13px;
 }
 
 .comment-field {
-    -fx-font-size: 12;
+    -fx-font-size: 13px;
     -fx-padding: 8;
-    -fx-border-color: #D4A574;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-control-inner-background: #FFFBF5;
+    -fx-background-color: #FAFAFA;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #D7CCC8;
+    -fx-border-width: 1;
+}
+
+.comment-field:focused {
+    -fx-border-color: #8D6E63;
+    -fx-background-color: #FFFFFF;
+}
+
+.comment-send-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5D4037;
+    /* Coffee Accent */
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+}
+
+.comment-send-btn:hover {
+    -fx-text-fill: #8D6E63;
+    -fx-background-color: rgba(141, 110, 99, 0.1);
+    -fx-background-radius: 5;
+}
+
+/* Comment Action Buttons (Edit/Delete) - Premium Design */
+.comment-action-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-pref-width: 28px;
+    -fx-pref-height: 28px;
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+    -fx-opacity: 0;
+    /* Hidden by default */
+}
+
+/* Reveal logic: parent row hover triggers children visibility */
+.comment-row:hover .comment-action-btn {
+    -fx-opacity: 0.6;
+}
+
+.comment-action-btn:hover {
+    -fx-opacity: 1.0 !important;
+}
+
+.comment-edit-btn {
+    -fx-text-fill: #8D6E63;
+}
+
+.comment-edit-btn:hover {
+    -fx-background-color: rgba(141, 110, 99, 0.1);
+    -fx-text-fill: #5D4037;
+}
+
+.comment-delete-btn {
+    -fx-text-fill: #A1887F;
+}
+
+.comment-delete-btn:hover {
+    -fx-background-color: rgba(211, 47, 47, 0.1);
+    -fx-text-fill: #d32f2f;
+}
+
+.comment-field {
+    -fx-font-size: 13px;
+    -fx-padding: 8;
+    -fx-background-color: #FAFAFA;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #D7CCC8;
+    -fx-border-width: 1;
+}
+
+.comment-field:focused {
+    -fx-border-color: #8D6E63;
+    -fx-background-color: #FFFFFF;
 }
 
 /* ============================================
@@ -478,7 +636,63 @@
 }
 
 /* ============================================
-   BACKGROUND COLORS
+   GLOBAL SCROLLBAR STYLES
+   ============================================ */
+
+/* The main scrollbar track */
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 10px;
+}
+
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height: 10px;
+}
+
+/* The thumb (draggable part) */
+.scroll-bar .thumb {
+    -fx-background-color: #D7CCC8;
+    /* Light coffee */
+    -fx-background-radius: 5px;
+    -fx-background-insets: 2px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #8D6E63;
+    /* Darker coffee */
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #5D4037;
+}
+
+/* The track (behind thumb) */
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+/* Hide increment/decrement buttons for cleaner look */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+    -fx-opacity: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+}
+
+/* Specific fix for transparency in scroll panes */
+.scroll-pane>.viewport {
+    -fx-background-color: transparent;
+}
+
+/* ============================================
+   BACKGROUND COLORS (Re-added)
    ============================================ */
 
 .sidebar {
@@ -504,47 +718,118 @@
     -fx-text-fill: white;
 }
 
-/* Bottone profilo in header */
-.header-profile-btn {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
+/* ============================================
+   HEADER COMPONENTS STYLING
+   ============================================ */
+
+/* Search Field */
+.text-field {
+    -fx-background-color: #FFFBF5;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-padding: 8 15;
+    -fx-prompt-text-fill: #A1887F;
+}
+
+.text-field:focused {
+    -fx-border-color: #D4A574;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(212, 165, 116, 0.4), 5, 0, 0, 0);
+}
+
+/* Header Action Buttons (Generic) */
+.header-action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFF8F3;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 8 12;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+}
+
+.header-action-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
     -fx-text-fill: white;
 }
 
-/* Label titolo dashboard */
-.dashboard-title {
-    -fx-font-weight: bold;
-    -fx-font-size: 15px;
+.header-action-btn:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Separatore custom */
-.custom-separator {
-    -fx-background-color: #edeff1;
-}
-
-/* Label username non editabile */
-.text-field-readonly {
-    -fx-opacity: 0.7;
-}
-
-/* Bottone notifiche header */
+/* Specific: Notification Button */
 .notification-btn {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
-    -fx-text-fill: #FFF8F3;
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFD54F;
+    /* Amber for notifications */
     -fx-font-size: 16px;
     -fx-padding: 6 12;
     -fx-cursor: hand;
     -fx-alignment: CENTER;
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255, 213, 79, 0.3);
+    -fx-border-width: 1;
 }
 
 .notification-btn:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-background-color: rgba(255, 213, 79, 0.1);
+    -fx-text-fill: #FFECB3;
+    -fx-border-color: #FFD54F;
 }
 
 .notification-btn.has-notifications {
     -fx-text-fill: #FFAB91;
-    /* Un rossiccio chiaro che sta bene sul marrone */
+    /* Reddish orange when active */
     -fx-border-color: #FFAB91;
+    -fx-effect: dropshadow(gaussian, rgba(255, 171, 145, 0.4), 5, 0, 0, 0);
+}
+
+/* Specific: Logout Button */
+.logout-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #EF9A9A;
+    /* Soft Red */
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 8 12;
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(239, 154, 154, 0.3);
     -fx-border-width: 1;
+}
+
+.logout-btn:hover {
+    -fx-background-color: rgba(244, 67, 54, 0.1);
+    -fx-text-fill: #FFCDD2;
+    -fx-border-color: #EF5350;
+}
+
+/* Specific: Profile "Pill" Button */
+.header-profile-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: #FFF8F3;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50;
+    /* Pill */
+    -fx-border-radius: 50;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1;
+    -fx-padding: 6 16;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.header-profile-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-border-color: #FFF8F3;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 3, 0, 0, 1);
+}
+
+.header-profile-btn:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-effect: none;
 }
 
 /* Dropdown Notifiche */
@@ -797,59 +1082,4 @@
 .post-delete-btn:hover {
     -fx-background-color: #D32F2F;
     -fx-text-fill: white;
-} 
- / *   L i s t V i e w   F e e d   S t y l i n g   * /  
- . f e e d - l i s t - v i e w   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
-         - f x - b a c k g r o u n d - i n s e t s :   0 ;  
-         - f x - p a d d i n g :   0 ;  
- }  
-  
- . f e e d - l i s t - v i e w   . l i s t - c e l l   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
-         - f x - p a d d i n g :   0 ;  
-         - f x - t e x t - f i l l :   - f x - t e x t - b a s e - c o l o r ;  
- }  
-  
- . f e e d - l i s t - v i e w   . l i s t - c e l l : e m p t y   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
- }  
-  
- . f e e d - l i s t - v i e w   . l i s t - c e l l : f i l l e d : s e l e c t e d : f o c u s e d ,    
- . f e e d - l i s t - v i e w   . l i s t - c e l l : f i l l e d : s e l e c t e d   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
-         - f x - t e x t - f i l l :   - f x - t e x t - b a s e - c o l o r ;  
- }  
-  
- . f e e d - l i s t - v i e w : f o c u s e d   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
-         - f x - b a c k g r o u n d - i n s e t s :   0 ;  
- }  
-  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . t r a c k ,  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . t r a c k {  
- 	 - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
- 	 - f x - b o r d e r - c o l o r :   t r a n s p a r e n t ;  
- 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
- }  
-  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . i n c r e m e n t - b u t t o n   ,  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . d e c r e m e n t - b u t t o n   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
- 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
- 	 - f x - p a d d i n g :   0   0   1 0   0 ;  
- }  
-  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . i n c r e m e n t - b u t t o n   ,  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . d e c r e m e n t - b u t t o n   {  
-         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
- 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
- 	 - f x - p a d d i n g :   0   1 0   0   0 ;  
- }  
-  
- . f e e d - l i s t - v i e w   . s c r o l l - b a r   . t h u m b   {  
-         - f x - b a c k g r o u n d - c o l o r :   d e r i v e ( # 3 E 2 7 2 3 ,   8 0 % ) ;  
- 	 - f x - b a c k g r o u n d - i n s e t s :   2 ,   0 ,   0 ;  
- 	 - f x - b a c k g r o u n d - r a d i u s :   2 e m ;  
- }  
- 
+}

@@ -67,6 +67,8 @@ public interface UtenteDAO {
 
     boolean isArchived(String username, int postId) throws SQLException;
 
+    int getNumSavedPosts(String username) throws SQLException;
+
     java.util.List<it.univaq.brewhub.Post> getArchive(String username) throws SQLException;
 
     /**

@@ -53,12 +53,13 @@ public class RegisterView {
         // Configurazione form properties
         stage.setResizable(false);
         stage.setTitle("Brewhub - Registrazione");
-        stage.setWidth(600);
-        stage.setHeight(750);
+        stage.setWidth(850);
+        stage.setHeight(700);
 
         // --- LAYOUT ---
         StackPane root = new StackPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        root.getStyleClass().add("login-root");
 
         // Card centrale di Registrazione
         VBox formBox = new VBox(15);
@@ -128,7 +129,7 @@ public class RegisterView {
         HBox fotoBox = new HBox(15);
         fotoBox.setAlignment(Pos.CENTER_LEFT);
 
-        Button btnFoto = new Button("📷 Scegli foto");
+        Button btnFoto = new Button("\uD83D\uDCF7 Scegli foto");
         btnFoto.getStyleClass().add("button-accent");
         btnFoto.setId("btnFoto");
 
@@ -143,16 +144,16 @@ public class RegisterView {
 
         Button btnRegistrati = new Button("Registrati");
         btnRegistrati.setDefaultButton(true);
-        btnRegistrati.getStyleClass().add("button-success");
+        btnRegistrati.getStyleClass().add("login-btn-primary");
         btnRegistrati.setMaxWidth(Double.MAX_VALUE);
         btnRegistrati.setId("btnRegistrati");
 
         Button btnAccedi = new Button("Hai già un account? Accedi");
-        btnAccedi.getStyleClass().add("button-secondary");
+        btnAccedi.getStyleClass().add("login-btn-secondary");
         btnAccedi.setMaxWidth(Double.MAX_VALUE);
 
         Hyperlink linkOspite = new Hyperlink("Continua come ospite");
-        linkOspite.getStyleClass().add("hyperlink");
+        linkOspite.getStyleClass().add("login-guest-link");
 
         bottoni.getChildren().addAll(btnRegistrati, btnAccedi, linkOspite);
 
@@ -201,10 +202,10 @@ public class RegisterView {
 
             // Validazione
             if (nome.isBlank() || cognome.isBlank() || user.isBlank() || pw.isBlank() || immagine == null) {
-                lblErrore.setText("⚠ Completa tutti i campi e carica una foto");
+                lblErrore.setText("\u26A0 Completa tutti i campi e carica una foto");
                 lblErrore.setVisible(true);
             } else if (pw.length() < 8) {
-                lblErrore.setText("✗ Password troppo corta (minimo 8 caratteri)");
+                lblErrore.setText("\u2717 Password troppo corta (minimo 8 caratteri)");
                 lblErrore.setVisible(true);
             } else {
                 try {
@@ -222,14 +223,14 @@ public class RegisterView {
                 } catch (SQLException ex) {
                     if (ex.getMessage().contains("Username già registrato")
                             || ex.getMessage().contains("PRIMARY KEY")) {
-                        lblErrore.setText("✗ Username già esistente!");
+                        lblErrore.setText("\u2717 Username già esistente!");
                     } else {
-                        lblErrore.setText("✗ Errore Database: " + ex.getMessage());
+                        lblErrore.setText("\u2717 Errore Database: " + ex.getMessage());
                     }
                     lblErrore.setVisible(true);
                     Log.error("Errore durante il login automatico", ex);
                 } catch (Exception ex) {
-                    lblErrore.setText("✗ Errore generico: " + ex.getMessage());
+                    lblErrore.setText("\u2717 Errore generico: " + ex.getMessage());
                     lblErrore.setVisible(true);
                     Log.error("Errore durante la registrazione", ex);
                 }

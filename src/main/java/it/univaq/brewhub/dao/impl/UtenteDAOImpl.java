@@ -93,11 +93,80 @@ public class UtenteDAOImpl implements UtenteDAO {
 
     @Override
     public void delete(String username) throws SQLException {
-        String sql = "DELETE FROM utenti WHERE username = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.executeUpdate();
+        // Soft-delete: Cancella likes/followers e anonimizza l'utente
+        String deleteLikes = "DELETE FROM likes WHERE username = ?";
+        String deleteFollower = "DELETE FROM followers WHERE follower_username = ?";
+        String deleteFollowed = "DELETE FROM followers WHERE followed_username = ?";
+        // Rimuoviamo anche post salvati? Beh, se l'utente non esiste più, il suo
+        // archivio non serve.
+        String deleteSaved = "DELETE FROM saved_posts WHERE username = ?";
+
+        // Propagate keys manually since FKs might be disabled or ON UPDATE CASCADE is
+        // missing
+        String updatePosts = "UPDATE post SET autore_username = ? WHERE autore_username = ?";
+        String updateComments = "UPDATE commenti SET username = ? WHERE username = ?";
+
+        String anonymizeUser = "UPDATE utenti SET username = ?, nome = ?, cognome = ?, password_hash = ?, foto_uri = NULL WHERE username = ?";
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+            boolean originalAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try {
+                // 1. Delete Likes
+                try (PreparedStatement ps = conn.prepareStatement(deleteLikes)) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+                // 2. Delete relationships
+                try (PreparedStatement ps = conn.prepareStatement(deleteFollower)) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = conn.prepareStatement(deleteFollowed)) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+                // 3. Delete saved posts
+                try (PreparedStatement ps = conn.prepareStatement(deleteSaved)) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+
+                String newUsername = "deleted_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+                // 4. Update References (Posts & Comments)
+                try (PreparedStatement ps = conn.prepareStatement(updatePosts)) {
+                    ps.setString(1, newUsername);
+                    ps.setString(2, username);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = conn.prepareStatement(updateComments)) {
+                    ps.setString(1, newUsername);
+                    ps.setString(2, username);
+                    ps.executeUpdate();
+                }
+
+                // 5. Anonymize User
+                try (PreparedStatement ps = conn.prepareStatement(anonymizeUser)) {
+                    // Generiamo un hash valido casuale per impedire login ma evitare errori di
+                    // formato
+                    String dummyHash = BCrypt.hashpw(java.util.UUID.randomUUID().toString(), BCrypt.gensalt());
+
+                    ps.setString(1, newUsername);
+                    ps.setString(2, "Utente");
+                    ps.setString(3, "eliminato");
+                    ps.setString(4, dummyHash);
+                    ps.setString(5, username);
+                    ps.executeUpdate();
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(originalAutoCommit);
+            }
         }
     }
 
@@ -256,6 +325,20 @@ public class UtenteDAOImpl implements UtenteDAO {
                 return rs.next();
             }
         }
+    }
+
+    @Override
+    public int getNumSavedPosts(String username) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM saved_posts WHERE username = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next())
+                    return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     @Override

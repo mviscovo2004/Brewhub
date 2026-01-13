@@ -24,6 +24,8 @@ public class Post {
     private LocalDateTime dataCreazione = LocalDateTime.now();
     /** Percorso/URI del media associato (se presente). */
     private String media = null;
+    /** Categoria del post (opzionale). */
+    private Categoria categoria;
 
     /** Lista degli utenti che hanno messo "mi piace". */
     private List<Utente> miPiace = new ArrayList<>();
@@ -126,6 +128,14 @@ public class Post {
      */
     public String getMedia() {
         return media;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
     }
 
     /**

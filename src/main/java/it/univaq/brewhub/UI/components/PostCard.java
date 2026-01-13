@@ -9,7 +9,6 @@ import it.univaq.brewhub.dao.impl.PostDAOImpl;
 import it.univaq.brewhub.dao.impl.CommentoDAOImpl;
 import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
 import it.univaq.brewhub.utility.Log;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -24,7 +23,6 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
 import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -35,6 +33,7 @@ public class PostCard extends VBox {
     private final Post post;
     private final Utente utenteLoggato;
     private final Runnable onRefreshNeeded;
+    private final Runnable onSaveAction;
 
     // DAOs
     private final PostDAOImpl postDAO = new PostDAOImpl();
@@ -44,9 +43,14 @@ public class PostCard extends VBox {
     private MediaPlayer mediaPlayer;
 
     public PostCard(Post post, Utente utenteLoggato, Runnable onRefreshNeeded) {
+        this(post, utenteLoggato, onRefreshNeeded, null);
+    }
+
+    public PostCard(Post post, Utente utenteLoggato, Runnable onRefreshNeeded, Runnable onSaveAction) {
         this.post = post;
         this.utenteLoggato = utenteLoggato;
         this.onRefreshNeeded = onRefreshNeeded;
+        this.onSaveAction = onSaveAction;
 
         initUI();
     }
@@ -95,7 +99,11 @@ public class PostCard extends VBox {
             avatarContainer.getChildren().add(avatar);
         }
 
-        Label authorLbl = new Label(post.getAutore().getUsername());
+        String displayAuthor = post.getAutore().getUsername();
+        if (displayAuthor.startsWith("deleted_")) {
+            displayAuthor = "Utente eliminato";
+        }
+        Label authorLbl = new Label(displayAuthor);
         authorLbl.setStyle("-fx-font-weight: bold;");
 
         Label dateLbl = new Label(post.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
@@ -105,8 +113,9 @@ public class PostCard extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button btnDelete = null;
-        if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())) {
-            btnDelete = new Button("🗑");
+        if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())
+                || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
+            btnDelete = new Button("\uD83D\uDDD1");
             btnDelete.getStyleClass().addAll("button", "post-delete-btn");
             btnDelete.setOnAction(e -> {
                 Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare questo post?", ButtonType.YES,
@@ -152,23 +161,23 @@ public class PostCard extends VBox {
             this.mediaPlayer = mp;
 
             if (mp != null) {
-                Button btnPlay = new Button("▶");
+                Button btnPlay = new Button("\u25B6\uFE0F");
                 btnPlay.getStyleClass().add("video-button");
                 btnPlay.setStyle("-fx-font-size: 16px;");
 
                 btnPlay.setOnAction(e -> {
                     if (mp.getStatus() == MediaPlayer.Status.PLAYING) {
                         mp.pause();
-                        btnPlay.setText("▶");
+                        btnPlay.setText("\u25B6\uFE0F");
                     } else {
                         mp.play();
-                        btnPlay.setText("⏸");
+                        btnPlay.setText("\u23F8\uFE0F");
                     }
                 });
 
                 mp.setOnEndOfMedia(() -> {
                     mp.stop();
-                    btnPlay.setText("▶");
+                    btnPlay.setText("\u25B6\uFE0F");
                 });
 
                 Slider timeSlider = new Slider();
@@ -195,7 +204,7 @@ public class PostCard extends VBox {
                     mp.seek(Duration.seconds(timeSlider.getValue()));
                 });
 
-                Label lblVol = new Label("🔊");
+                Label lblVol = new Label("\uD83D\uDD0A");
                 lblVol.setStyle("-fx-text-fill: white;");
                 Slider volSlider = new Slider(0, 1, 0.5);
                 volSlider.getStyleClass().add("video-slider");
@@ -247,7 +256,7 @@ public class PostCard extends VBox {
             Log.error("Errore refresh feed", e);
         }
 
-        Button btnLike = new Button((isLiked ? "❤️ " : "🤍 ") + likes);
+        Button btnLike = new Button((isLiked ? "\u2764 " : "\u2661 ") + likes);
         btnLike.getStyleClass().add("like-button");
         if (isLiked)
             btnLike.getStyleClass().add("like-button-active");
@@ -267,7 +276,7 @@ public class PostCard extends VBox {
                 }
 
                 int newCount = postDAO.getLikesCount(post.getId());
-                btnLike.setText((!liked ? "❤️ " : "🤍 ") + newCount);
+                btnLike.setText((!liked ? "\u2764 " : "\u2661 ") + newCount);
             } catch (SQLException ex) {
                 Log.error("Errore gestione like", ex);
             }
@@ -282,7 +291,7 @@ public class PostCard extends VBox {
         } catch (SQLException e) {
         }
 
-        Button btnSave = new Button(isSaved ? "⭐ Salvato" : "☆ Salva");
+        Button btnSave = new Button(isSaved ? "\u2B50 Salvato" : "\u2606 Salva");
         btnSave.getStyleClass().add("save-button");
         if (isSaved) {
             btnSave.getStyleClass().add("save-button-saved");
@@ -295,17 +304,20 @@ public class PostCard extends VBox {
                 boolean saved = utenteDAO.isArchived(utenteLoggato.getUsername(), post.getId());
                 if (saved) {
                     utenteDAO.removeFromArchive(utenteLoggato.getUsername(), post.getId());
-                    btnSave.setText("☆ Salva");
+                    btnSave.setText("\u2606 Salva");
                     btnSave.getStyleClass().remove("save-button-saved");
                 } else {
                     utenteDAO.addToArchive(utenteLoggato.getUsername(), post.getId());
-                    btnSave.setText("⭐ Salvato");
+                    btnSave.setText("\u2B50 Salvato");
                     if (!btnSave.getStyleClass().contains("save-button-saved")) {
                         btnSave.getStyleClass().add("save-button-saved");
                     }
                 }
             } catch (SQLException ex) {
                 Log.error("Errore gestione archivio", ex);
+            }
+            if (onSaveAction != null) {
+                onSaveAction.run();
             }
         });
 
@@ -345,17 +357,21 @@ public class PostCard extends VBox {
             list.getChildren().add(createCommentRow(c, list));
         }
 
-        HBox inputComm = new HBox(5);
+        HBox inputComm = new HBox(8);
+        inputComm.setAlignment(Pos.CENTER_LEFT);
+
         TextArea tf = new TextArea();
-        tf.setPromptText("Commenta...");
+        tf.setPromptText("Scrivi un commento...");
         tf.setWrapText(true);
         tf.setPrefRowCount(1);
-        tf.setPrefHeight(30);
+        tf.setPrefHeight(36);
+        tf.getStyleClass().add("comment-field");
         HBox.setHgrow(tf, Priority.ALWAYS);
 
-        Button btnSend = new Button("Invia");
-        btnSend.setMaxHeight(Double.MAX_VALUE);
+        Button btnSend = new Button("Pubblica");
         btnSend.getStyleClass().addAll("button", "comment-send-btn");
+        // Remove text if icon is enough, or keep "Invia". Let's use icon for
+        // compactness as planned.
 
         Runnable sendAction = () -> {
             if (!tf.getText().isBlank()) {
@@ -396,17 +412,32 @@ public class PostCard extends VBox {
     private HBox createCommentRow(Commento c, VBox parentList) {
         HBox commentRow = new HBox(10);
         commentRow.setAlignment(Pos.CENTER_LEFT);
+        commentRow.getStyleClass().add("comment-row");
 
-        Label l = new Label(c.getUtente().getUsername() + ": " + c.getContenuto());
-        l.setWrapText(true);
+        String commentAuthor = c.getUtente().getUsername();
+        if (commentAuthor.startsWith("deleted_")) {
+            commentAuthor = "Utente eliminato";
+        }
+
+        // Use TextFlow for rich text (Bold Author + Normal Content)
+        javafx.scene.text.Text authorText = new javafx.scene.text.Text(commentAuthor + ": ");
+        authorText.getStyleClass().add("comment-author");
+
+        javafx.scene.text.Text contentText = new javafx.scene.text.Text(c.getContenuto());
+        contentText.getStyleClass().add("comment-text");
+
+        javafx.scene.text.TextFlow flow = new javafx.scene.text.TextFlow(authorText, contentText);
+        // HBox.setHgrow(flow, Priority.ALWAYS); // TextFlow doesn't grow same as Label?
+        // Wrap content
 
         Region spacerCommenti = new Region();
         HBox.setHgrow(spacerCommenti, Priority.ALWAYS);
 
-        commentRow.getChildren().addAll(l, spacerCommenti);
+        commentRow.getChildren().addAll(flow, spacerCommenti);
 
+        // EDIT (Solo autori)
         if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())) {
-            Button btnEdit = new Button("✎");
+            Button btnEdit = new Button("\u270E");
             btnEdit.getStyleClass().addAll("comment-action-btn", "comment-edit-btn");
             btnEdit.setOnAction(ev -> {
                 TextInputDialog dialog = new TextInputDialog(c.getContenuto());
@@ -419,15 +450,21 @@ public class PostCard extends VBox {
                         try {
                             c.setContenuto(newText);
                             commentoDAO.update(c);
-                            l.setText(c.getUtente().getUsername() + ": " + newText);
+                            // Update TextFlow content
+                            contentText.setText(newText);
                         } catch (SQLException ex) {
                             showAlert(AlertType.ERROR, "Errore", "Impossibile modificare: " + ex.getMessage());
                         }
                     }
                 });
             });
+            commentRow.getChildren().add(btnEdit);
+        }
 
-            Button btnDel = new Button("X");
+        // DELETE (Autori o Admin)
+        if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())
+                || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
+            Button btnDel = new Button("\u2716");
             btnDel.getStyleClass().addAll("comment-action-btn", "comment-delete-btn");
             btnDel.setOnAction(ev -> {
                 Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare commento?", ButtonType.YES,
@@ -443,8 +480,7 @@ public class PostCard extends VBox {
                     }
                 });
             });
-
-            commentRow.getChildren().addAll(btnEdit, btnDel);
+            commentRow.getChildren().add(btnDel);
         }
         return commentRow;
     }

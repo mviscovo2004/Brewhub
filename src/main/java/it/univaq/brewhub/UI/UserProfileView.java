@@ -97,6 +97,33 @@ public class UserProfileView {
         infoContainer.getChildren().addAll(lblUsername, lblName, statsBox);
         if (currentUser.getTipo() != Utente.TipoUtente.OSPITE) {
             infoContainer.getChildren().add(followBtn);
+
+            // ADMIN logic: Delete user button
+            if (currentUser.getTipo() == Utente.TipoUtente.ADMIN
+                    && !currentUser.getUsername().equals(profileUser.getUsername())) {
+                Button btnDeleteUser = new Button("\u26A0 Elimina Utente");
+                btnDeleteUser.getStyleClass().add("button-danger");
+                btnDeleteUser.setStyle("-fx-background-color: #e57373; -fx-text-fill: white; -fx-margin-top: 10px;");
+
+                btnDeleteUser.setOnAction(e -> {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                            "SEI SICURO? Eliminare @" + profileUser.getUsername() + "?", ButtonType.YES, ButtonType.NO);
+                    alert.showAndWait().ifPresent(resp -> {
+                        if (resp == ButtonType.YES) {
+                            try {
+                                utenteDAO.delete(profileUser.getUsername());
+                                // Return to home
+                                stopAllPlayers();
+                                HomeView hv = new HomeView(stage, currentUser);
+                                stage.getScene().setRoot(hv.getView());
+                            } catch (Exception ex) {
+                                ex.printStackTrace(); // or show alert
+                            }
+                        }
+                    });
+                });
+                infoContainer.getChildren().add(btnDeleteUser);
+            }
         }
 
         // Logica pulsante e contatori
@@ -146,7 +173,7 @@ public class UserProfileView {
         root.setCenter(sp);
 
         // Top Navigation
-        Button btnHome = new Button("← Torna alla Home");
+        Button btnHome = new Button("\u2190 Torna alla Home");
         btnHome.getStyleClass().add("button-secondary");
         btnHome.setOnAction(e -> {
             stopAllPlayers();
