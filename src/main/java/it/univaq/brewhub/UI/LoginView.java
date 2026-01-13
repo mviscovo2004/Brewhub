@@ -42,6 +42,7 @@ public class LoginView {
     public Parent getView() {
 
         // Configurazione delle proprietà dello stage
+        stage.setMaximized(false);
         stage.setHeight(600);
         stage.setWidth(800);
         stage.setResizable(false);

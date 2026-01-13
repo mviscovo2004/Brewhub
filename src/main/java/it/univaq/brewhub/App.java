@@ -27,7 +27,7 @@ public class App extends Application {
         LoginView login = new LoginView(stage);
 
         // Creazione della scena con dimensioni fisse
-        Scene scene = new Scene(login.getView(), 400, 500);
+        Scene scene = new Scene(login.getView());
 
         // Applica il tema personalizzato (caffè)
         ThemeManager.applyTheme(scene);

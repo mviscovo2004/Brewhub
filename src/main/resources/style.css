@@ -52,46 +52,60 @@
    ============================================ */
 
 .sidebar {
-    -fx-background-color: #FFFBF5;
-    /* O bianco #FFFFFF per look più moderno */
-    -fx-border-color: #efefef;
+    -fx-background-color: #EFEBE9;
+    /* Marrone chiarissimo/Grigio caldo */
+    -fx-border-color: #D7CCC8;
     -fx-border-width: 0 1 0 0;
-    -fx-padding: 10 0 10 0;
-    /* Padding verticale, zero orizzontale */
+    -fx-padding: 20 10 20 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0, 0, 0);
 }
 
 /* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
+/* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
 .sidebar-section-label {
-    -fx-text-fill: #878A8C;
-    /* Grigio tipico di Reddit */
-    -fx-font-size: 10px;
+    -fx-text-fill: #5D4037;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-padding: 16 24 8 24;
-    /* Spaziatura specifica */
+    -fx-padding: 20 15 10 15;
     -fx-font-family: "Segoe UI", sans-serif;
+    -fx-opacity: 0.8;
 }
 
 /* Bottoni di navigazione (Home, Popular, ecc.) */
+/* Bottoni di navigazione (Home, Popular, ecc.) */
 .nav-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #2C1810;
+    -fx-text-fill: #3E2723;
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 8 24 8 24;
-    /* Padding laterale generoso */
+    -fx-padding: 10 15 10 15;
     -fx-cursor: hand;
-    -fx-background-radius: 0;
-    /* Nessun bordo arrotondato o leggero se preferisci */
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
     -fx-border-width: 0;
+    -fx-margin: 2 0 2 0;
 }
 
 .nav-btn:hover {
-    -fx-background-color: #F5E6D3;
-    /* Colore crema leggero al passaggio */
+    -fx-background-color: #D7CCC8;
+    /* Sfondo scuro leggero */
+    -fx-text-fill: #2C1810;
 }
 
 .nav-btn:pressed {
-    -fx-background-color: #e6ceb3;
+    -fx-background-color: #BCAAA4;
+}
+
+.nav-btn-active {
+    -fx-background-color: #8D6E63;
+    /* Accento caffè */
+    -fx-text-fill: #FFF8F3;
+    /* Testo chiaro */
+    -fx-font-weight: bold;
+}
+
+.nav-btn-active:hover {
+    -fx-background-color: #795548;
 }
 
 /* Separatore sottile */
@@ -280,33 +294,38 @@
 
 .post-card {
     -fx-background-color: #FFFBF5;
-    -fx-border-color: #D4A574;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.12), 4, 0, 0, 1.5);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #EFEBE9;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(44, 24, 16, 0.08), 8, 0, 0, 4);
 }
 
 .post-author {
+    -fx-font-family: "Segoe UI Semibold";
     -fx-font-weight: bold;
-    -fx-font-size: 14;
+    -fx-font-size: 15;
     -fx-text-fill: #2C1810;
 }
 
 .post-title {
-    -fx-font-size: 15;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 17;
     -fx-font-weight: bold;
     -fx-text-fill: #2C1810;
+    -fx-padding: 5 0 8 0;
 }
 
 .post-date {
-    -fx-text-fill: #A1887F;
+    -fx-text-fill: #8D6E63;
     -fx-font-size: 11;
 }
 
 .post-content {
-    -fx-text-fill: #2C1810;
-    -fx-font-size: 13;
+    -fx-text-fill: #3E2723;
+    -fx-font-size: 14;
+    -fx-line-spacing: 2;
 }
 
 /* ============================================
@@ -314,46 +333,51 @@
    ============================================ */
 
 .like-button {
-    -fx-padding: 5 15 5 15;
+    -fx-padding: 6 14;
     -fx-font-size: 13;
-    -fx-background-color: #F5E6D3;
+    -fx-background-color: transparent;
     -fx-text-fill: #5D4037;
-    -fx-border-color: #D4A574;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
+    -fx-border-color: #D7CCC8;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
     -fx-cursor: hand;
+    -fx-alignment: CENTER;
 }
 
 .like-button:hover {
-    -fx-background-color: #D4A574;
-    -fx-text-fill: #FFFBF5;
+    -fx-background-color: #EFEBE9;
+    -fx-text-fill: #2C1810;
+    -fx-border-color: #BCAAA4;
 }
 
 .like-button-active {
-    -fx-background-color: #A0522D;
-    -fx-text-fill: #FFF8F3;
-    -fx-border-color: #A0522D;
+    -fx-background-color: #FFF8E1;
+    /* Slight highlight */
+    -fx-text-fill: #D32F2F;
+    /* Red heart color */
+    -fx-border-color: #FFCDD2;
 }
 
 .save-button {
-    -fx-padding: 5 12 5 12;
+    -fx-padding: 6 14;
     -fx-font-size: 12;
-    -fx-background-color: #F5E6D3;
-    -fx-text-fill: #6B8E23;
-    -fx-border-color: #D4A574;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
+    -fx-background-color: transparent;
+    -fx-text-fill: #5D4037;
+    /* Default dark brown */
+    -fx-border-color: #D7CCC8;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
     -fx-cursor: hand;
 }
 
 .save-button:hover {
-    -fx-background-color: #D4A574;
+    -fx-background-color: #EFEBE9;
 }
 
 .save-button-saved {
-    -fx-background-color: #E8F5E9;
-    -fx-text-fill: #6B8E23;
-    -fx-border-color: #6B8E23;
+    -fx-background-color: #FFF8E1;
+    -fx-text-fill: #FB8C00;
+    -fx-border-color: #FFE0B2;
 }
 
 /* ============================================
@@ -361,10 +385,13 @@
    ============================================ */
 
 .comments-box {
-    -fx-background-color: #FAF7F2;
-    -fx-padding: 12;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
+    -fx-background-color: #F9Fbe7;
+    /* Very light subtle background */
+    -fx-background-color: #FAFAFA;
+    -fx-padding: 15;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 0;
 }
 
 .comments-label {
@@ -455,7 +482,7 @@
    ============================================ */
 
 .sidebar {
-    -fx-background-color: #F5E6D3;
+    -fx-background-color: #EFEBE9;
 }
 
 .feed-area {
@@ -499,8 +526,330 @@
     -fx-opacity: 0.7;
 }
 
-/* Label file mancante form */
-.label-info-italic {
-    -fx-font-style: italic;
-    -fx-font-size: 11px;
+/* Bottone notifiche header */
+.notification-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: #FFF8F3;
+    -fx-font-size: 16px;
+    -fx-padding: 6 12;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER;
 }
+
+.notification-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+}
+
+.notification-btn.has-notifications {
+    -fx-text-fill: #FFAB91;
+    /* Un rossiccio chiaro che sta bene sul marrone */
+    -fx-border-color: #FFAB91;
+    -fx-border-width: 1;
+}
+
+/* Dropdown Notifiche */
+.notification-context-menu {
+    -fx-background-color: #FFFBF5;
+    -fx-effect: dropshadow(gaussian, rgba(62, 39, 35, 0.2), 8, 0, 0, 2);
+    -fx-padding: 4;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #D4A574;
+    -fx-border-width: 1;
+}
+
+/* Assicurati che il contenitore interno delle notifiche non forzi testo bianco */
+.notification-context-menu .label {
+    -fx-text-fill: #3E2723;
+}
+
+/* Override per evitare che l'hover del menu item renda il testo bianco */
+.notification-context-menu .menu-item:hover .label,
+.notification-context-menu .menu-item:focused .label {
+    -fx-text-fill: #3E2723;
+}
+
+.notification-context-menu .menu-item:hover .notification-date,
+.notification-context-menu .menu-item:focused .notification-date {
+    -fx-text-fill: #8D6E63;
+}
+
+/* Elemento singola notifica */
+.notification-box {
+    -fx-padding: 10;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+    -fx-border-color: #EFEBE9;
+    -fx-border-width: 0 0 1 0;
+}
+
+.notification-box:hover {
+    -fx-background-color: #F5E6D3;
+    /* Cream hover */
+}
+
+.notification-box.unread {
+    -fx-background-color: #FFF8E1;
+    /* Light yellow/orange tint */
+    -fx-border-color: #D4A574;
+    /* Accent border */
+    -fx-border-width: 0 0 0 3;
+    /* Left border indicator */
+    -fx-padding: 10 10 10 7;
+    /* Adjust padding for border */
+}
+
+.notification-date {
+    -fx-font-size: 10px;
+    -fx-text-fill: #8D6E63;
+    -fx-padding: 0 0 2 0;
+}
+
+.notification-message {
+    -fx-font-size: 12px;
+    -fx-text-fill: #3E2723;
+}
+
+.notification-empty {
+    -fx-padding: 15;
+    -fx-text-fill: #8D6E63;
+    -fx-font-style: italic;
+    -fx-alignment: CENTER;
+}
+
+/* Label file mancante form */
+
+/* ============================================
+   NUOVO STILE PROFILO UTENTE
+   ============================================ */
+
+.profile-cover {
+    -fx-background-color: linear-gradient(to right, #5D4037, #8D6E63);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
+}
+
+.profile-photo-large {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 2);
+    -fx-stroke: #FFFBF5;
+    -fx-stroke-width: 4;
+}
+
+.profile-info-container {
+    -fx-background-color: #FFFBF5;
+    -fx-padding: 60 20 20 20;
+    /* Top padding alto per compensare l'overlap della foto */
+    -fx-background-radius: 0 0 8 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 3, 0, 0, 1);
+}
+
+.profile-username-large {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2C1810;
+}
+
+.profile-bio {
+    -fx-font-size: 14px;
+    -fx-text-fill: #5D4037;
+    -fx-alignment: CENTER;
+}
+
+.profile-stat-box {
+    -fx-alignment: CENTER;
+    -fx-padding: 5 15;
+    -fx-cursor: hand;
+    -fx-background-radius: 5;
+}
+
+.profile-stat-box:hover {
+    -fx-background-color: #F5E6D3;
+}
+
+.profile-stat-number {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2C1810;
+}
+
+.profile-stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8D6E63;
+    -fx-font-weight: bold;
+}
+
+/* ============================================
+   VIDEO PLAYER STYLES
+   ============================================ */
+
+.video-player-container {
+    -fx-background-color: black;
+    -fx-min-height: 200px;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-alignment: CENTER;
+}
+
+.video-controls-overlay {
+    -fx-background-color: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    -fx-padding: 15 10 10 10;
+    -fx-background-radius: 0 0 5 5;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+}
+
+.video-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFF8F3;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 5 8;
+    -fx-border-color: rgba(255, 255, 255, 0.5);
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+}
+
+.video-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: white;
+}
+
+.video-slider .track {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-pref-height: 4px;
+    -fx-background-radius: 2px;
+}
+
+.video-slider .thumb {
+    -fx-background-color: #D4A574;
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
+    -fx-background-radius: 50%;
+}
+
+.video-slider:hover .thumb {
+    -fx-background-color: #FFF8F3;
+    -fx-pref-width: 14px;
+    -fx-pref-height: 14px;
+}
+
+/* ============================================
+   COMMENT ACTION BUTTONS
+   ============================================ */
+.comment-action-btn {
+    -fx-font-size: 11px;
+    -fx-padding: 3 8;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-font-weight: bold;
+}
+
+.comment-edit-btn {
+    -fx-background-color: #A1887F;
+    -fx-text-fill: #FFF8F3;
+}
+
+.comment-edit-btn:hover {
+    -fx-background-color: #8D6E63;
+}
+
+.comment-delete-btn {
+    -fx-background-color: #D32F2F;
+    /* Redder for clear danger action */
+    -fx-text-fill: #FFF8F3;
+}
+
+.comment-delete-btn:hover {
+    -fx-background-color: #B71C1C;
+}
+
+.comment-send-btn {
+    -fx-background-color: #5D4037;
+    -fx-text-fill: #FFF8F3;
+    -fx-font-weight: bold;
+    -fx-padding: 8 15;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-background-radius: 5;
+}
+
+.comment-send-btn:hover {
+    -fx-background-color: #4E342E;
+}
+
+/* ============================================
+   POST ACTIONS
+   ============================================ */
+.post-delete-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #D32F2F;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-border-color: #D32F2F;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+}
+
+.post-delete-btn:hover {
+    -fx-background-color: #D32F2F;
+    -fx-text-fill: white;
+} 
+ / *   L i s t V i e w   F e e d   S t y l i n g   * /  
+ . f e e d - l i s t - v i e w   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+         - f x - b a c k g r o u n d - i n s e t s :   0 ;  
+         - f x - p a d d i n g :   0 ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . l i s t - c e l l   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+         - f x - p a d d i n g :   0 ;  
+         - f x - t e x t - f i l l :   - f x - t e x t - b a s e - c o l o r ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . l i s t - c e l l : e m p t y   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . l i s t - c e l l : f i l l e d : s e l e c t e d : f o c u s e d ,    
+ . f e e d - l i s t - v i e w   . l i s t - c e l l : f i l l e d : s e l e c t e d   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+         - f x - t e x t - f i l l :   - f x - t e x t - b a s e - c o l o r ;  
+ }  
+  
+ . f e e d - l i s t - v i e w : f o c u s e d   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+         - f x - b a c k g r o u n d - i n s e t s :   0 ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . t r a c k ,  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . t r a c k {  
+ 	 - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+ 	 - f x - b o r d e r - c o l o r :   t r a n s p a r e n t ;  
+ 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . i n c r e m e n t - b u t t o n   ,  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : h o r i z o n t a l   . d e c r e m e n t - b u t t o n   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+ 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
+ 	 - f x - p a d d i n g :   0   0   1 0   0 ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . i n c r e m e n t - b u t t o n   ,  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r : v e r t i c a l   . d e c r e m e n t - b u t t o n   {  
+         - f x - b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;  
+ 	 - f x - b a c k g r o u n d - r a d i u s :   0 e m ;  
+ 	 - f x - p a d d i n g :   0   1 0   0   0 ;  
+ }  
+  
+ . f e e d - l i s t - v i e w   . s c r o l l - b a r   . t h u m b   {  
+         - f x - b a c k g r o u n d - c o l o r :   d e r i v e ( # 3 E 2 7 2 3 ,   8 0 % ) ;  
+ 	 - f x - b a c k g r o u n d - i n s e t s :   2 ,   0 ,   0 ;  
+ 	 - f x - b a c k g r o u n d - r a d i u s :   2 e m ;  
+ }  
+ 

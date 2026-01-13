@@ -7,12 +7,16 @@ it\univaq\brewhub\UI\LoginView.class
 it\univaq\brewhub\Utente$TipoUtente.class
 module-info.class
 it\univaq\brewhub\Post.class
+it\univaq\brewhub\dao\impl\NotificaDAOImpl.class
 it\univaq\brewhub\App.class
 it\univaq\brewhub\dao\CommentoDAO.class
 it\univaq\brewhub\Utente.class
 it\univaq\brewhub\UI\HomeView.class
 it\univaq\brewhub\business\SessionManager.class
+it\univaq\brewhub\Notifica.class
 it\univaq\brewhub\DatabaseManager.class
+it\univaq\brewhub\dao\NotificaDAO.class
+it\univaq\brewhub\UI\UserProfileView.class
 it\univaq\brewhub\dao\impl\PostDAOImpl.class
 it\univaq\brewhub\Post$TipoPost.class
 it\univaq\brewhub\dao\PostDAO.class

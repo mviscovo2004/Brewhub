@@ -48,4 +48,33 @@ public interface UtenteDAO {
      * @throws SQLException Se si verifica un errore di accesso al database.
      */
     Utente findByUsername(String username) throws SQLException;
+
+    // Gestione social
+    void follow(String follower, String followed) throws SQLException;
+
+    void unfollow(String follower, String followed) throws SQLException;
+
+    boolean isFollowing(String follower, String followed) throws SQLException;
+
+    int getFollowersCount(String username) throws SQLException;
+
+    int getFollowingCount(String username) throws SQLException;
+
+    // Gestione Archivio (Post Salvati)
+    void addToArchive(String username, int postId) throws SQLException;
+
+    void removeFromArchive(String username, int postId) throws SQLException;
+
+    boolean isArchived(String username, int postId) throws SQLException;
+
+    java.util.List<it.univaq.brewhub.Post> getArchive(String username) throws SQLException;
+
+    /**
+     * Cerca utenti il cui username contiene la stringa specificata.
+     * 
+     * @param partialUsername Parte dell'username da cercare.
+     * @return Lista di utenti trovati.
+     * @throws SQLException
+     */
+    java.util.List<Utente> searchByUsername(String partialUsername) throws SQLException;
 }

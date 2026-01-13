@@ -1,33 +1,29 @@
 package it.univaq.brewhub.UI;
 
-import java.io.File;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
-import it.univaq.brewhub.Commento;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Post.TipoPost;
-import it.univaq.brewhub.Utente;
-import it.univaq.brewhub.MediaManager;
+import it.univaq.brewhub.UI.components.PostCard;
 
 import it.univaq.brewhub.utility.Log;
 import it.univaq.brewhub.dao.impl.PostDAOImpl;
-import it.univaq.brewhub.dao.impl.CommentoDAOImpl;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+
+import java.util.List;
+import java.sql.SQLException;
+
+import it.univaq.brewhub.Post;
+import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.Post.TipoPost;
+import it.univaq.brewhub.MediaManager;
+import java.io.File;
+import java.time.format.DateTimeFormatter;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.*;
 import javafx.scene.Parent;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.scene.shape.Circle;
-import javafx.util.Duration;
+import javafx.geometry.Insets;
+import javafx.geometry.Side;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -45,13 +41,21 @@ public class HomeView {
 
     /** DAO per gestione Post. */
     private final PostDAOImpl postDAO = new PostDAOImpl();
-    /** DAO per gestione Commenti. */
-    private final CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
+
+    /** DAO per gestione Utenti. */
+    private final it.univaq.brewhub.dao.impl.UtenteDAOImpl utenteDAO = new it.univaq.brewhub.dao.impl.UtenteDAOImpl();
+    /** DAO per gestione Notifiche. */
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
     /** Contenitore VBox per il layout del feed dei post. */
     private VBox feedLayout;
 
+    /** Lista di PostCard attivi per gestire il ciclo di vita (es. stop video). */
+    private final java.util.List<PostCard> activeCards = new java.util.ArrayList<>();
+
     /**
+     * 
+     * /**
      * Costruttore della HomeView.
      *
      * @param stage         Lo stage principale dell'applicazione.
@@ -85,12 +89,154 @@ public class HomeView {
         logo.getStyleClass().add("header-logo");
 
         TextField searchField = new TextField();
-        searchField.setPromptText("🔍 Cerca su BrewHub...");
+        searchField.setPromptText("🔍 Cerca utenti...");
         searchField.setPrefWidth(300);
         searchField.getStyleClass().add("text-field");
 
+        ContextMenu searchDropdown = new ContextMenu();
+        searchDropdown.setStyle(
+                "-fx-background-color: #FFFBF5; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1);");
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.isBlank()) {
+                searchDropdown.hide();
+                return;
+            }
+            try {
+                // Ricerca "live" (potrebbe essere ottimizzata con debounce in futuro)
+                List<Utente> results = utenteDAO.searchByUsername(newVal);
+                searchDropdown.getItems().clear();
+
+                if (results.isEmpty()) {
+                    searchDropdown.hide();
+                } else {
+                    for (Utente u : results) {
+                        HBox itemBox = new HBox(10);
+                        itemBox.setAlignment(Pos.CENTER_LEFT);
+                        itemBox.setPadding(new Insets(5));
+
+                        Circle avatar = new Circle(15);
+
+                        avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
+
+                        Label lblUser = new Label(u.getUsername());
+                        lblUser.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C1810;");
+
+                        itemBox.getChildren().addAll(avatar, lblUser);
+
+                        CustomMenuItem item = new CustomMenuItem(itemBox);
+                        item.setHideOnClick(true);
+                        item.setOnAction(ev -> {
+                            stopAllPlayers(); // Clean up before navigation
+                            UserProfileView upv = new UserProfileView(stage, utenteLoggato, u);
+                            stage.getScene().setRoot(upv.getView());
+                        });
+                        searchDropdown.getItems().add(item);
+                    }
+                    if (!searchDropdown.isShowing()) {
+                        searchDropdown.show(searchField, Side.BOTTOM, 0, 0);
+                    }
+                }
+            } catch (SQLException ex) {
+                Log.error("Errore ricerca live", ex);
+            }
+        });
+
+        searchField.setOnAction(e -> {
+            searchDropdown.hide();
+            performSearch(searchField.getText());
+        });
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button btnNewPost = new Button("➕ Nuovo Post");
+        btnNewPost.getStyleClass().addAll("button-primary");
+        btnNewPost.setOnAction(e -> openCreatePostWindow());
+
+        // --- Notifiche ---
+        Button btnNotifiche = new Button("🔔");
+        btnNotifiche.getStyleClass().addAll("button", "notification-btn");
+
+        ContextMenu notifDropdown = new ContextMenu();
+        notifDropdown.getStyleClass().add("notification-context-menu");
+
+        // Aggiorna badge notifiche
+        Runnable refreshBadge = () -> {
+            try {
+                int count = notificaDAO.getUnreadCount(utenteLoggato.getUsername());
+                if (count > 0) {
+                    btnNotifiche.setText("🔔 " + count);
+                    if (!btnNotifiche.getStyleClass().contains("has-notifications")) {
+                        btnNotifiche.getStyleClass().add("has-notifications");
+                    }
+                } else {
+                    btnNotifiche.setText("🔔");
+                    btnNotifiche.getStyleClass().remove("has-notifications");
+                }
+            } catch (SQLException ex) {
+                // Log.error("Errore badge notifiche", ex);
+            }
+        };
+        refreshBadge.run();
+
+        btnNotifiche.setOnAction(e -> {
+            try {
+                // Ricarica notifiche dal DB
+                List<it.univaq.brewhub.Notifica> notifiche = notificaDAO.findByUser(utenteLoggato.getUsername());
+                notifDropdown.getItems().clear();
+
+                if (notifiche.isEmpty()) {
+                    Label emptyLbl = new Label("Nessuna notifica");
+                    emptyLbl.getStyleClass().add("notification-empty");
+                    CustomMenuItem emptyItem = new CustomMenuItem(emptyLbl);
+                    emptyItem.setHideOnClick(false);
+                    notifDropdown.getItems().add(emptyItem);
+                } else {
+                    for (it.univaq.brewhub.Notifica n : notifiche) {
+                        VBox itemBox = new VBox(5);
+                        itemBox.getStyleClass().add("notification-box");
+                        itemBox.setPrefWidth(280);
+
+                        if (!n.isLetto()) {
+                            itemBox.getStyleClass().add("unread");
+                        }
+
+                        Label dateLbl = new Label(
+                                n.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM HH:mm")));
+                        dateLbl.getStyleClass().add("notification-date");
+
+                        Label msgLbl = new Label(n.getMessaggio());
+                        msgLbl.getStyleClass().add("notification-message");
+                        msgLbl.setWrapText(true);
+
+                        itemBox.getChildren().addAll(dateLbl, msgLbl);
+
+                        CustomMenuItem item = new CustomMenuItem(itemBox);
+                        item.setHideOnClick(false);
+
+                        // Click su notifica -> Segna come letto
+                        itemBox.setOnMouseClicked(ev -> {
+                            if (!n.isLetto()) {
+                                try {
+                                    notificaDAO.markAsRead(n.getId());
+                                    n.setLetto(true);
+                                    itemBox.getStyleClass().remove("unread");
+                                    refreshBadge.run();
+                                } catch (SQLException ex) {
+                                    Log.error("Errore markAsRead", ex);
+                                }
+                            }
+                        });
+
+                        notifDropdown.getItems().add(item);
+                    }
+                }
+                notifDropdown.show(btnNotifiche, Side.BOTTOM, 0, 0);
+            } catch (SQLException ex) {
+                Log.error("Errore loading notifiche", ex);
+            }
+        });
 
         Button profileBtn = new Button("👤 " + utenteLoggato.getUsername());
         profileBtn.getStyleClass().addAll("button", "header-profile-btn");
@@ -99,18 +245,24 @@ public class HomeView {
                 showAlert(AlertType.WARNING, "Accesso Limitato", "Devi registrarti per personalizzare il tuo profilo.");
                 return;
             }
-            ProfileView profileView = new ProfileView(stage, utenteLoggato);
+            stopAllPlayers(); // Clean up before navigation
+            UserProfileView profileView = new UserProfileView(stage, utenteLoggato, utenteLoggato);
             stage.getScene().setRoot(profileView.getView());
         });
 
         Button logoutBtn = new Button("🚪 Logout");
         logoutBtn.getStyleClass().add("button-danger");
         logoutBtn.setOnAction(e -> {
+            stopAllPlayers(); // Clean up before navigation
             LoginView login = new LoginView(stage);
             stage.getScene().setRoot(login.getView());
         });
 
-        header.getChildren().addAll(logo, searchField, spacer, profileBtn, logoutBtn);
+        if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+            header.getChildren().addAll(logo, searchField, spacer, profileBtn, logoutBtn);
+        } else {
+            header.getChildren().addAll(logo, searchField, spacer, btnNewPost, btnNotifiche, profileBtn, logoutBtn);
+        }
 
         VBox sidebarContent = new VBox(0);
         sidebarContent.setPrefWidth(260);
@@ -140,6 +292,7 @@ public class HomeView {
 
             Button btnProfile = creaNavButton("👤  Profilo", false);
             btnProfile.setOnAction(e -> {
+                stopAllPlayers(); // Clean up before navigation
                 ProfileView profileView = new ProfileView(stage, utenteLoggato);
                 stage.getScene().setRoot(profileView.getView());
             });
@@ -157,9 +310,8 @@ public class HomeView {
         feedLayout.setPadding(new Insets(20));
         feedLayout.setAlignment(Pos.TOP_CENTER);
 
-        VBox dashboard = createDashboard(feedLayout);
+        // Dashboard rimossa dal layout fisso
 
-        feedLayout.getChildren().add(dashboard);
         loadFeed();
 
         ScrollPane feedScroll = new ScrollPane(feedLayout);
@@ -173,33 +325,38 @@ public class HomeView {
         return root;
     }
 
-    private VBox createDashboard(VBox feedLayout) {
-        VBox dashboard = new VBox(12);
-        dashboard.getStyleClass().add("dashboard");
-        dashboard.setMaxWidth(700);
+    private void openCreatePostWindow() {
+        if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+            showAlert(AlertType.WARNING, "Accesso Limitato", "Gli ospiti non possono pubblicare.");
+            return;
+        }
 
-        Label dashTitle = new Label("✍️ Crea un nuovo post");
-        dashTitle.getStyleClass().addAll("label", "dashboard-title");
+        Stage postStage = new Stage();
+        postStage.setTitle("Crea Nuovo Post");
+        postStage.initOwner(stage);
+        postStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: #FFFBF5;");
+        layout.setPrefWidth(500);
+
+        Label titleLbl = new Label("Scrivi qualcosa...");
+        titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
 
         TextField fldTitolo = new TextField();
-        fldTitolo.setPromptText("Titolo del post...");
+        fldTitolo.setPromptText("Titolo del post");
         fldTitolo.getStyleClass().add("text-field");
-        fldTitolo.setId("fldTitolo");
 
         TextArea postArea = new TextArea();
-        postArea.setPromptText("Scrivi qui il tuo post...");
-        postArea.setPrefRowCount(3);
+        postArea.setPromptText("Cosa stai pensando?");
+        postArea.setPrefRowCount(5);
         postArea.getStyleClass().add("text-area");
-        postArea.setId("postArea");
-
-        HBox controlsBox = new HBox(10);
-        controlsBox.setAlignment(Pos.CENTER_LEFT);
 
         ChoiceBox<Post.TipoPost> cbxTipo = new ChoiceBox<>();
         cbxTipo.getItems().setAll(TipoPost.values());
         cbxTipo.setValue(TipoPost.TESTO);
         cbxTipo.getStyleClass().add("choice-box");
-        cbxTipo.setId("cbxTipo");
 
         HBox mediaInfoBox = new HBox(10);
         mediaInfoBox.setAlignment(Pos.CENTER_LEFT);
@@ -208,16 +365,18 @@ public class HomeView {
             mediaInfoBox.getChildren().clear();
             mediaInfoBox.setUserData(null);
             if (newVal == TipoPost.FOTO || newVal == TipoPost.VIDEO) {
-                Button btnUpload = new Button(newVal == TipoPost.FOTO ? "Carica Foto" : "Carica Video");
+                Button btnUpload = new Button(newVal == TipoPost.FOTO ? "📷 Carica Foto" : "🎥 Carica Video");
                 btnUpload.getStyleClass().add("button-secondary");
-                Label lblFile = new Label("Nessun file");
+                Label lblFile = new Label("Nessun file selezionato");
+                lblFile.setStyle("-fx-text-fill: #666; -fx-font-style: italic;");
+
                 btnUpload.setOnAction(e -> {
                     FileChooser fc = new FileChooser();
                     fc.getExtensionFilters()
                             .add(newVal == TipoPost.FOTO
                                     ? new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.jpeg")
                                     : new FileChooser.ExtensionFilter("Video", "*.mp4"));
-                    File f = fc.showOpenDialog(stage);
+                    File f = fc.showOpenDialog(postStage);
                     if (f != null) {
                         MediaManager.initMediaFolder();
                         String path = MediaManager.copyMediaToFolder(f);
@@ -231,28 +390,22 @@ public class HomeView {
             }
         });
 
-        Region dashSpacer = new Region();
-        HBox.setHgrow(dashSpacer, Priority.ALWAYS);
+        Button btnPublish = new Button("Pubblica");
+        btnPublish.getStyleClass().add("button-success");
+        btnPublish.setMaxWidth(Double.MAX_VALUE);
 
-        Button publishBtn = new Button("Pubblica");
-        publishBtn.getStyleClass().add("button-success");
-        publishBtn.setId("publishBtn");
-        publishBtn.setOnAction(e -> {
-            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-                showAlert(AlertType.WARNING, "Stop", "Gli ospiti non possono pubblicare.");
-                return;
-            }
+        Runnable publishAction = () -> {
             String titolo = fldTitolo.getText();
             String content = postArea.getText();
             TipoPost tipo = cbxTipo.getValue();
             String mediaPath = (String) mediaInfoBox.getUserData();
 
             if (titolo.isBlank()) {
-                showAlert(AlertType.ERROR, "Errore", "Titolo mancante");
+                showAlert(AlertType.ERROR, "Errore", "Il titolo è obbligatorio.");
                 return;
             }
             if (tipo != TipoPost.TESTO && mediaPath == null) {
-                showAlert(AlertType.ERROR, "Errore", "Media mancante");
+                showAlert(AlertType.ERROR, "Errore", "Devi caricare un file multimediale per questo tipo di post.");
                 return;
             }
 
@@ -260,336 +413,63 @@ public class HomeView {
                 Post p = new Post(titolo, content, utenteLoggato, tipo, mediaPath);
                 postDAO.create(p);
 
+                // Aggiorna feed principale
                 loadFeed();
+                postStage.close();
+                showAlert(AlertType.INFORMATION, "Successo", "Post pubblicato!");
 
-                fldTitolo.clear();
-                postArea.clear();
-                mediaInfoBox.getChildren().clear();
-                cbxTipo.setValue(TipoPost.TESTO);
-
-                showAlert(AlertType.INFORMATION, "Fatto", "Post pubblicato!");
             } catch (SQLException ex) {
-                showAlert(AlertType.ERROR, "Errore DB", ex.getMessage());
+                showAlert(AlertType.ERROR, "Errore Database", ex.getMessage());
+            }
+        };
+
+        btnPublish.setOnAction(e -> publishAction.run());
+
+        postArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (event.isShiftDown()) {
+                    postArea.insertText(postArea.getCaretPosition(), "\n");
+                    event.consume();
+                } else {
+                    event.consume();
+                    publishAction.run();
+                }
             }
         });
 
-        controlsBox.getChildren().addAll(cbxTipo, mediaInfoBox, dashSpacer, publishBtn);
-        dashboard.getChildren().addAll(dashTitle, fldTitolo, postArea, controlsBox);
-        return dashboard;
+        layout.getChildren().addAll(titleLbl, fldTitolo, postArea, new Label("Tipo Post:"), cbxTipo, mediaInfoBox,
+                btnPublish);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(layout);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception ex) {
+            /* Ignora se non trova CSS */ }
+
+        postStage.setScene(scene);
+        postStage.showAndWait();
     }
 
     private void loadFeed() {
         if (feedLayout == null)
             return;
-        // Keep header/dashboard (index 0)
-        if (feedLayout.getChildren().size() > 1) {
-            feedLayout.getChildren().remove(1, feedLayout.getChildren().size());
-        }
+
+        feedLayout.getChildren().clear(); // Rimuove tutto, non c'è più dashboard fissa
+
+        // Pulisce le card precedenti
+        stopAllPlayers();
 
         try {
             List<Post> posts = postDAO.findAll();
             for (Post p : posts) {
-                feedLayout.getChildren().add(creaCardPost(p));
+                PostCard card = new PostCard(p, utenteLoggato, this::loadFeed);
+                activeCards.add(card);
+                feedLayout.getChildren().add(card);
             }
         } catch (SQLException e) {
             Log.error("Errore caricamento feed", e);
             showAlert(AlertType.ERROR, "Errore Feed", "Impossibile caricare i post.");
         }
-    }
-
-    private VBox creaCardPost(Post post) {
-        VBox card = new VBox(10);
-        card.setMaxWidth(700);
-        card.getStyleClass().add("post-card");
-
-        HBox header = new HBox(10);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        StackPane avatarContainer = new StackPane();
-        Circle avatar = new Circle(20);
-        boolean imageLoaded = false;
-
-        try {
-            String foto = post.getAutore().getFotoProfilo();
-            if (foto != null && !foto.isBlank()) {
-                File f = MediaManager.getMediaFile(foto);
-                if (f != null && f.exists()) {
-                    avatar.setFill(new javafx.scene.paint.ImagePattern(new Image(f.toURI().toString())));
-                    imageLoaded = true;
-                }
-            }
-        } catch (Exception e) {
-
-        }
-
-        if (!imageLoaded) {
-
-            String username = post.getAutore().getUsername();
-
-            int hash = username.hashCode();
-            int r = (hash & 0xFF0000) >> 16;
-            int g = (hash & 0x00FF00) >> 8;
-            int b = hash & 0x0000FF;
-            javafx.scene.paint.Color color = javafx.scene.paint.Color.rgb(Math.abs(r) % 255, Math.abs(g) % 255,
-                    Math.abs(b) % 255);
-            avatar.setFill(color);
-            avatar.setOpacity(0.7);
-
-            String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
-            Label initialLbl = new Label(initial);
-            initialLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
-            avatarContainer.getChildren().addAll(avatar, initialLbl);
-        } else {
-            avatarContainer.getChildren().add(avatar);
-        }
-
-        Label authorLbl = new Label(post.getAutore().getUsername());
-        authorLbl.setStyle("-fx-font-weight: bold;");
-
-        Label dateLbl = new Label(post.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-        dateLbl.setStyle("-fx-font-size: 10px; -fx-opacity: 0.6;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button btnDelete = null;
-        if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())) {
-            btnDelete = new Button("🗑");
-            btnDelete.getStyleClass().addAll("button", "button-danger", "button-small");
-            btnDelete.setOnAction(e -> {
-                Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare questo post?", ButtonType.YES,
-                        ButtonType.NO);
-                alert.showAndWait().ifPresent(resp -> {
-                    if (resp == ButtonType.YES) {
-                        try {
-                            postDAO.delete(post.getId());
-                            loadFeed();
-                        } catch (SQLException ex) {
-                            showAlert(AlertType.ERROR, "Errore", ex.getMessage());
-                        }
-                    }
-                });
-            });
-        }
-
-        if (btnDelete != null)
-            header.getChildren().addAll(avatarContainer, authorLbl, dateLbl, spacer, btnDelete);
-        else
-            header.getChildren().addAll(avatarContainer, authorLbl, dateLbl, spacer);
-
-        Label titleLbl = new Label(post.getTitolo());
-        titleLbl.getStyleClass().add("post-title");
-
-        card.getChildren().addAll(header, titleLbl);
-
-        if (post.getTipo() == TipoPost.FOTO && post.getMedia() != null) {
-            ImageView iv = new ImageView();
-            caricaFoto(iv, post.getMedia());
-            iv.setFitWidth(600);
-            iv.setPreserveRatio(true);
-            card.getChildren().add(new VBox(iv));
-        } else if (post.getTipo() == TipoPost.VIDEO && post.getMedia() != null) {
-            MediaView mv = new MediaView();
-            mv.setFitWidth(600);
-            mv.setPreserveRatio(true);
-            caricaVideo(mv, post.getMedia());
-
-            MediaPlayer mp = mv.getMediaPlayer();
-            if (mp != null) {
-                Button btnPlay = new Button("▶ Play");
-                btnPlay.getStyleClass().add("button-secondary");
-                btnPlay.setStyle("-fx-min-width: 80px;");
-
-                btnPlay.setOnAction(e -> {
-                    if (mp.getStatus() == MediaPlayer.Status.PLAYING) {
-                        mp.pause();
-                        btnPlay.setText("▶ Play");
-                    } else {
-                        mp.play();
-                        btnPlay.setText("⏸ Pause");
-                    }
-                });
-
-                mp.setOnEndOfMedia(() -> {
-                    mp.stop();
-                    btnPlay.setText("▶ Play");
-                });
-
-                Slider timeSlider = new Slider();
-                HBox.setHgrow(timeSlider, Priority.ALWAYS);
-
-                mp.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
-                    if (!timeSlider.isValueChanging()) {
-                        timeSlider.setValue(newTime.toSeconds());
-                    }
-                });
-
-                mp.setOnReady(() -> {
-                    timeSlider.setMax(mp.getTotalDuration().toSeconds());
-                });
-
-                timeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-                    if (timeSlider.isValueChanging()) {
-                        mp.seek(Duration.seconds(newVal.doubleValue()));
-                    }
-                });
-
-                timeSlider.setOnMouseClicked(e -> {
-                    mp.seek(Duration.seconds(timeSlider.getValue()));
-                });
-
-                Label lblVol = new Label("🔊");
-                Slider volSlider = new Slider(0, 1, 0.5);
-                volSlider.setPrefWidth(80);
-                mp.volumeProperty().bind(volSlider.valueProperty());
-
-                HBox controls = new HBox(10, btnPlay, timeSlider, lblVol, volSlider);
-                controls.setAlignment(Pos.CENTER);
-                controls.setPadding(new Insets(5));
-
-                VBox videoContainer = new VBox(10, mv, controls);
-                videoContainer.setAlignment(Pos.TOP_CENTER);
-                card.getChildren().add(videoContainer);
-            } else {
-                card.getChildren().add(new VBox(mv));
-            }
-        }
-
-        if (post.getContenuto() != null) {
-            Label content = new Label(post.getContenuto());
-            content.setWrapText(true);
-            content.getStyleClass().add("post-content");
-            card.getChildren().add(content);
-        }
-
-        card.getChildren().add(new Separator());
-
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_LEFT);
-
-        boolean isLiked = false;
-        int likes = 0;
-        try {
-            isLiked = postDAO.isLiked(post.getId(), utenteLoggato.getUsername());
-            likes = postDAO.getLikesCount(post.getId());
-        } catch (SQLException e) {
-            Log.error("Errore refresh feed", e);
-        }
-
-        Button btnLike = new Button((isLiked ? "❤️ " : "🤍 ") + likes);
-        btnLike.getStyleClass().add("like-button");
-        if (isLiked)
-            btnLike.getStyleClass().add("like-button-active");
-
-        btnLike.setOnAction(e -> {
-            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE)
-                return;
-            try {
-                boolean liked = postDAO.isLiked(post.getId(), utenteLoggato.getUsername());
-                if (liked) {
-                    postDAO.removeLike(post.getId(), utenteLoggato.getUsername());
-                    btnLike.getStyleClass().remove("like-button-active");
-                } else {
-                    postDAO.addLike(post.getId(), utenteLoggato.getUsername());
-                    if (!btnLike.getStyleClass().contains("like-button-active"))
-                        btnLike.getStyleClass().add("like-button-active");
-                }
-
-                int newCount = postDAO.getLikesCount(post.getId());
-                btnLike.setText((!liked ? "❤️ " : "🤍 ") + newCount);
-            } catch (SQLException ex) {
-                Log.error("Errore gestione like", ex);
-            }
-        });
-
-        actions.getChildren().add(btnLike);
-        card.getChildren().add(actions);
-
-        VBox commentsBox = new VBox(5);
-        commentsBox.getStyleClass().add("comments-box");
-        VBox list = new VBox(5);
-
-        for (Commento c : post.getCommenti()) {
-            HBox commentRow = new HBox(10);
-            commentRow.setAlignment(Pos.CENTER_LEFT);
-
-            Label l = new Label(c.getUtente().getUsername() + ": " + c.getContenuto());
-            l.setWrapText(true);
-            HBox.setHgrow(l, Priority.ALWAYS);
-
-            commentRow.getChildren().add(l);
-
-            if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())) {
-                Button btnEdit = new Button("✎");
-                btnEdit.setStyle("-fx-font-size: 10px; -fx-padding: 2 5;");
-                btnEdit.getStyleClass().add("button-secondary");
-                btnEdit.setOnAction(ev -> {
-                    TextInputDialog dialog = new TextInputDialog(c.getContenuto());
-                    dialog.setTitle("Modifica Commento");
-                    dialog.setHeaderText(null);
-                    dialog.setContentText("Modifica il commento:");
-
-                    dialog.showAndWait().ifPresent(newText -> {
-                        if (!newText.isBlank() && !newText.equals(c.getContenuto())) {
-                            try {
-                                c.setContenuto(newText);
-                                commentoDAO.update(c);
-                                l.setText(c.getUtente().getUsername() + ": " + newText);
-                            } catch (SQLException ex) {
-                                showAlert(AlertType.ERROR, "Errore", "Impossibile modificare: " + ex.getMessage());
-                            }
-                        }
-                    });
-                });
-
-                Button btnDel = new Button("X");
-                btnDel.setStyle(
-                        "-fx-font-size: 10px; -fx-padding: 2 5; -fx-text-fill: white; -fx-background-color: #ff4444;");
-                btnDel.setOnAction(ev -> {
-                    Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare commento?", ButtonType.YES,
-                            ButtonType.NO);
-                    alert.showAndWait().ifPresent(response -> {
-                        if (response == ButtonType.YES) {
-                            try {
-                                commentoDAO.delete(c.getId());
-                                list.getChildren().remove(commentRow);
-                            } catch (SQLException ex) {
-                                showAlert(AlertType.ERROR, "Errore", "Impossibile eliminare: " + ex.getMessage());
-                            }
-                        }
-                    });
-                });
-
-                commentRow.getChildren().addAll(btnEdit, btnDel);
-            }
-            list.getChildren().add(commentRow);
-        }
-
-        HBox inputComm = new HBox(5);
-        TextField tf = new TextField();
-        tf.setPromptText("Commenta...");
-        HBox.setHgrow(tf, Priority.ALWAYS);
-        Button btnSend = new Button("Invia");
-        btnSend.setOnAction(e -> {
-            if (!tf.getText().isBlank()) {
-                try {
-                    Commento c = new Commento(utenteLoggato, post, tf.getText(), LocalDateTime.now());
-                    commentoDAO.create(c);
-
-                    Label l = new Label(utenteLoggato.getUsername() + ": " + c.getContenuto());
-                    list.getChildren().add(l);
-                    tf.clear();
-                } catch (SQLException ex) {
-                    Log.error("Errore inserimento commento", ex);
-                }
-            }
-        });
-
-        inputComm.getChildren().addAll(tf, btnSend);
-        commentsBox.getChildren().addAll(list, inputComm);
-        card.getChildren().add(commentsBox);
-
-        return card;
     }
 
     private Button creaNavButton(String text, boolean isActive) {
@@ -610,29 +490,97 @@ public class HomeView {
         container.getChildren().add(box);
     }
 
-    private void caricaFoto(ImageView view, String path) {
-        try {
-            if (path != null && !path.isEmpty()) {
-                File file = MediaManager.getMediaFile(path);
-                if (file != null && file.exists()) {
-                    view.setImage(new Image(file.toURI().toString()));
-                }
-            }
-        } catch (Exception e) {
+    private void performSearch(String query) {
+        if (query == null || query.isBlank()) {
+            loadFeed(); // Restore feed if empty search
+            return;
         }
-    }
 
-    private void caricaVideo(MediaView view, String path) {
+        // Clear feed layout
+        feedLayout.getChildren().clear();
+
+        Label title = new Label("Risultati ricerca per: \"" + query + "\"");
+        title.getStyleClass().add("section-title");
+        title.setStyle("-fx-font-size: 18px; -fx-padding: 10;");
+        feedLayout.getChildren().add(title);
+
+        boolean foundSomething = false;
+
         try {
-            if (path != null && !path.isEmpty()) {
-                File file = MediaManager.getMediaFile(path);
-                if (file != null && file.exists()) {
-                    MediaPlayer mp = new MediaPlayer(new Media(file.toURI().toString()));
-                    view.setMediaPlayer(mp);
+            // 1. Cerca Utenti
+            List<Utente> userResults = utenteDAO.searchByUsername(query);
+            if (!userResults.isEmpty()) {
+                foundSomething = true;
+                Label lblUsers = new Label("Utenti trovati");
+                lblUsers.setStyle("-fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+                feedLayout.getChildren().add(lblUsers);
 
+                VBox usersContainer = new VBox(10);
+                for (Utente u : userResults) {
+                    HBox row = new HBox(15);
+                    row.setAlignment(Pos.CENTER_LEFT);
+                    row.setStyle(
+                            "-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3,0,0,1);");
+                    row.setMaxWidth(600);
+
+                    Circle avatar = new Circle(20);
+                    String initial = u.getUsername().substring(0, 1).toUpperCase();
+                    Label initLbl = new Label(initial);
+                    initLbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                    StackPane avStack = new StackPane(avatar, initLbl);
+                    avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
+
+                    VBox info = new VBox(2);
+                    Label usernameLbl = new Label("@" + u.getUsername());
+                    usernameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+                    Label nameLbl = new Label(u.getNome() + " " + u.getCognome());
+                    nameLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #666;");
+                    info.getChildren().addAll(usernameLbl, nameLbl);
+
+                    Region sp = new Region();
+                    HBox.setHgrow(sp, Priority.ALWAYS);
+
+                    Button btnProfile = new Button("Visita");
+                    btnProfile.getStyleClass().add("button-secondary");
+                    btnProfile.setOnAction(e -> {
+                        UserProfileView upv = new UserProfileView(stage, utenteLoggato, u);
+                        stage.getScene().setRoot(upv.getView());
+                    });
+
+                    row.getChildren().addAll(avStack, info, sp, btnProfile);
+                    usersContainer.getChildren().add(row);
+                }
+                feedLayout.getChildren().add(usersContainer);
+            }
+
+            // 2. Cerca Post
+            List<Post> postResults = postDAO.search(query);
+            if (!postResults.isEmpty()) {
+                foundSomething = true;
+                // Separatore se c'è già la sezione utenti
+                if (!userResults.isEmpty()) {
+                    Region sep = new Region();
+                    sep.setMinHeight(20);
+                    feedLayout.getChildren().add(sep);
+                }
+
+                Label lblPosts = new Label("Post trovati");
+                lblPosts.setStyle("-fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+                feedLayout.getChildren().add(lblPosts);
+
+                for (Post p : postResults) {
+                    PostCard card = new PostCard(p, utenteLoggato, this::loadFeed);
+                    activeCards.add(card);
+                    feedLayout.getChildren().add(card);
                 }
             }
-        } catch (Exception e) {
+
+            if (!foundSomething) {
+                feedLayout.getChildren().add(new Label("Nessun risultato trovato."));
+            }
+
+        } catch (SQLException e) {
+            showAlert(AlertType.ERROR, "Errore Ricerca", e.getMessage());
         }
     }
 
@@ -641,5 +589,19 @@ public class HomeView {
         alert.setTitle(title);
         alert.setContentText(msg);
         alert.showAndWait();
+    }
+
+    /**
+     * Stoppa e rilascia le risorse di tutti i player video attivi.
+     * Da chiamare prima di cambiare view (logout, navigazione) per evitare
+     * MediaException.
+     */
+    private void stopAllPlayers() {
+        if (activeCards == null)
+            return;
+        for (PostCard card : activeCards) {
+            card.dispose();
+        }
+        activeCards.clear();
     }
 }

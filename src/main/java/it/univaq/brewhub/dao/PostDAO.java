@@ -75,4 +75,22 @@ public interface PostDAO {
      * @throws SQLException Se si verifica un errore di accesso al database.
      */
     int getLikesCount(int postId) throws SQLException;
+
+    /**
+     * Recupera tutti i post pubblicati da un determinato autore.
+     *
+     * @param username Lo username dell'autore.
+     * @return Una lista di post.
+     * @throws SQLException Se si verifica un errore di accesso al database.
+     */
+    List<Post> findByAuthor(String username) throws SQLException;
+
+    /**
+     * Recupera un post tramite il suo ID.
+     * 
+     * @param id L'ID del post.
+     * @return Il post trovato, o null se non esiste.
+     * @throws SQLException
+     */
+    Post findById(int id) throws SQLException;
 }
