@@ -2,19 +2,16 @@ package it.univaq.brewhub.UI;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.util.Optional;
+
 import it.univaq.brewhub.MediaManager;
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
 import it.univaq.brewhub.utility.Log;
+import it.univaq.brewhub.UI.components.PasswordFieldWithToggler;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -66,36 +63,55 @@ public class ProfileView {
     public Parent getView() {
 
         // Contenitore principale
-        StackPane root = new StackPane();
+        javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        root.getStyleClass().add("profile-view");
 
-        // Box del form centrale
-        VBox formBox = new VBox(15);
-        formBox.setAlignment(Pos.CENTER);
-        formBox.setMaxWidth(450);
-        formBox.getStyleClass().add("form-box");
+        // ScrollPane per flessibilità
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        // Titolo
-        Label lblTitolo = new Label("Il mio Profilo");
-        lblTitolo.getStyleClass().add("title-label");
+        // Layout principale orizzontale (separazione Foto / Dati)
+        HBox mainLayout = new HBox(40);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.setPadding(new javafx.geometry.Insets(40));
+        mainLayout.setStyle("-fx-background-color: transparent;");
 
-        // Componente Foto profilo
+        // --- COLONNA SINISTRA: FOTO ---
+        VBox leftColumn = new VBox(20);
+        leftColumn.setAlignment(Pos.TOP_CENTER);
+        leftColumn.setMinWidth(250);
+        leftColumn.setMaxWidth(300);
+        leftColumn.getStyleClass().add("profile-photo-container");
+
         ImageView imgView = new ImageView();
-        imgView.setFitWidth(120);
-        imgView.setFitHeight(120);
+        imgView.setFitWidth(200);
+        imgView.setFitHeight(200);
+        imgView.setPreserveRatio(false);
 
         // Caricamento anteprima foto attuale
         caricaAnteprimaFoto(imgView, utente.getFotoProfilo());
 
-        // Maschera ritaglio circolare per la foto
-        Circle clip = new Circle(60, 60, 60);
+        // Maschera ritaglio circolare E Wrapper per ombra
+        Circle clip = new Circle(100, 100, 100);
         imgView.setClip(clip);
 
-        // Bottone per caricamento nuova foto
-        Button btnCambiaFoto = new Button("📷 Cambia Foto");
+        StackPane imgContainer = new StackPane(imgView);
+        imgContainer.setMaxSize(200, 200);
+        imgContainer.getStyleClass().add("profile-photo-wrapper");
+
+        Circle border = new Circle(100);
+        border.setStroke(javafx.scene.paint.Color.web("#D4A574"));
+        border.setStrokeWidth(4);
+        border.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        border.setMouseTransparent(true);
+        imgContainer.getChildren().add(border);
+
+        Button btnCambiaFoto = new Button("📷 Modifica Foto");
         btnCambiaFoto.getStyleClass().add("button-secondary");
 
-        // Azione cambio foto
         btnCambiaFoto.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Scegli nuova foto profilo");
@@ -105,7 +121,6 @@ public class ProfileView {
             File file = fileChooser.showOpenDialog(stage);
 
             if (file != null) {
-                // Copia la foto nelle risorse e aggiorna anteprima
                 MediaManager.initMediaFolder();
                 String path = MediaManager.copyMediaToFolder(file);
 
@@ -116,120 +131,161 @@ public class ProfileView {
             }
         });
 
-        // Box contenitore foto
-        VBox fotoBox = new VBox(10, imgView, btnCambiaFoto);
-        fotoBox.setAlignment(Pos.CENTER);
+        leftColumn.getChildren().addAll(imgContainer, btnCambiaFoto);
 
-        // Campi di input dettaglio utente
-        VBox inputs = new VBox(8);
-        inputs.setAlignment(Pos.CENTER_LEFT);
+        // --- COLONNA DESTRA: DATI ---
+        VBox rightColumn = new VBox(25);
+        rightColumn.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(rightColumn, javafx.scene.layout.Priority.ALWAYS);
 
-        // Username (read-only)
-        Label lblUser = new Label("Username:");
-        lblUser.getStyleClass().add("label");
+        // Titolo pagina
+        Label lblTitolo = new Label("Il mio Profilo");
+        lblTitolo.getStyleClass().add("title-label");
+        // Sottotitolo / Ruolo
+        Label lblRuolo = new Label(utente.getTipo() != null ? utente.getTipo().toString() : "Utente");
+        lblRuolo.getStyleClass().add("role-label");
+
+        VBox headerBox = new VBox(5, lblTitolo, lblRuolo);
+
+        // Sezione Dati Personali
+        Label lblDati = new Label("Dati Personali");
+        lblDati.getStyleClass().add("section-header");
+        lblDati.setMaxWidth(Double.MAX_VALUE);
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+
+        // Username
+        Label lblUser = new Label("Username");
+        lblUser.getStyleClass().add("subtitle-label");
         TextField fldUsername = new TextField(utente.getUsername());
         fldUsername.setEditable(false);
-        fldUsername.getStyleClass().add("text-field");
-        fldUsername.getStyleClass().add("text-field-readonly");
+        fldUsername.getStyleClass().addAll("text-field", "text-field-readonly");
+        fldUsername.setMaxWidth(Double.MAX_VALUE);
 
         // Nome
-        Label lblNome = new Label("Nome:");
-        lblNome.getStyleClass().add("label");
+        Label lblNome = new Label("Nome");
+        lblNome.getStyleClass().add("subtitle-label");
         TextField fldNome = new TextField(utente.getNome());
         fldNome.getStyleClass().add("text-field");
+        fldNome.setMaxWidth(Double.MAX_VALUE);
 
         // Cognome
-        Label lblCognome = new Label("Cognome:");
-        lblCognome.getStyleClass().add("label");
+        Label lblCognome = new Label("Cognome");
+        lblCognome.getStyleClass().add("subtitle-label");
         TextField fldCognome = new TextField(utente.getCognome());
         fldCognome.getStyleClass().add("text-field");
+        fldCognome.setMaxWidth(Double.MAX_VALUE);
 
-        // Password
-        Label lblPw = new Label("Sicurezza:");
-        lblPw.getStyleClass().add("label");
-        PasswordField fldNuovaPass = new PasswordField();
-        fldNuovaPass.setPromptText("Nuova Password (lascia vuoto per mantenere)");
-        fldNuovaPass.getStyleClass().add("password-field");
+        // Constraint colonne griglia: 50% e 50%
+        javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
+        col1.setPercentWidth(50);
+        javafx.scene.layout.ColumnConstraints col2 = new javafx.scene.layout.ColumnConstraints();
+        col2.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(col1, col2);
 
-        inputs.getChildren().addAll(lblUser, fldUsername, lblNome, fldNome, lblCognome, fldCognome, lblPw,
-                fldNuovaPass);
+        // Layout Griglia
+        // Row 0: Username (spanning 2 cols? Or just left?) Let's span 2 for separation
+        VBox userBox = new VBox(5, lblUser, fldUsername);
+        grid.add(userBox, 0, 0, 2, 1);
 
-        // Bottoni azioni
-        HBox actionBox = new HBox(10);
-        actionBox.setAlignment(Pos.CENTER);
+        // Row 1: Nome | Cognome
+        VBox nomeBox = new VBox(5, lblNome, fldNome);
+        VBox cognomeBox = new VBox(5, lblCognome, fldCognome);
+        grid.add(nomeBox, 0, 1);
+        grid.add(cognomeBox, 1, 1);
+
+        // Sezione Sicurezza
+        Label lblSicurezza = new Label("Sicurezza");
+        lblSicurezza.getStyleClass().add("section-header");
+        lblSicurezza.setMaxWidth(Double.MAX_VALUE);
+        VBox.setMargin(lblSicurezza, new javafx.geometry.Insets(10, 0, 0, 0));
+
+        Label lblPw = new Label("Nuova Password");
+        lblPw.getStyleClass().add("subtitle-label");
+
+        // Using custom component
+        PasswordFieldWithToggler fldNuovaPass = new PasswordFieldWithToggler("Inserisci per cambiare password...");
+        fldNuovaPass.setMaxWidth(Double.MAX_VALUE);
+
+        VBox securityBox = new VBox(5, lblPw, fldNuovaPass);
+
+        // Actions
+        HBox actionBox = new HBox(15);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
+        actionBox.setPadding(new javafx.geometry.Insets(30, 0, 0, 0));
 
         Button btnAnnulla = new Button("Indietro");
         btnAnnulla.getStyleClass().add("button-secondary");
 
-        Button btnSalva = new Button("Salva");
-        btnSalva.getStyleClass().add("button-success");
-
-        Button btnElimina = new Button("🗑 Elimina");
+        Button btnElimina = new Button("Elimina Account");
         btnElimina.getStyleClass().add("button-danger");
 
-        // Azione Elimina Account
+        Button btnSalva = new Button("Salva Modifiche");
+        btnSalva.getStyleClass().add("button-success");
+        btnSalva.setDefaultButton(true);
+
+        actionBox.getChildren().addAll(btnElimina, btnAnnulla, btnSalva);
+
+        // Configurazione azioni
         btnElimina.setOnAction(e -> {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setTitle("Elimina Profilo");
-            alert.setHeaderText("Attenzione: Azione Irreversibile!");
-            alert.setContentText(
-                    "Sei sicuro di voler eliminare definitivamente il tuo account?\nTutti i dati verranno persi.");
-
-            Optional<ButtonType> result = alert.showAndWait();
-
-            if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean confirmed = DialogUtils.showConfirmation("Elimina Profilo",
+                    "Sei sicuro di voler eliminare definitivamente il tuo account?\nTutti i dati verranno persi.",
+                    stage);
+            if (confirmed) {
                 try {
                     new UtenteDAOImpl().delete(utente.getUsername());
-                    showAlert(AlertType.INFORMATION, "Account Eliminato", "Il tuo account è stato eliminato.");
+                    DialogUtils.showInfo("Account Eliminato", "Il tuo account è stato eliminato.", stage);
                     LoginView login = new LoginView(stage);
                     stage.getScene().setRoot(login.getView());
                 } catch (SQLException ex) {
-                    showAlert(AlertType.ERROR, "Errore", "Impossibile eliminare l'account: " + ex.getMessage());
+                    DialogUtils.showError("Errore", "Impossibile eliminare l'account: " + ex.getMessage(), stage);
                 }
             }
         });
 
-        // Azione Annulla
         btnAnnulla.setOnAction(e -> tornaAllaHome());
 
-        // Azione Salva Modifiche
         btnSalva.setOnAction(e -> {
             String nuovoNome = fldNome.getText().trim();
             String nuovoCognome = fldCognome.getText().trim();
             String nuovaPw = fldNuovaPass.getText();
 
             if (nuovoNome.isEmpty() || nuovoCognome.isEmpty()) {
-                showAlert(AlertType.ERROR, "Errore", "Nome e Cognome obbligatori.");
+                DialogUtils.showError("Errore", "Nome e Cognome obbligatori.", stage);
                 return;
             }
 
-            // Aggiornamento oggetto utente locale
             utente.setNome(nuovoNome);
             utente.setCognome(nuovoCognome);
             utente.setFotoProfilo(nuovoPercorsoFoto);
 
-            // Aggiornamento password opzionale
             if (!nuovaPw.isEmpty()) {
                 if (nuovaPw.length() < 8) {
-                    showAlert(AlertType.ERROR, "Errore", "Password min. 8 caratteri.");
+                    DialogUtils.showError("Errore", "Password min. 8 caratteri.", stage);
                     return;
                 }
                 utente.setPassword(nuovaPw);
             }
 
-            // Persistenza su DB tramite DAO
             try {
                 new UtenteDAOImpl().update(utente);
-                showAlert(AlertType.INFORMATION, "Successo", "Profilo aggiornato!");
+                DialogUtils.showInfo("Successo", "Profilo aggiornato!", stage);
                 tornaAllaHome();
             } catch (SQLException ex) {
-                showAlert(AlertType.ERROR, "Errore DB", ex.getMessage());
+                DialogUtils.showError("Errore DB", ex.getMessage(), stage);
             }
         });
 
-        actionBox.getChildren().addAll(btnAnnulla, btnElimina, btnSalva);
-        formBox.getChildren().addAll(lblTitolo, fotoBox, inputs, actionBox);
-        root.getChildren().add(formBox);
+        // Assemblaggio Right Column
+        rightColumn.getChildren().addAll(headerBox, lblDati, grid, lblSicurezza, securityBox, actionBox);
+
+        // Assemblaggio Main Layout
+        mainLayout.getChildren().addAll(leftColumn, rightColumn);
+
+        scrollPane.setContent(mainLayout);
+        root.setCenter(scrollPane);
 
         return root;
     }
@@ -267,18 +323,4 @@ public class ProfileView {
         }
     }
 
-    /**
-     * Mostra un alert di sistema generico.
-     * 
-     * @param type  Il tipo di alert (es. ERROR, INFORMATION).
-     * @param title Il titolo della finestra di alert.
-     * @param msg   Il messaggio contenuto nell'alert.
-     */
-    private void showAlert(AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
-    }
 }

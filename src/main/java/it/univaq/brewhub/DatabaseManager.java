@@ -160,4 +160,42 @@ public class DatabaseManager {
                         System.err.println("Errore inizializzazione DB: " + e.getMessage());
                 }
         }
+
+        /**
+         * Esegue il backup del database copiando il file .db nella destinazione
+         * specificata.
+         * Utilizza l'istruzione VACUUM INTO di SQLite per un backup sicuro a caldo.
+         * 
+         * @param destinationFile Il file di destinazione per il backup.
+         * @throws SQLException In caso di errore SQL o di IO durante il backup.
+         */
+        public static void backup(java.io.File destinationFile) throws SQLException {
+                String destPath = destinationFile.getAbsolutePath();
+                // Escape path quote chars if needed, but PreparedStatement doesn't work well
+                // with VACUUM INTO filename
+                // SQLite strings are single-quoted. We should handle single quotes in path.
+                // VACUUM INTO 'path/to/file'
+                destPath = destPath.replace("'", "''");
+
+                try (Connection conn = getConnection();
+                                Statement stmt = conn.createStatement()) {
+                        stmt.execute("VACUUM INTO '" + destPath + "'");
+                }
+        }
+
+        /**
+         * Ripristina il database da un file di backup.
+         * ATTENZIONE: Sovrascrive il database corrente.
+         * 
+         * @param backupFile Il file di backup (.db) da ripristinare.
+         * @throws java.io.IOException Se ci sono errori di IO (es. file lock).
+         */
+        public static void restore(java.io.File backupFile) throws java.io.IOException {
+                java.io.File dbFile = new java.io.File("brewhub.db");
+                // Tentiamo di sovrascrivere il file del database
+                // Se il file è bloccato da connessioni aperte, questo potrebbe fallire su
+                // Windows
+                java.nio.file.Files.copy(backupFile.toPath(), dbFile.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
 }

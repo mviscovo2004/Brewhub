@@ -382,4 +382,40 @@ public class UtenteDAOImpl implements UtenteDAO {
         }
         return results;
     }
+
+    @Override
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM utenti";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public java.util.List<Utente> findTopActiveUsers(int limit) throws SQLException {
+        // Top users by number of posts
+        String sql = "SELECT u.*, COUNT(p.id) as post_count " +
+                "FROM utenti u " +
+                "LEFT JOIN post p ON u.username = p.autore_username " +
+                "GROUP BY u.username " +
+                "ORDER BY post_count DESC " +
+                "LIMIT ?";
+
+        java.util.List<Utente> list = new java.util.ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUtente(rs));
+                }
+            }
+        }
+        return list;
+    }
 }

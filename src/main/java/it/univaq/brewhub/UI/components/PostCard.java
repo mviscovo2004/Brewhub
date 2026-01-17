@@ -3,6 +3,7 @@ package it.univaq.brewhub.UI.components;
 import it.univaq.brewhub.Commento;
 import it.univaq.brewhub.Post;
 import it.univaq.brewhub.Post.TipoPost;
+import it.univaq.brewhub.UI.DialogUtils;
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.MediaManager;
 import it.univaq.brewhub.dao.impl.PostDAOImpl;
@@ -12,7 +13,6 @@ import it.univaq.brewhub.utility.Log;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -27,6 +27,8 @@ import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
 
 public class PostCard extends VBox {
 
@@ -106,6 +108,20 @@ public class PostCard extends VBox {
         Label authorLbl = new Label(displayAuthor);
         authorLbl.setStyle("-fx-font-weight: bold;");
 
+        // BADGE TIPO UTENTE
+        Label userTypeBadge = null;
+        if (post.getAutore() != null && post.getAutore().getTipo() != null) {
+            userTypeBadge = new Label(post.getAutore().getTipo().toString());
+            userTypeBadge.getStyleClass().addAll("badge", "badge-user-type");
+        }
+
+        // BADGE CATEGORIA (Opzionale)
+        Label categoryBadge = null;
+        if (post.getCategoria() != null) {
+            categoryBadge = new Label(post.getCategoria().getNome());
+            categoryBadge.getStyleClass().addAll("badge", "badge-category");
+        }
+
         Label dateLbl = new Label(post.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         dateLbl.setStyle("-fx-font-size: 10px; -fx-opacity: 0.6;");
 
@@ -118,26 +134,36 @@ public class PostCard extends VBox {
             btnDelete = new Button("\uD83D\uDDD1");
             btnDelete.getStyleClass().addAll("button", "post-delete-btn");
             btnDelete.setOnAction(e -> {
-                Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare questo post?", ButtonType.YES,
-                        ButtonType.NO);
-                alert.showAndWait().ifPresent(resp -> {
-                    if (resp == ButtonType.YES) {
-                        try {
-                            postDAO.delete(post.getId());
-                            if (onRefreshNeeded != null)
-                                onRefreshNeeded.run();
-                        } catch (SQLException ex) {
-                            showAlert(AlertType.ERROR, "Errore", ex.getMessage());
-                        }
+                boolean confirmed = DialogUtils.showConfirmation("Elimina Post", "Eliminare questo post?",
+                        this.getScene().getWindow());
+                if (confirmed) {
+                    try {
+                        postDAO.delete(post.getId());
+                        if (onRefreshNeeded != null)
+                            onRefreshNeeded.run();
+                    } catch (SQLException ex) {
+                        DialogUtils.showError("Errore", ex.getMessage(), this.getScene().getWindow());
                     }
-                });
+                }
             });
         }
 
-        if (btnDelete != null)
-            header.getChildren().addAll(avatarContainer, authorLbl, dateLbl, spacer, btnDelete);
-        else
-            header.getChildren().addAll(avatarContainer, authorLbl, dateLbl, spacer);
+        header.getChildren().addAll(avatarContainer, authorLbl);
+
+        if (userTypeBadge != null) {
+            header.getChildren().add(userTypeBadge);
+        }
+
+        if (categoryBadge != null) {
+            header.getChildren().add(categoryBadge);
+        }
+
+        header.getChildren().add(dateLbl);
+        header.getChildren().add(spacer);
+
+        if (btnDelete != null) {
+            header.getChildren().add(btnDelete);
+        }
 
         Label titleLbl = new Label(post.getTitolo());
         titleLbl.getStyleClass().add("post-title");
@@ -349,12 +375,28 @@ public class PostCard extends VBox {
     }
 
     private void createCommentsSection() {
-        VBox commentsBox = new VBox(5);
+        VBox commentsBox = new VBox(10);
         commentsBox.getStyleClass().add("comments-box");
-        VBox list = new VBox(5);
 
-        for (Commento c : post.getCommenti()) {
-            list.getChildren().add(createCommentRow(c, list));
+        // Header Commenti
+        Label lblComm = new Label("Commenti");
+        lblComm.getStyleClass().add("comments-header");
+
+        Separator sep = new Separator();
+        sep.getStyleClass().add("comments-separator");
+
+        commentsBox.getChildren().addAll(lblComm, sep);
+
+        VBox list = new VBox(10);
+
+        if (post.getCommenti().isEmpty()) {
+            Label noComm = new Label("Nessun commento.");
+            noComm.getStyleClass().add("no-comments-label");
+            list.getChildren().add(noComm);
+        } else {
+            for (Commento c : post.getCommenti()) {
+                list.getChildren().add(createCommentRow(c, list));
+            }
         }
 
         HBox inputComm = new HBox(8);
@@ -378,6 +420,12 @@ public class PostCard extends VBox {
                 try {
                     Commento c = new Commento(utenteLoggato, post, tf.getText(), LocalDateTime.now());
                     commentoDAO.create(c);
+
+                    if (!list.getChildren().isEmpty() &&
+                            list.getChildren().get(0) instanceof Label &&
+                            list.getChildren().get(0).getStyleClass().contains("no-comments-label")) {
+                        list.getChildren().clear();
+                    }
 
                     list.getChildren().add(createCommentRow(c, list));
                     tf.clear();
@@ -435,30 +483,19 @@ public class PostCard extends VBox {
 
         commentRow.getChildren().addAll(flow, spacerCommenti);
 
+        HBox actionButtons = new HBox(5);
+        actionButtons.setAlignment(Pos.CENTER_RIGHT);
+        actionButtons.setOpacity(0); // Hidden by default
+
         // EDIT (Solo autori)
         if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())) {
             Button btnEdit = new Button("\u270E");
             btnEdit.getStyleClass().addAll("comment-action-btn", "comment-edit-btn");
+            btnEdit.setTooltip(new Tooltip("Modifica"));
             btnEdit.setOnAction(ev -> {
-                TextInputDialog dialog = new TextInputDialog(c.getContenuto());
-                dialog.setTitle("Modifica Commento");
-                dialog.setHeaderText(null);
-                dialog.setContentText("Modifica il commento:");
-
-                dialog.showAndWait().ifPresent(newText -> {
-                    if (!newText.isBlank() && !newText.equals(c.getContenuto())) {
-                        try {
-                            c.setContenuto(newText);
-                            commentoDAO.update(c);
-                            // Update TextFlow content
-                            contentText.setText(newText);
-                        } catch (SQLException ex) {
-                            showAlert(AlertType.ERROR, "Errore", "Impossibile modificare: " + ex.getMessage());
-                        }
-                    }
-                });
+                showEditCommentDialog(c, contentText);
             });
-            commentRow.getChildren().add(btnEdit);
+            actionButtons.getChildren().add(btnEdit);
         }
 
         // DELETE (Autori o Admin)
@@ -466,22 +503,37 @@ public class PostCard extends VBox {
                 || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
             Button btnDel = new Button("\u2716");
             btnDel.getStyleClass().addAll("comment-action-btn", "comment-delete-btn");
+            btnDel.setTooltip(new Tooltip("Elimina"));
             btnDel.setOnAction(ev -> {
-                Alert alert = new Alert(AlertType.CONFIRMATION, "Eliminare commento?", ButtonType.YES,
-                        ButtonType.NO);
-                alert.showAndWait().ifPresent(response -> {
-                    if (response == ButtonType.YES) {
-                        try {
-                            commentoDAO.delete(c.getId());
-                            parentList.getChildren().remove(commentRow);
-                        } catch (SQLException ex) {
-                            showAlert(AlertType.ERROR, "Errore", "Impossibile eliminare: " + ex.getMessage());
-                        }
+                boolean confirmed = DialogUtils.showConfirmation("Elimina Commento", "Eliminare commento?",
+                        this.getScene().getWindow());
+                if (confirmed) {
+                    try {
+                        commentoDAO.delete(c.getId());
+                        parentList.getChildren().remove(commentRow);
+                    } catch (SQLException ex) {
+                        DialogUtils.showError("Errore", "Impossibile eliminare: " + ex.getMessage(),
+                                this.getScene().getWindow());
                     }
-                });
+                }
             });
-            commentRow.getChildren().add(btnDel);
+            actionButtons.getChildren().add(btnDel);
         }
+
+        if (!actionButtons.getChildren().isEmpty()) {
+            commentRow.getChildren().add(actionButtons);
+
+            // Hover effects
+            commentRow.setOnMouseEntered(e -> {
+                actionButtons.setOpacity(1);
+                commentRow.setStyle("-fx-background-color: rgba(0,0,0,0.02); -fx-background-radius: 5;");
+            });
+            commentRow.setOnMouseExited(e -> {
+                actionButtons.setOpacity(0);
+                commentRow.setStyle("-fx-background-color: transparent;");
+            });
+        }
+
         return commentRow;
     }
 
@@ -524,11 +576,82 @@ public class PostCard extends VBox {
         }
     }
 
-    private void showAlert(AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setContentText(msg);
-        alert.showAndWait();
+    // showAlert method removed
+
+    private void showEditCommentDialog(Commento c, javafx.scene.text.Text contentText) {
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Modifica Commento");
+        dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        // Ensure we have a window owner
+        if (this.getScene() != null && this.getScene().getWindow() != null) {
+            dialogStage.initOwner(this.getScene().getWindow());
+        }
+
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("modal-root");
+        root.setPrefWidth(400);
+
+        // Header
+        Label titleLbl = new Label("Modifica Commento");
+        titleLbl.getStyleClass().add("modal-title");
+        titleLbl.setAlignment(Pos.CENTER);
+        titleLbl.setMaxWidth(Double.MAX_VALUE);
+        root.setTop(titleLbl);
+
+        // Content
+        VBox contentBox = new VBox(15);
+        contentBox.setPadding(new Insets(20, 0, 20, 0));
+
+        TextArea area = new TextArea(c.getContenuto());
+        area.setWrapText(true);
+        area.setPrefRowCount(4);
+        area.getStyleClass().add("text-area");
+
+        contentBox.getChildren().add(area);
+        root.setCenter(contentBox);
+
+        // Actions
+        HBox actions = new HBox(15);
+        actions.getStyleClass().add("dialog-actions");
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+
+        Button btnSave = new Button("Salva");
+        btnSave.getStyleClass().add("button-primary");
+
+        btnCancel.setOnAction(e -> dialogStage.close());
+
+        btnSave.setOnAction(e -> {
+            String newText = area.getText().trim();
+            if (!newText.isBlank() && !newText.equals(c.getContenuto())) {
+                try {
+                    c.setContenuto(newText);
+                    commentoDAO.update(c);
+                    contentText.setText(newText);
+                    dialogStage.close();
+                } catch (SQLException ex) {
+                    DialogUtils.showError("Errore", "Impossibile modificare: " + ex.getMessage(),
+                            this.getScene().getWindow());
+                }
+            } else {
+                dialogStage.close();
+            }
+        });
+
+        actions.getChildren().addAll(btnCancel, btnSave);
+        root.setBottom(actions);
+
+        Scene scene = new Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception ex) {
+            Log.error("Errore caricamento CSS dialog", ex);
+        }
+
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
     }
 
     public void dispose() {

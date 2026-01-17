@@ -8,13 +8,13 @@ import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
 import it.univaq.brewhub.utility.Log;
 import it.univaq.brewhub.Utente.TipoUtente;
 import it.univaq.brewhub.MediaManager;
+import it.univaq.brewhub.UI.components.PasswordFieldWithToggler;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -107,12 +107,9 @@ public class RegisterView {
         fldUsername.setMaxWidth(Double.MAX_VALUE);
         fldUsername.setId("fldUsername");
 
-        // Campo Password
-        PasswordField fldPassword = new PasswordField();
-        fldPassword.setPromptText("Password (min 8 caratteri)");
-        fldPassword.getStyleClass().add("password-field");
-        fldPassword.setMaxWidth(Double.MAX_VALUE);
-        fldPassword.setId("fldPassword");
+        // Campo Password usando il nuovo componente
+        PasswordFieldWithToggler fldPassword = new PasswordFieldWithToggler("Password (min 8 caratteri)");
+        fldPassword.setId("fldPasswordContainer");
 
         // ChoiceBox Tipo Utente
         ChoiceBox<TipoUtente> cbxTipo = new ChoiceBox<>();

@@ -109,13 +109,22 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public List<Post> findAll() throws SQLException {
-        String sql = "SELECT * FROM post ORDER BY data_creazione DESC";
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "ORDER BY p.data_creazione DESC";
         return executeQuery(sql);
     }
 
     @Override
     public List<Post> search(String query) throws SQLException {
-        String sql = "SELECT * FROM post WHERE titolo LIKE ? OR contenuto LIKE ? ORDER BY data_creazione DESC";
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "WHERE p.titolo LIKE ? OR p.contenuto LIKE ? " +
+                "ORDER BY p.data_creazione DESC";
         String p = "%" + query + "%";
         return executeQuery(sql, p, p);
     }
@@ -230,108 +239,65 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public List<Post> findByAuthor(String username) throws SQLException {
-        List<Post> posts = new ArrayList<>();
-        String sql = "SELECT * FROM post WHERE autore_username = ? ORDER BY data_creazione DESC";
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    posts.add(mapResultSetToPost(rs));
-                }
-            }
-        }
-        return posts;
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "WHERE p.autore_username = ? ORDER BY p.data_creazione DESC";
+        return executeQuery(sql, username);
     }
 
     @Override
     public Post findById(int id) throws SQLException {
-        String sql = "SELECT * FROM post WHERE id = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToPost(rs);
-                }
-            }
-        }
-        return null;
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "WHERE p.id = ?";
+        List<Post> results = executeQuery(sql, id);
+        return results.isEmpty() ? null : results.get(0);
     }
 
     @Override
     public List<Post> findByCategory(int categoryId) throws SQLException {
-        String sql = "SELECT * FROM post WHERE category_id = ? ORDER BY data_creazione DESC";
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, categoryId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                List<Post> posts = new ArrayList<>();
-                while (rs.next()) {
-                    posts.add(mapResultSetToPost(rs));
-                }
-                return posts;
-            }
-        }
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "WHERE p.category_id = ? ORDER BY p.data_creazione DESC";
+        return executeQuery(sql, categoryId);
     }
 
     @Override
     public List<Post> findByUserType(String userType) throws SQLException {
-        // Supponendo che userType sia una stringa che corrisponde al campo 'tipo' nella
-        // tabella utenti
-        String sql = "SELECT p.*, c.nome as categoria_nome FROM post p " +
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
                 "JOIN utenti u ON p.autore_username = u.username " +
                 "LEFT JOIN categorie c ON p.category_id = c.id " +
                 "WHERE u.tipo = ? ORDER BY p.data_creazione DESC";
-
-        // Note: mapResultSetToPost might need adjustment if using explicit columns or
-        // trying to map joined cols
-        // But mapResultSetToPost expects "id", "autore_username", etc. which are
-        // present in p.*
-        // Check if mapResultSetToPost handles potential ambiguity or not.
-        // With p.* we get all post columns. u.username is joined on autore_username.
-        // Let's use a simpler query if column names overlap.
-        // Actually, mapResultSetToPost uses column names like "id". "post.id" and
-        // "notifiche.id" may conflict if joined.
-        // Here we join with Utenti. Utenti has "username", "nome", "cognome", "tipo",
-        // "password_hash", "foto_uri".
-        // Post has "id", "autore_username", "titolo" ...
-        // No strict overlap on "id" usually since users have username PK.
-        // Wait, "foto_uri" might be in both if I added it to Post? No, Post has
-        // media_uri.
-        // So SELECT * should be fine mostly, but cleaner to specify p.*
-
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userType);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                List<Post> posts = new ArrayList<>();
-                while (rs.next()) {
-                    posts.add(mapResultSetToPost(rs));
-                }
-                return posts;
-            }
-        }
+        return executeQuery(sql, userType);
     }
 
     @Override
     public List<Post> findPopular() throws SQLException {
-        // Ordina per numero di like (join con tabella likes)
-        String sql = "SELECT p.*, COUNT(l.post_id) as like_count " +
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome, COUNT(l.post_id) as like_count "
+                +
                 "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
                 "LEFT JOIN likes l ON p.id = l.post_id " +
                 "GROUP BY p.id " +
                 "ORDER BY like_count DESC, p.data_creazione DESC " +
                 "LIMIT 50";
-        // Nota: executeQuery gestisce SELECT * ma qui abbiamo una colonna in più.
-        // mapResultSetToPost ignorerà la colonna extra senza problemi.
         return executeQuery(sql);
     }
 
     @Override
     public List<Post> findLikedBy(String username) throws SQLException {
-        String sql = "SELECT p.* " +
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
                 "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
                 "JOIN likes l ON p.id = l.post_id " +
                 "WHERE l.username = ? " +
                 "ORDER BY p.data_creazione DESC";
@@ -340,9 +306,10 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public List<Post> findFeedForUser(String username) throws SQLException {
-        // Seleziona post degli utenti seguiti dall'utente corrente
-        String sql = "SELECT p.* " +
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
                 "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
                 "JOIN followers f ON p.autore_username = f.followed_username " +
                 "WHERE f.follower_username = ? " +
                 "ORDER BY p.data_creazione DESC";
@@ -355,6 +322,26 @@ public class PostDAOImpl implements PostDAO {
 
         Utente autore = new Utente();
         autore.setUsername(rs.getString("autore_username"));
+
+        // Mappatura UserType da JOIN
+        try {
+            String typeStr = rs.getString("user_type");
+            if (typeStr != null) {
+                autore.setTipo(Utente.TipoUtente.valueOf(typeStr));
+            } else {
+                autore.setTipo(Utente.TipoUtente.APPASSIONATO);
+            }
+        } catch (SQLException | IllegalArgumentException e) {
+            autore.setTipo(Utente.TipoUtente.APPASSIONATO);
+        }
+
+        // Mappatura Foto Profilo da JOIN
+        try {
+            autore.setFotoProfilo(rs.getString("user_foto"));
+        } catch (SQLException e) {
+            // Ignora se colonna mancante (ma non dovrebbe)
+        }
+
         post.setAutore(autore);
 
         post.setTitolo(rs.getString("titolo"));
@@ -369,42 +356,49 @@ public class PostDAOImpl implements PostDAO {
         post.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
         post.setMedia(rs.getString("media_uri"));
 
-        // Mappa Categoria - requires JOIN or lazy load.
-        // Better to use JOIN in queries, but for now let's lazy load or just check if
-        // column exists/is populated
-        // The simple find methods select * from post.
-        // We can do a quick lookup if category_id > 0
+        // Mappa Categoria da JOIN
         int catId = rs.getInt("category_id");
         if (!rs.wasNull() && catId > 0) {
             it.univaq.brewhub.Categoria c = new it.univaq.brewhub.Categoria();
             c.setId(catId);
-            // We can fetch name quickly or do a JOIN.
-            // JOIN is better performance wise but requires changing all SQL queries.
-            // Let's do a sub-query fetch here for simplicity given existing structure
-            // OR update findAll/search queries to use JOIN.
-            // Let's just fetch name via DAO helper or simple query.
-            // Actually, let's keep it simple: just ID is enough? No, UI needs name.
-            // Ideally we change all SELECT * FROM post to SELECT p.*, c.nome as cat_nome
-            // FROM post p LEFT JOIN categorie c ON p.category_id = c.id
-            // But let's simplify: lazy fetch.
-            // No, lazy fetch in a loop is N+1.
-            // Let's assume we can fetch it.
-            // For now, I'll instantiate a simple DAO here or use a helper query.
-            try (PreparedStatement psCat = rs.getStatement().getConnection()
-                    .prepareStatement("SELECT nome FROM categorie WHERE id = ?")) {
-                psCat.setInt(1, catId);
-                try (ResultSet rsCat = psCat.executeQuery()) {
-                    if (rsCat.next()) {
-                        c.setNome(rsCat.getString("nome"));
-                    }
-                }
+            try {
+                c.setNome(rs.getString("cat_nome"));
+            } catch (SQLException e) {
+                c.setNome("Categoria");
             }
             post.setCategoria(c);
         }
 
-        // Caricamento Commenti tramite DAO
+        // Caricamento Commenti tramite DAO (rimane separato per ora)
         post.setCommenti(commentoDAO.findByPost(post));
 
         return post;
+    }
+
+    @Override
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM post";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public int countPostsLast24h() throws SQLException {
+        // SQLite uses 'now', '-1 day' for date math
+        String sql = "SELECT COUNT(*) FROM post WHERE data_creazione >= datetime('now', '-1 day')";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 }

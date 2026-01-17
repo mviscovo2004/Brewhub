@@ -4,12 +4,12 @@ import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.business.SessionManager;
 import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
 import it.univaq.brewhub.utility.Log;
+import it.univaq.brewhub.UI.components.PasswordFieldWithToggler;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -79,11 +79,9 @@ public class LoginView {
         fldUsername.getStyleClass().add("text-field");
         fldUsername.setId("usernameField");
 
-        // Campo di input per password
-        PasswordField fldPassword = new PasswordField();
-        fldPassword.setPromptText("Password");
-        fldPassword.getStyleClass().add("password-field");
-        fldPassword.setId("passwordField");
+        // Campo di input per password usando il nuovo componente
+        PasswordFieldWithToggler fldPassword = new PasswordFieldWithToggler("Password");
+        fldPassword.setId("passwordFieldContainer");
 
         // Bottone principale di accesso
         Button btnAccedi = new Button("Accedi");
@@ -136,7 +134,7 @@ public class LoginView {
                     if (profilo == null) {
                         lblErrore.setText("\u2717 Credenziali non valide");
                         lblErrore.setVisible(true);
-                        fldPassword.clear();
+                        fldPassword.setText("");
                     } else {
                         // Login riuscito: Imposta sessione
                         SessionManager.getInstance().login(profilo);

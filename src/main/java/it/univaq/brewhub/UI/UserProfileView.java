@@ -106,21 +106,19 @@ public class UserProfileView {
                 btnDeleteUser.setStyle("-fx-background-color: #e57373; -fx-text-fill: white; -fx-margin-top: 10px;");
 
                 btnDeleteUser.setOnAction(e -> {
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                            "SEI SICURO? Eliminare @" + profileUser.getUsername() + "?", ButtonType.YES, ButtonType.NO);
-                    alert.showAndWait().ifPresent(resp -> {
-                        if (resp == ButtonType.YES) {
-                            try {
-                                utenteDAO.delete(profileUser.getUsername());
-                                // Return to home
-                                stopAllPlayers();
-                                HomeView hv = new HomeView(stage, currentUser);
-                                stage.getScene().setRoot(hv.getView());
-                            } catch (Exception ex) {
-                                ex.printStackTrace(); // or show alert
-                            }
+                    boolean confirmed = DialogUtils.showConfirmation("SEI SICURO?",
+                            "Eliminare @" + profileUser.getUsername() + "?", stage);
+                    if (confirmed) {
+                        try {
+                            utenteDAO.delete(profileUser.getUsername());
+                            // Return to home
+                            stopAllPlayers();
+                            HomeView hv = new HomeView(stage, currentUser);
+                            stage.getScene().setRoot(hv.getView());
+                        } catch (Exception ex) {
+                            DialogUtils.showError("Errore", ex.getMessage(), stage);
                         }
-                    });
+                    }
                 });
                 infoContainer.getChildren().add(btnDeleteUser);
             }

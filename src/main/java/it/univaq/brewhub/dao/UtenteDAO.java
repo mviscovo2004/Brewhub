@@ -79,4 +79,9 @@ public interface UtenteDAO {
      * @throws SQLException
      */
     java.util.List<Utente> searchByUsername(String partialUsername) throws SQLException;
+
+    // Statistiche Dashboard
+    int countAll() throws SQLException;
+
+    java.util.List<Utente> findTopActiveUsers(int limit) throws SQLException;
 }

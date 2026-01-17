@@ -123,4 +123,9 @@ public interface PostDAO {
      * @throws SQLException Errore Database.
      */
     List<Post> findFeedForUser(String username) throws SQLException;
+
+    // Statistiche Dashboard
+    int countAll() throws SQLException;
+
+    int countPostsLast24h() throws SQLException;
 }
