@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/brewhub" # La cartella dove si trova il pom.xml
+    schedule:
+      interval: "weekly"

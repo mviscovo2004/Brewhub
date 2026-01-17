@@ -1,0 +1,36 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "review" ]
+  pull_request:
+    branches: [ "main", "review" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Scarica il codice dal repository
+    - uses: actions/checkout@v4
+
+    # 2. Imposta Java 11 (versione definita nel tuo pom.xml)
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+
+    # 3. Installa le dipendenze di sistema necessarie per JavaFX su Linux
+    # xvfb è un "display virtuale" necessario per eseguire i test UI senza un monitor fisico
+    - name: Install Linux dependencies for JavaFX
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-0 libgl1-mesa-glx xvfb
+
+    # 4. Compila ed esegue i test
+    # Usa xvfb-run per avvolgere il comando maven e fornirgli un display virtuale
+    - name: Build with Maven
+      working-directory: ./brewhub  # ADATTA QUESTO se il pom.xml non è nella root del repo
+      run: xvfb-run --auto-servernum mvn -B clean verify
