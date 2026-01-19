@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
+import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
 @ExtendWith(ApplicationExtension.class)
 class HomeViewTest {
@@ -102,8 +103,9 @@ class HomeViewTest {
         robot.clickOn("#publishBtn");
 
         // Verifica che il post sia apparso nel feed.
-        // I post nel feed sono Card. Il titolo ha classe .post-title.
-        // TestFX può cercare un nodo con quella classe e quel testo.
-        verifyThat(".post-title", hasText(POST_TITLE));
+        // Cerchiamo nello specifico un nodo con il testo del titolo.
+        // verifyThat(".post-title", hasText(POST_TITLE)); // Meno robusto se ci sono
+        // altri post
+        verifyThat(POST_TITLE, isVisible());
     }
 }

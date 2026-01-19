@@ -29,6 +29,7 @@ class AdminStatsTest {
     }
 
     @BeforeEach
+    @AfterEach
     void cleanup() throws SQLException {
         // Simple cleanup of test data
         // NOTE: In a real env we might use a separate test DB
