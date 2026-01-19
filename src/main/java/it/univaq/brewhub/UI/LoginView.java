@@ -43,8 +43,8 @@ public class LoginView {
 
         // Configurazione delle proprietà dello stage
         stage.setMaximized(false);
-        stage.setHeight(600);
-        stage.setWidth(800);
+        stage.setHeight(700);
+        stage.setWidth(900);
         stage.setResizable(false);
         stage.setTitle("Brewhub - Login");
         stage.centerOnScreen();

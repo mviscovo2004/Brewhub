@@ -157,6 +157,7 @@ public class HomeView {
 
         Button btnNewPost = new Button("\u2795 Nuovo Post");
         btnNewPost.getStyleClass().addAll("button", "header-action-btn");
+        btnNewPost.setId("btnNewPost");
         btnNewPost.setOnAction(e -> openCreatePostWindow());
 
         // --- Notifiche ---
@@ -199,12 +200,17 @@ public class HomeView {
                     notifDropdown.getItems().add(emptyItem);
                 } else {
                     for (it.univaq.brewhub.Notifica n : notifiche) {
-                        VBox itemBox = new VBox(5);
-                        itemBox.getStyleClass().add("notification-box");
-                        itemBox.setPrefWidth(280);
+                        HBox container = new HBox(10);
+                        container.setAlignment(Pos.CENTER_LEFT);
+                        container.getStyleClass().add("notification-box");
+                        container.setPrefWidth(380); // Increased width to prevent truncation
+
+                        // VBox for Content (Date + Msg)
+                        VBox contentBox = new VBox(5);
+                        HBox.setHgrow(contentBox, Priority.ALWAYS);
 
                         if (!n.isLetto()) {
-                            itemBox.getStyleClass().add("unread");
+                            container.getStyleClass().add("unread");
                         }
 
                         Label dateLbl = new Label(
@@ -214,19 +220,38 @@ public class HomeView {
                         Label msgLbl = new Label(n.getMessaggio());
                         msgLbl.getStyleClass().add("notification-message");
                         msgLbl.setWrapText(true);
+                        msgLbl.setMaxWidth(310);
 
-                        itemBox.getChildren().addAll(dateLbl, msgLbl);
+                        contentBox.getChildren().addAll(dateLbl, msgLbl);
 
-                        CustomMenuItem item = new CustomMenuItem(itemBox);
+                        // Delete Button (Small x)
+                        Button btnDel = new Button("\u2715");
+                        btnDel.getStyleClass().add("notification-delete-btn");
+
+                        CustomMenuItem item = new CustomMenuItem(container);
+                        item.getStyleClass().add("notification-menu-item");
                         item.setHideOnClick(false);
 
+                        // Logic: Delete specific
+                        btnDel.setOnAction(ev -> {
+                            try {
+                                notificaDAO.delete(n.getId());
+                                notifDropdown.getItems().remove(item);
+                                refreshBadge.run();
+                            } catch (SQLException ex) {
+                                Log.error("Errore delete notifica", ex);
+                            }
+                        });
+
+                        container.getChildren().addAll(contentBox, btnDel);
+
                         // Click su notifica -> Segna come letto
-                        itemBox.setOnMouseClicked(ev -> {
+                        contentBox.setOnMouseClicked(ev -> {
                             if (!n.isLetto()) {
                                 try {
                                     notificaDAO.markAsRead(n.getId());
                                     n.setLetto(true);
-                                    itemBox.getStyleClass().remove("unread");
+                                    container.getStyleClass().remove("unread");
                                     refreshBadge.run();
                                 } catch (SQLException ex) {
                                     Log.error("Errore markAsRead", ex);
@@ -236,6 +261,33 @@ public class HomeView {
 
                         notifDropdown.getItems().add(item);
                     }
+
+                    // Clear All Button
+                    HBox clearBox = new HBox();
+                    clearBox.setAlignment(Pos.CENTER);
+                    clearBox.setPadding(new Insets(5));
+
+                    Button btnClearAll = new Button("Cancella Tutte");
+                    btnClearAll.getStyleClass().add("notification-clear-all-btn");
+
+                    btnClearAll.setOnAction(ev -> {
+                        try {
+                            notificaDAO.deleteAll(utenteLoggato.getUsername());
+                            notifDropdown.getItems().clear();
+                            Label emptyLbl = new Label("Nessuna notifica");
+                            emptyLbl.getStyleClass().add("notification-empty");
+                            notifDropdown.getItems().add(new CustomMenuItem(emptyLbl));
+                            refreshBadge.run();
+                        } catch (SQLException ex) {
+                            Log.error("Errore deleteAll", ex);
+                        }
+                    });
+
+                    clearBox.getChildren().add(btnClearAll);
+                    CustomMenuItem clearItem = new CustomMenuItem(clearBox);
+                    clearItem.getStyleClass().add("notification-menu-item");
+                    clearItem.setHideOnClick(false);
+                    notifDropdown.getItems().add(clearItem);
                 }
                 notifDropdown.show(btnNotifiche, Side.BOTTOM, 0, 0);
             } catch (SQLException ex) {
@@ -331,12 +383,14 @@ public class HomeView {
         TextField fldTitolo = new TextField();
         fldTitolo.setPromptText("Dai un titolo al tuo post...");
         fldTitolo.getStyleClass().add("input-large");
+        fldTitolo.setId("fldTitolo");
 
         // Body Input
         TextArea postArea = new TextArea();
         postArea.setPromptText("Racconta la tua esperienza...");
         postArea.setPrefRowCount(6);
         postArea.getStyleClass().add("text-area");
+        postArea.setId("postArea");
         VBox.setVgrow(postArea, Priority.ALWAYS);
 
         // Options Row (Type & Category)
@@ -347,6 +401,7 @@ public class HomeView {
         cbxTipo.getItems().setAll(TipoPost.values());
         cbxTipo.setValue(TipoPost.TESTO);
         cbxTipo.getStyleClass().add("choice-box");
+        cbxTipo.setId("cbxTipo");
         cbxTipo.setPrefWidth(120);
 
         ChoiceBox<Categoria> cbxCategoria = new ChoiceBox<>();
@@ -442,6 +497,7 @@ public class HomeView {
         Button btnPublish = new Button("Pubblica Post");
         btnPublish.getStyleClass().add("button-primary"); // Or success
         btnPublish.setPrefWidth(150);
+        btnPublish.setId("publishBtn");
 
         Runnable publishAction = () -> {
             String titolo = fldTitolo.getText();
@@ -905,6 +961,7 @@ public class HomeView {
     private void performUserManagementSearch() {
         if (feedLayout == null)
             return;
+        setActiveSection("GestioneUtenti");
         feedLayout.getChildren().clear();
         stopAllPlayers();
 
@@ -1005,6 +1062,7 @@ public class HomeView {
     private void openCategoryManagement() {
         if (feedLayout == null)
             return;
+        setActiveSection("GestioneCategorie"); // Highlight sidebar
         feedLayout.getChildren().clear();
         stopAllPlayers();
 

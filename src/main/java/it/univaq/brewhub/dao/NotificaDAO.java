@@ -14,4 +14,6 @@ public interface NotificaDAO {
     int getUnreadCount(String username) throws SQLException;
 
     void delete(int id) throws SQLException;
+
+    void deleteAll(String username) throws SQLException;
 }

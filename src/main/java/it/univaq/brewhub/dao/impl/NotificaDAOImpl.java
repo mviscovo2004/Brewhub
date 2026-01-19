@@ -93,4 +93,14 @@ public class NotificaDAOImpl implements NotificaDAO {
             pstmt.executeUpdate();
         }
     }
+
+    @Override
+    public void deleteAll(String username) throws SQLException {
+        String sql = "DELETE FROM notifiche WHERE utente_username = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+        }
+    }
 }

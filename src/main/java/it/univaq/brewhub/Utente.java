@@ -30,7 +30,7 @@ public class Utente {
     BARISTA("Barista"),
     APPASSIONATO("Appassionato"),
     TORREFATTORE("Torrefattore"),
-    UTENTE_MEDIO("Utente medio"),
+    CURIOSO("Curioso"),
     ADMIN("Admin"),
     OSPITE("Ospite");
 

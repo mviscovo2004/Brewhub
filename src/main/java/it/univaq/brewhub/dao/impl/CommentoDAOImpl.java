@@ -20,6 +20,8 @@ import java.util.List;
  */
 public class CommentoDAOImpl implements CommentoDAO {
 
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
+
     @Override
     public void create(Commento commento) throws SQLException {
         if (commento.getPost() == null || commento.getPost().getId() == 0) {
@@ -30,6 +32,7 @@ public class CommentoDAOImpl implements CommentoDAO {
         }
 
         String sql = "INSERT INTO commenti(post_id, username, contenuto, data_creazione) VALUES(?, ?, ?, ?)";
+        it.univaq.brewhub.Notifica notificationToSend = null;
 
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -51,6 +54,37 @@ public class CommentoDAOImpl implements CommentoDAO {
                     throw new SQLException("Salvataggio commento fallito, nessun ID ottenuto.");
                 }
             }
+
+            // Prepare Notification Logic (query post author first)
+            try (PreparedStatement psSel = conn
+                    .prepareStatement("SELECT autore_username, titolo FROM post WHERE id = ?")) {
+                psSel.setInt(1, commento.getPost().getId());
+                try (ResultSet rs = psSel.executeQuery()) {
+                    if (rs.next()) {
+                        String author = rs.getString("autore_username");
+                        String title = rs.getString("titolo");
+
+                        // Notify if commenter != author
+                        if (!author.equals(commento.getUtente().getUsername())) {
+                            Utente ricevente = new Utente();
+                            ricevente.setUsername(author);
+
+                            String snippet = commento.getContenuto();
+                            if (snippet.length() > 20)
+                                snippet = snippet.substring(0, 20) + "...";
+
+                            String msg = commento.getUtente().getUsername() + " ha commentato il tuo post \"" + title
+                                    + "\": " + snippet;
+                            notificationToSend = new it.univaq.brewhub.Notifica(ricevente, msg);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Send notification outside the previous connection scope
+        if (notificationToSend != null) {
+            notificaDAO.create(notificationToSend);
         }
     }
 

@@ -83,7 +83,8 @@ class LoginViewTest {
         // Inserisce credenziali sicuramente errate nei campi di testo identificati
         // dagli ID
         robot.clickOn("#usernameField").write("utenteInesistenteTest");
-        robot.clickOn("#passwordField").write("passwordErrataTest");
+        // Use class selector since PasswordFieldWithToggler uses it internally
+        robot.clickOn(".password-field").write("passwordErrataTest");
 
         // Clicca su 'Accedi'
         robot.clickOn("#loginButton");

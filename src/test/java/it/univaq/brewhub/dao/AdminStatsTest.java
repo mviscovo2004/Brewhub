@@ -46,9 +46,9 @@ class AdminStatsTest {
     void testCountAllUsers() throws SQLException {
         int initialCount = utenteDAO.countAll();
 
-        Utente u1 = new Utente("test_admin_1", "Test", "test_admin_1", "password", Utente.TipoUtente.UTENTE_MEDIO,
+        Utente u1 = new Utente("test_admin_1", "Test", "test_admin_1", "password", Utente.TipoUtente.CURIOSO,
                 null);
-        Utente u2 = new Utente("test_admin_2", "Test", "test_admin_2", "password", Utente.TipoUtente.UTENTE_MEDIO,
+        Utente u2 = new Utente("test_admin_2", "Test", "test_admin_2", "password", Utente.TipoUtente.CURIOSO,
                 null);
 
         utenteDAO.create(u1);
@@ -60,7 +60,7 @@ class AdminStatsTest {
     @Test
     @Order(2)
     void testCountPosts() throws SQLException {
-        Utente u = new Utente("test_admin_p", "Post", "test_admin_p", "pass", Utente.TipoUtente.UTENTE_MEDIO, null);
+        Utente u = new Utente("test_admin_p", "Post", "test_admin_p", "pass", Utente.TipoUtente.CURIOSO, null);
         utenteDAO.create(u);
 
         int initialPosts = postDAO.countAll();
@@ -76,7 +76,7 @@ class AdminStatsTest {
     @Test
     @Order(3)
     void testCountPostsLast24h() throws SQLException {
-        Utente u = new Utente("test_admin_time", "Time", "test_admin_time", "pass", Utente.TipoUtente.UTENTE_MEDIO,
+        Utente u = new Utente("test_admin_time", "Time", "test_admin_time", "pass", Utente.TipoUtente.CURIOSO,
                 null);
         utenteDAO.create(u);
 
@@ -102,8 +102,8 @@ class AdminStatsTest {
     @Order(4)
     void testFindTopActiveUsers() throws SQLException {
         // Create 2 users
-        Utente top = new Utente("test_top", "Top", "test_top", "pass", Utente.TipoUtente.UTENTE_MEDIO, null);
-        Utente bottom = new Utente("test_bottom", "Bot", "test_bottom", "pass", Utente.TipoUtente.UTENTE_MEDIO, null);
+        Utente top = new Utente("test_admin_top", "Top", "test_admin_top", "pass", Utente.TipoUtente.CURIOSO, null);
+        Utente bottom = new Utente("test_admin_bot", "Bot", "test_admin_bot", "pass", Utente.TipoUtente.CURIOSO, null);
 
         utenteDAO.create(top);
         utenteDAO.create(bottom);
@@ -122,9 +122,9 @@ class AdminStatsTest {
         long botRank = -1;
 
         for (int i = 0; i < toplist.size(); i++) {
-            if (toplist.get(i).getUsername().equals("test_top"))
+            if (toplist.get(i).getUsername().equals("test_admin_top"))
                 topRank = i;
-            if (toplist.get(i).getUsername().equals("test_bottom"))
+            if (toplist.get(i).getUsername().equals("test_admin_bot"))
                 botRank = i;
         }
 

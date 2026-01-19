@@ -153,7 +153,25 @@ public class DatabaseManager {
                         stmt.execute("CREATE INDEX IF NOT EXISTS idx_commenti_post ON commenti(post_id)");
 
                         // Log di successo
-                        Log.info("Database inizializzato correttamente (tabelle utenti, post, commenti).");
+                        Log.info("Database inizializzato correttamente");
+
+                        // Creazione tabella Dettagli Torrefattore
+                        String sqlTorrefattori = "CREATE TABLE IF NOT EXISTS torrefattori (" +
+                                        "username TEXT PRIMARY KEY, " +
+                                        "nome_azienda TEXT, " +
+                                        "partita_iva TEXT, " +
+                                        "indirizzo TEXT, " +
+                                        "descrizione TEXT, " +
+                                        "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlTorrefattori);
+
+                        // Alter table per nome_azienda se non esiste (migrazione)
+                        try {
+                                stmt.execute("ALTER TABLE torrefattori ADD COLUMN nome_azienda TEXT");
+                        } catch (SQLException e) {
+                                // Colonna probabilmente già esistente
+                        }
 
                 } catch (SQLException e) {
                         // Gestione errore inizializzazione DB

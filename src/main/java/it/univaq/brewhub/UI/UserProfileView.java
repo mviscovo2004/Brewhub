@@ -25,6 +25,7 @@ public class UserProfileView {
 
     // DAO
     private final it.univaq.brewhub.dao.UtenteDAO utenteDAO = new it.univaq.brewhub.dao.impl.UtenteDAOImpl();
+    private final it.univaq.brewhub.dao.TorrefattoreDAO torrefattoreDAO = new it.univaq.brewhub.dao.impl.TorrefattoreDAOImpl();
     private final it.univaq.brewhub.dao.PostDAO postDAO = new it.univaq.brewhub.dao.impl.PostDAOImpl();
 
     // List of active PostCards for resource management
@@ -64,8 +65,38 @@ public class UserProfileView {
         Label lblUsername = new Label(profileUser.getUsername());
         lblUsername.getStyleClass().add("profile-username-large");
 
-        Label lblName = new Label(profileUser.getNome() + " " + profileUser.getCognome());
+        HBox usernameBox = new HBox(8, lblUsername);
+        usernameBox.setAlignment(Pos.CENTER);
+        if (profileUser.getTipo() == Utente.TipoUtente.TORREFATTORE) {
+            Label verifiedBadge = new Label("\u2714");
+            verifiedBadge.getStyleClass().add("verified-badge-large"); // Larger for profile
+            verifiedBadge.setTooltip(new Tooltip("Torrefattore Verificato"));
+            usernameBox.getChildren().add(verifiedBadge);
+        }
+
+        Label lblName = new Label();
         lblName.getStyleClass().add("profile-bio");
+        Label lblDesc = null;
+
+        if (profileUser.getTipo() == Utente.TipoUtente.TORREFATTORE) {
+            try {
+                it.univaq.brewhub.Torrefattore tDetails = torrefattoreDAO.findByUsername(profileUser.getUsername());
+                if (tDetails != null && tDetails.getNomeAzienda() != null) {
+                    lblName.setText(tDetails.getNomeAzienda());
+                    if (tDetails.getDescrizione() != null && !tDetails.getDescrizione().isBlank()) {
+                        lblDesc = new Label(tDetails.getDescrizione());
+                        lblDesc.setStyle(
+                                "-fx-font-style: italic; -fx-text-fill: #6D4C41; -fx-font-size: 14px; -fx-padding: 5 0;");
+                    }
+                } else {
+                    lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
+                }
+            } catch (Exception e) {
+                lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
+            }
+        } else {
+            lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
+        }
 
         // Action Button
         Button followBtn = new Button();
@@ -94,7 +125,12 @@ public class UserProfileView {
         statsBox.getChildren().addAll(boxFollowers, boxFollowing);
 
         // Assemblaggio info
-        infoContainer.getChildren().addAll(lblUsername, lblName, statsBox);
+        // Assemblaggio info
+        infoContainer.getChildren().addAll(usernameBox, lblName);
+        if (lblDesc != null) {
+            infoContainer.getChildren().add(lblDesc);
+        }
+        infoContainer.getChildren().add(statsBox);
         if (currentUser.getTipo() != Utente.TipoUtente.OSPITE) {
             infoContainer.getChildren().add(followBtn);
 

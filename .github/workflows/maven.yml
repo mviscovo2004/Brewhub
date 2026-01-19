@@ -25,12 +25,13 @@ jobs:
     # 3. Installa le dipendenze di sistema necessarie per JavaFX su Linux
     # xvfb è un "display virtuale" necessario per eseguire i test UI senza un monitor fisico
     - name: Install Linux dependencies for JavaFX
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgtk-3-0 libgl1-mesa-glx xvfb
+        sudo apt-get install -y libgtk-3-0t64 libasound2t64 libxrender1 libxtst6 libxi6 xvfb maven\
+        || sudo apt-get install -y libgtk-3-0 libasound2 libxrender1 libxtst6 libxi6 xvfb maven
 
     # 4. Compila ed esegue i test
     # Usa xvfb-run per avvolgere il comando maven e fornirgli un display virtuale
     - name: Build with Maven
-      working-directory: ./brewhub  # ADATTA QUESTO se il pom.xml non è nella root del repo
-      run: xvfb-run --auto-servernum mvn -B clean verify
+      run: xvfb-run --auto-servernum mvn -B package -Djava.awt.headless=false

@@ -367,7 +367,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     @Override
     public java.util.List<Utente> searchByUsername(String partialUsername) throws SQLException {
         java.util.List<Utente> results = new java.util.ArrayList<>();
-        String sql = "SELECT * FROM utenti WHERE username LIKE ?";
+        String sql = "SELECT * FROM utenti WHERE username LIKE ? AND username NOT LIKE 'deleted_%'";
 
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -402,6 +402,7 @@ public class UtenteDAOImpl implements UtenteDAO {
         String sql = "SELECT u.*, COUNT(p.id) as post_count " +
                 "FROM utenti u " +
                 "LEFT JOIN post p ON u.username = p.autore_username " +
+                "WHERE u.username NOT LIKE 'deleted_%' " +
                 "GROUP BY u.username " +
                 "ORDER BY post_count DESC " +
                 "LIMIT ?";

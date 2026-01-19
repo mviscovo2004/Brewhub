@@ -1,4 +1,5 @@
 it\univaq\brewhub\dao\UtenteDAO.class
+it\univaq\brewhub\dao\TorrefattoreDAO.class
 it\univaq\brewhub\dao\impl\UtenteDAOImpl.class
 it\univaq\brewhub\utility\Log.class
 it\univaq\brewhub\UI\components\PasswordFieldWithToggler.class
@@ -6,6 +7,7 @@ it\univaq\brewhub\UI\components\PostCard.class
 it\univaq\brewhub\Commento.class
 it\univaq\brewhub\dao\CategoriaDAO.class
 it\univaq\brewhub\UI\RegisterView.class
+it\univaq\brewhub\Torrefattore.class
 it\univaq\brewhub\UI\HomeView$1.class
 it\univaq\brewhub\UI\LoginView.class
 it\univaq\brewhub\Utente$TipoUtente.class
@@ -21,6 +23,7 @@ it\univaq\brewhub\business\SessionManager.class
 it\univaq\brewhub\Notifica.class
 it\univaq\brewhub\UI\DialogUtils.class
 it\univaq\brewhub\DatabaseManager.class
+it\univaq\brewhub\dao\impl\TorrefattoreDAOImpl.class
 it\univaq\brewhub\dao\NotificaDAO.class
 it\univaq\brewhub\UI\UserProfileView.class
 it\univaq\brewhub\dao\impl\PostDAOImpl.class

@@ -82,8 +82,17 @@ class HomeViewTest {
 
     @Test
     void testCreazionePostTesto(FxRobot robot) {
-        // Verifica stato iniziale dashboard
-        verifyThat("#fldTitolo", (node) -> ((javafx.scene.control.TextField) node).getText().isEmpty());
+        // Verifica presenza bottone nuovo post
+        verifyThat("#btnNewPost", hasText("\u2795 Nuovo Post"));
+
+        // Apri form creazione post
+        robot.clickOn("#btnNewPost");
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // Compila form
         robot.clickOn("#fldTitolo").write(POST_TITLE);

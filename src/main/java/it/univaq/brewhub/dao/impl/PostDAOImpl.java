@@ -23,6 +23,8 @@ public class PostDAOImpl implements PostDAO {
 
     /** DAO per gestione dei commenti associati ai post. */
     private CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
+    private static final java.time.format.DateTimeFormatter DB_DATE_FORMATTER = java.time.format.DateTimeFormatter
+            .ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public void create(Post post) throws SQLException {
@@ -35,7 +37,7 @@ public class PostDAOImpl implements PostDAO {
             pstmt.setString(2, post.getTitolo());
             pstmt.setString(3, post.getContenuto());
             pstmt.setString(4, post.getTipo().name());
-            pstmt.setString(5, post.getDataCreazione().toString());
+            pstmt.setString(5, post.getDataCreazione().format(DB_DATE_FORMATTER));
             pstmt.setString(6, post.getMedia() != null ? post.getMedia().replace('\\', '/') : null);
 
             if (post.getCategoria() != null) {
@@ -353,7 +355,16 @@ public class PostDAOImpl implements PostDAO {
             post.setTipo(TipoPost.TESTO);
         }
 
-        post.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
+        try {
+            String dateStr = rs.getString("data_creazione");
+            if (dateStr.contains("T")) {
+                post.setDataCreazione(LocalDateTime.parse(dateStr));
+            } else {
+                post.setDataCreazione(LocalDateTime.parse(dateStr, DB_DATE_FORMATTER));
+            }
+        } catch (Exception e) {
+            post.setDataCreazione(LocalDateTime.now());
+        }
         post.setMedia(rs.getString("media_uri"));
 
         // Mappa Categoria da JOIN
@@ -391,7 +402,7 @@ public class PostDAOImpl implements PostDAO {
     @Override
     public int countPostsLast24h() throws SQLException {
         // SQLite uses 'now', '-1 day' for date math
-        String sql = "SELECT COUNT(*) FROM post WHERE data_creazione >= datetime('now', '-1 day')";
+        String sql = "SELECT COUNT(*) FROM post WHERE data_creazione >= datetime('now', '-1 day', 'localtime')";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 ResultSet rs = pstmt.executeQuery()) {

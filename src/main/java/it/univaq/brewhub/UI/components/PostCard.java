@@ -106,7 +106,18 @@ public class PostCard extends VBox {
             displayAuthor = "Utente eliminato";
         }
         Label authorLbl = new Label(displayAuthor);
-        authorLbl.setStyle("-fx-font-weight: bold;");
+        authorLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723;");
+
+        // Verified Badge Logic
+        HBox authorBox = new HBox(5, authorLbl);
+        authorBox.setAlignment(Pos.CENTER_LEFT);
+
+        if (post.getAutore().getTipo() == Utente.TipoUtente.TORREFATTORE) {
+            Label verifiedBadge = new Label("\u2714"); // Checkmark
+            verifiedBadge.getStyleClass().add("verified-badge");
+            verifiedBadge.setTooltip(new Tooltip("Torrefattore Verificato"));
+            authorBox.getChildren().add(verifiedBadge);
+        }
 
         // BADGE TIPO UTENTE
         Label userTypeBadge = null;
@@ -148,7 +159,7 @@ public class PostCard extends VBox {
             });
         }
 
-        header.getChildren().addAll(avatarContainer, authorLbl);
+        header.getChildren().addAll(avatarContainer, authorBox);
 
         if (userTypeBadge != null) {
             header.getChildren().add(userTypeBadge);
@@ -349,29 +360,8 @@ public class PostCard extends VBox {
 
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
             actions.getChildren().add(btnSave);
-            this.getChildren().add(actions);
-        } else {
-            // Se ospite non mettiamo save, e actions non viene aggiunto se non ha figli
-            // ecc?
-            // HomeView logic was: add btnLike always. add btnSave if not guest.
-            // add actions if not guest.
-            // Wait, btnLike IS adding to actions.
-            // HomeView:
-            // actions.getChildren().add(btnLike);
-            // if (not guest) actions.add(btnSave)
-            // if (not guest) card.add(actions).
-            // So GUEST sees NO likes?
-            // Checking HomeView lines 739-741:
-            // if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE)
-            // card.getChildren().add(actions);
-            // This means guests see NO like button. Correct.
-            // But they were created.
-            // I'll replicate:
-            // If not guest, add actions.
-            // Guest sees nothing.
-            // Actually, guests might want to see like COUNT.
-            // But original code hid the whole actions bar. ok.
         }
+        this.getChildren().add(actions);
     }
 
     private void createCommentsSection() {

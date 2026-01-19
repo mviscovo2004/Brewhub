@@ -46,7 +46,7 @@ jobs:
     # non l'esecuzione dei test grafici (che potrebbero fallire qui).
     - name: Build Java Project
       run: |
-        mvn -B clean package -DskipTests -f brewhub/pom.xml
+        mvn -B clean package -DskipTests -f ./pom.xml
 
     # Esegue l'analisi finale
     - name: Perform CodeQL Analysis

@@ -282,7 +282,7 @@
     -fx-background-color: #FFFFFF;
     -fx-background-radius: 15;
     -fx-border-radius: 15;
-    -fx-padding: 40;
+    -fx-padding: 5 25;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 20, 0, 0, 5);
 }
 
@@ -1227,4 +1227,120 @@
     -fx-border-color: #D7CCC8;
     -fx-border-width: 0 0 1 0;
     -fx-margin: 0 0 10 0;
+}
+
+/* ============================================
+   NOTIFICATIONS IMPROVEMENTS
+   ============================================ */
+
+.notification-box {
+    -fx-padding: 8 10;
+    -fx-border-color: #EFEBE9;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: transparent;
+}
+
+.notification-box:hover {
+    -fx-background-color: #FAFAFA;
+}
+
+.notification-box.unread {
+    -fx-background-color: #FFF8E1;
+    /* Light yellow background for unread */
+}
+
+.notification-date {
+    -fx-text-fill: #8D6E63;
+    -fx-font-size: 10px;
+}
+
+.notification-message {
+    -fx-text-fill: #3E2723;
+    -fx-font-size: 12px;
+}
+
+.notification-delete-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #BCAAA4;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-padding: 2 6;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-min-width: 25px;
+    -fx-min-height: 25px;
+}
+
+.notification-delete-btn:hover {
+    -fx-background-color: #FFEBEE;
+    -fx-text-fill: #E57373;
+}
+
+.notification-clear-all-btn {
+    -fx-background-color: #FFEBEE;
+    /* Light Red/Pink background */
+    -fx-text-fill: #D32F2F;
+    /* Red text */
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 6 20;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #FFCDD2;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.1), 3, 0, 0, 1);
+}
+
+.notification-clear-all-btn:hover {
+    -fx-background-color: #D32F2F;
+    /* Solid Red on hover */
+    -fx-text-fill: #FFFFFF;
+    /* White text */
+    -fx-border-color: #B71C1C;
+    -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.3), 5, 0, 0, 2);
+}
+
+
+.notification-separator .line {
+    -fx-border-color: #E0E0E0;
+    /* Very subtle grey */
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+}
+
+.notification-separator {
+    -fx-padding: 4 10;
+    /* Minimized vertical padding */
+    -fx-background-color: transparent;
+}
+
+/* Remove default blue selection/hover from CustomMenuItem */
+.notification-menu-item:hover,
+.notification-menu-item:focused,
+.notification-menu-item:showing {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}
+
+/* Ensure label inside doesn't pick up color */
+.notification-menu-item .label {
+    -fx-text-fill: #3E2723;
+    /* Keep text color stable */
+}
+
+/* Verified Badge */
+.verified-badge {
+    -fx-text-fill: #1E88E5;
+    /* Blue */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.verified-badge-large {
+    -fx-text-fill: #1E88E5;
+    /* Blue */
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
 }

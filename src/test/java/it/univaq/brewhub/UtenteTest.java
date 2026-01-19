@@ -153,6 +153,42 @@ public class UtenteTest {
                 "Dopo l'eliminazione il login deve fallire (restituire null)");
     }
 
+    @Test
+    public void testSearchExcludesDeleted() throws SQLException {
+        UtenteDAOImpl dao = new UtenteDAOImpl();
+        String tempUsername = "toBeDeletedUser";
+
+        // 0. Cleanup
+        try {
+            dao.delete(tempUsername);
+        } catch (Exception e) {
+        }
+
+        // 1. Create a user
+        Utente u = new Utente("Test", "Del", tempUsername, "pwd", TipoUtente.APPASSIONATO, null);
+        try {
+            dao.create(u);
+
+            // 2. Delete the user
+            dao.delete(tempUsername);
+
+            // 3. Search should NOT find "deleted_..." users
+            java.util.List<Utente> results = dao.searchByUsername("deleted");
+            assertTrue(results.isEmpty(), "Searching for 'deleted' should return empty list, found: " + results.size());
+
+            // 4. General search should not include any deleted user
+            java.util.List<Utente> all = dao.searchByUsername("");
+            for (Utente r : all) {
+                assertFalse(r.getUsername().startsWith("deleted_"),
+                        "Found a deleted user in search results: " + r.getUsername());
+            }
+
+        } finally {
+            // Cleanup any potential leftovers (difficult if UUID is unknown, but soft
+            // delete is permanent in this logic)
+        }
+    }
+
     @BeforeAll
     public static void init() {
 

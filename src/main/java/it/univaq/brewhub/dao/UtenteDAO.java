@@ -84,4 +84,5 @@ public interface UtenteDAO {
     int countAll() throws SQLException;
 
     java.util.List<Utente> findTopActiveUsers(int limit) throws SQLException;
+
 }

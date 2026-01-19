@@ -14,10 +14,10 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      
+      - name: Install Maven
+        run: sudo apt-get update && sudo apt-get install -y maven
       # Compila e pacchetta (assicurati che il pom.xml generi un jar eseguibile)
       - name: Build with Maven
-        working-directory: ./brewhub
         run: mvn -B package -DskipTests # Saltiamo i test qui se li abbiamo già fatti nella CI
 
       # Crea la Release su GitHub
@@ -25,6 +25,6 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: brewhub/target/*.jar # Carica il JAR generato
+          files: ./target/*.jar # Carica il JAR generato
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
