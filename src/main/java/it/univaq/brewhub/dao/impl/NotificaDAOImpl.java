@@ -19,14 +19,21 @@ public class NotificaDAOImpl implements NotificaDAO {
     public void create(Notifica notifica) throws SQLException {
         String sql = "INSERT INTO notifiche(utente_username, messaggio, letto, data_creazione) VALUES(?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, notifica.getUtente().getUsername());
             pstmt.setString(2, notifica.getMessaggio());
             pstmt.setBoolean(3, false);
             pstmt.setString(4, notifica.getDataCreazione().toString());
 
-            pstmt.executeUpdate();
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        notifica.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
         }
     }
 

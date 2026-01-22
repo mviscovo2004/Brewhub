@@ -1334,6 +1334,15 @@ public class HomeView {
 
             sidebarContent.getChildren().addAll(lblUser, btnProfile, btnLikes);
 
+            // Chat Button
+            Button btnMessages = creaNavButton("\uD83D\uDCAC  Messaggi", "Messaggi".equals(currentSection));
+            btnMessages.setOnAction(e -> {
+                stopAllPlayers();
+                ChatView cv = new ChatView(stage, utenteLoggato, null);
+                stage.getScene().setRoot(cv.getView());
+            });
+            sidebarContent.getChildren().add(btnMessages);
+
             try {
                 btnSavedPosts = creaNavButton(
                         "\u2B50  Salvati (" + utenteDAO.getNumSavedPosts(utenteLoggato.getUsername()) + ")",

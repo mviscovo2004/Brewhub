@@ -166,6 +166,41 @@ public class DatabaseManager {
                                         ")";
                         stmt.execute(sqlTorrefattori);
 
+                        // Creazione tabella Messaggi
+                        String sqlMessaggi = "CREATE TABLE IF NOT EXISTS messaggi (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "sender TEXT NOT NULL, " +
+                                        "receiver TEXT, " + // Receiver can be null if it's a group message (or we use
+                                                            // it for consistency)
+                                        "id_gruppo INTEGER, " + // Nullable, for group messages
+                                        "contenuto TEXT NOT NULL, " +
+                                        "timestamp TEXT NOT NULL, " +
+                                        "letto BOOLEAN DEFAULT 0, " +
+                                        "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlMessaggi);
+
+                        // Creazione tabella Gruppi
+                        String sqlGruppi = "CREATE TABLE IF NOT EXISTS gruppi (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "nome TEXT NOT NULL, " +
+                                        "creatore TEXT NOT NULL, " +
+                                        "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE SET NULL" +
+                                        ")";
+                        stmt.execute(sqlGruppi);
+
+                        // Creazione tabella Membri Gruppo
+                        String sqlMembriGruppo = "CREATE TABLE IF NOT EXISTS membri_gruppo (" +
+                                        "id_gruppo INTEGER NOT NULL, " +
+                                        "username TEXT NOT NULL, " +
+                                        "PRIMARY KEY (id_gruppo, username), " +
+                                        "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlMembriGruppo);
+
                         // Alter table per nome_azienda se non esiste (migrazione)
                         try {
                                 stmt.execute("ALTER TABLE torrefattori ADD COLUMN nome_azienda TEXT");
@@ -173,9 +208,93 @@ public class DatabaseManager {
                                 // Colonna probabilmente già esistente
                         }
 
+                        // Alter table per id_gruppo su messaggi se non esiste (migrazione)
+                        try {
+                                stmt.execute("ALTER TABLE messaggi ADD COLUMN id_gruppo INTEGER REFERENCES gruppi(id) ON DELETE CASCADE");
+                        } catch (SQLException e) {
+                                // Colonna probabilmente già esistente
+                        }
+
                 } catch (SQLException e) {
                         // Gestione errore inizializzazione DB
                         System.err.println("Errore inizializzazione DB: " + e.getMessage());
+                }
+
+                // Schema Migration Check for 'messaggi.receiver' NOT NULL constraint
+                migrateMessaggiTableIfRequired();
+        }
+
+        private static void migrateMessaggiTableIfRequired() {
+                try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+                        boolean needsMigration = false;
+                        try (java.sql.ResultSet rs = stmt.executeQuery("PRAGMA table_info(messaggi)")) {
+                                while (rs.next()) {
+                                        String name = rs.getString("name");
+                                        if ("receiver".equalsIgnoreCase(name)) {
+                                                // notnull: 1 if not null, 0 if nullable
+                                                if (rs.getInt("notnull") == 1) {
+                                                        needsMigration = true;
+                                                }
+                                                break;
+                                        }
+                                }
+                        }
+
+                        if (needsMigration) {
+                                Log.info("Starting schema migration for 'messaggi' table...");
+                                conn.setAutoCommit(false); // Transaction
+                                try {
+                                        stmt.execute("PRAGMA foreign_keys=OFF");
+
+                                        // 1. Rename old table
+                                        stmt.execute("ALTER TABLE messaggi RENAME TO messaggi_old");
+
+                                        // 2. Create new table (Correct Schema)
+                                        String sqlMessaggi = "CREATE TABLE messaggi (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "sender TEXT NOT NULL, " +
+                                                        "receiver TEXT, " +
+                                                        "id_gruppo INTEGER, " +
+                                                        "contenuto TEXT NOT NULL, " +
+                                                        "timestamp TEXT NOT NULL, " +
+                                                        "letto BOOLEAN DEFAULT 0, " +
+                                                        "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE, "
+                                                        +
+                                                        "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE, "
+                                                        +
+                                                        "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE"
+                                                        +
+                                                        ")";
+                                        stmt.execute(sqlMessaggi);
+
+                                        // 3. Copy Data
+                                        // We must be careful with columns if they match.
+                                        // Assuming previous schema had id, sender, receiver, contenuto, timestamp,
+                                        // letto, id_gruppo (if added)
+                                        // If id_gruppo was missing in very old version, copy might fail?
+                                        // But init() adds id_gruppo column via ALTER before this. So it should exist in
+                                        // messaggi_old.
+
+                                        stmt.execute("INSERT INTO messaggi (id, sender, receiver, id_gruppo, contenuto, timestamp, letto) "
+                                                        +
+                                                        "SELECT id, sender, receiver, id_gruppo, contenuto, timestamp, letto FROM messaggi_old");
+
+                                        // 4. Drop old
+                                        stmt.execute("DROP TABLE messaggi_old");
+
+                                        stmt.execute("PRAGMA foreign_keys=ON");
+                                        conn.commit();
+                                        Log.info("Schema migration for 'messaggi' completed successfully.");
+                                } catch (Exception e) {
+                                        conn.rollback();
+                                        Log.error("Migration failed, rolling back.", e);
+                                        // If rollback, we might be in weird state.
+                                } finally {
+                                        conn.setAutoCommit(true);
+                                }
+                        }
+                } catch (SQLException e) {
+                        Log.error("Error checking/migrating schema", e);
                 }
         }
 

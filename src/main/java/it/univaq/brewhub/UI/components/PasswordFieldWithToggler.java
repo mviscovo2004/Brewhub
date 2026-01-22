@@ -33,6 +33,7 @@ public class PasswordFieldWithToggler extends StackPane {
         textField = new TextField();
         textField.setPromptText(promptText);
         textField.getStyleClass().add("text-field");
+        textField.getStyleClass().add("plain-text-mode");
         textField.setManaged(false);
         textField.setVisible(false);
         // Ensure the text field grows similarly

@@ -132,7 +132,21 @@ public class UserProfileView {
         }
         infoContainer.getChildren().add(statsBox);
         if (currentUser.getTipo() != Utente.TipoUtente.OSPITE) {
-            infoContainer.getChildren().add(followBtn);
+            HBox actionButtons = new HBox(10);
+            actionButtons.setAlignment(Pos.CENTER);
+            actionButtons.getChildren().add(followBtn);
+
+            if (!currentUser.getUsername().equals(profileUser.getUsername())) {
+                Button msgBtn = new Button("Messaggio");
+                msgBtn.getStyleClass().add("button-secondary");
+                msgBtn.setOnAction(e -> {
+                    stopAllPlayers();
+                    ChatView cv = new ChatView(stage, currentUser, profileUser.getUsername());
+                    stage.getScene().setRoot(cv.getView());
+                });
+                actionButtons.getChildren().add(msgBtn);
+            }
+            infoContainer.getChildren().add(actionButtons);
 
             // ADMIN logic: Delete user button
             if (currentUser.getTipo() == Utente.TipoUtente.ADMIN
