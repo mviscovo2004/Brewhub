@@ -96,4 +96,60 @@ class LoginViewTest {
         // Nota: Questo test assume che le credenziali usate non esistano nel DB.
         verifyThat("#errorLabel", hasText("✗ Credenziali non valide"));
     }
+
+    /**
+     * Test Added from PasswordFieldWithTogglerTest.
+     * Verifies the custom password component used in Login and Registration.
+     */
+    @Test
+    void testPasswordTogglerComponent(FxRobot robot) {
+        // Interact with the password field in the Login View which uses
+        // PasswordFieldWithToggler
+        // Ensure we are on login view (start method does this)
+
+        // The LoginView uses PasswordFieldWithToggler for the password field.
+        // We can test the toggle functionality directly on the live view.
+
+        // 1. Write text into password field
+        robot.clickOn(".password-field").write("secretLogin");
+
+        // 2. Verify text is hidden in password field (default) and plain text field is
+        // hidden
+        // Note: PasswordField text is masked in UI, but getText() returns the text.
+        // We verify the nodes visibility.
+        verifyThat(".password-field", isVisible());
+        // The plain text field should be invisible originally
+        // Note: LoginView implementation of PasswordFieldWithToggler might effectively
+        // hide the text field.
+        // We use the same CSS selectors logic as the isolated test.
+        // If the component is correctly implemented, the .text-field inside it (with
+        // .plain-text-mode) should be invisible.
+        // However, LoginViewTest didn't verify .plain-text-mode existence before.
+        // Let's rely on the button existence.
+
+        // 3. Find the toggle button. It has class .password-toggle-btn
+        verifyThat(".password-toggle-btn", isVisible());
+
+        // 4. Click toggle
+        robot.clickOn(".password-toggle-btn");
+
+        // 5. Verify password field hidden, text field visible
+        verifyThat(".password-field", org.testfx.matcher.base.NodeMatchers.isInvisible());
+
+        // We need to look up the text field. It should have .plain-text-mode if my
+        // previous edit persisted to the source class.
+        // Wait, did I edit the SOURCE PasswordFieldWithToggler.java or just the TEST?
+        // I edited the SOURCE in step 209 (successfully applied). So it has
+        // .plain-text-mode.
+        verifyThat(".plain-text-mode", isVisible());
+
+        javafx.scene.control.TextField tf = robot.lookup(".plain-text-mode")
+                .queryAs(javafx.scene.control.TextField.class);
+        org.junit.jupiter.api.Assertions.assertEquals("secretLogin", tf.getText());
+
+        // 6. Click again to hide
+        robot.clickOn(".password-toggle-btn");
+        verifyThat(".password-field", isVisible());
+        verifyThat(".plain-text-mode", org.testfx.matcher.base.NodeMatchers.isInvisible());
+    }
 }

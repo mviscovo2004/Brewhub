@@ -5,8 +5,6 @@ import it.univaq.brewhub.Torrefattore;
 import it.univaq.brewhub.dao.impl.TorrefattoreDAOImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;

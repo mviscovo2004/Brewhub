@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
-import static org.hamcrest.CoreMatchers.not;
 
 @ExtendWith(ApplicationExtension.class)
 class RegisterViewTest {
@@ -221,7 +220,6 @@ class RegisterViewTest {
         robot.clickOn("#btnRegistrati");
 
         // Verifica DB
-        TorrefattoreDAOImpl dao = new TorrefattoreDAOImpl();
         try {
             UtenteDAOImpl uDao = new UtenteDAOImpl();
             Utente created = uDao.findByUsername(TEST_TORREFATTORE);

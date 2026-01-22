@@ -185,4 +185,39 @@ public class PostTest {
         utenteDAO.delete(autore.getUsername());
 
     }
+
+    @Test
+    public void testMediaManagerCopyAndRetrieve() throws java.io.IOException {
+        // Init Media Folder
+        it.univaq.brewhub.MediaManager.initMediaFolder();
+
+        // Create a temp source file
+        java.nio.file.Path tempPath = java.nio.file.Files.createTempFile("test_media", ".txt");
+        java.nio.file.Files.write(tempPath, "test content".getBytes());
+        java.io.File tempSourceFile = tempPath.toFile();
+
+        // Test Copy
+        String copiedRelativePath = it.univaq.brewhub.MediaManager.copyMediaToFolder(tempSourceFile);
+        assertNotNull(copiedRelativePath, "Il percorso copiato non deve essere null");
+        assertTrue(copiedRelativePath.startsWith("/media/"), "Il percorso deve iniziare con /media/");
+        assertTrue(copiedRelativePath.endsWith(".txt"), "L'estensione deve essere mantenuta");
+
+        // Test Get File
+        java.io.File retrievedFile = it.univaq.brewhub.MediaManager.getMediaFile(copiedRelativePath);
+        assertNotNull(retrievedFile, "Il file recuperato non deve essere null");
+        assertTrue(retrievedFile.exists(), "Il file copiato deve esistere");
+
+        // Test Relative Path Calculation
+        String calcPath = it.univaq.brewhub.MediaManager.getRelativePath(retrievedFile);
+        assertEquals(copiedRelativePath, calcPath, "Il percorso relativo calcolato deve corrispondere");
+
+        // Retrieve non-existent
+        assertNull(it.univaq.brewhub.MediaManager.getMediaFile("/media/non_existent_file_12345.xyz"));
+
+        // Cleanup
+        if (tempSourceFile.exists())
+            tempSourceFile.delete();
+        if (retrievedFile.exists())
+            retrievedFile.delete();
+    }
 }

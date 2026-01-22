@@ -189,8 +189,33 @@ public class UtenteTest {
         }
     }
 
+    @Test
+    public void testSessionManagerSingleton() {
+        it.univaq.brewhub.business.SessionManager s1 = it.univaq.brewhub.business.SessionManager.getInstance();
+        it.univaq.brewhub.business.SessionManager s2 = it.univaq.brewhub.business.SessionManager.getInstance();
+        assertSame(s1, s2, "SessionManager deve essere un Singleton");
+    }
+
+    @Test
+    public void testSessionManagerLoginLogout() {
+        it.univaq.brewhub.business.SessionManager session = it.univaq.brewhub.business.SessionManager.getInstance();
+        session.logout(); // Ensure clean state
+        assertFalse(session.isLoggedIn());
+        assertNull(session.getCurrentUser());
+
+        Utente u = new Utente("test", "user", "testUserSession", "pwd", TipoUtente.APPASSIONATO, null);
+        session.login(u);
+
+        assertTrue(session.isLoggedIn());
+        assertEquals(u, session.getCurrentUser());
+
+        session.logout();
+        assertFalse(session.isLoggedIn());
+        assertNull(session.getCurrentUser());
+    }
+
     @BeforeAll
     public static void init() {
-
+        // Init logic if needed
     }
 }
