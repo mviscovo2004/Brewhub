@@ -57,10 +57,10 @@ public class DialogUtils {
 
         switch (type) {
             case "INFO":
-                icon = "\u2139\uFE0F"; // Information source
+                icon = "\u2139"; // Information source
                 break;
             case "WARNING":
-                icon = "\u26A0\uFE0F"; // Warning sign
+                icon = "\u26A0"; // Warning sign
                 break;
             case "ERROR":
                 icon = "\u274C"; // Cross mark
@@ -158,5 +158,76 @@ public class DialogUtils {
         } catch (Exception e) {
             Log.error("Errore caricamento CSS in DialogUtils", e);
         }
+    }
+
+    public static String showInputDialog(String title, String message, String defaultValue, Window owner) {
+        Stage stage = new Stage();
+        stage.setTitle(title);
+        stage.initModality(Modality.WINDOW_MODAL);
+        if (owner != null)
+            stage.initOwner(owner);
+
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("modal-root");
+        root.setPrefWidth(400);
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("modal-title");
+        titleLbl.setAlignment(Pos.CENTER);
+        titleLbl.setMaxWidth(Double.MAX_VALUE);
+        root.setTop(titleLbl);
+
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(20));
+        content.setAlignment(Pos.CENTER);
+
+        Label msgLbl = new Label(message);
+        msgLbl.setWrapText(true);
+        msgLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #3E2723;");
+
+        javafx.scene.control.TextField textField = new javafx.scene.control.TextField(
+                defaultValue != null ? defaultValue : "");
+        textField.getStyleClass().add("text-field");
+        textField.setStyle("-fx-font-size: 14px;");
+
+        content.getChildren().addAll(msgLbl, textField);
+        root.setCenter(content);
+
+        HBox actions = new HBox(15);
+        actions.getStyleClass().add("dialog-actions");
+        actions.setAlignment(Pos.CENTER);
+
+        // AtomicReference to hold result
+        java.util.concurrent.atomic.AtomicReference<String> result = new java.util.concurrent.atomic.AtomicReference<>(
+                null);
+
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+        btnCancel.setOnAction(e -> stage.close());
+
+        Button btnOk = new Button("OK");
+        btnOk.getStyleClass().add("button-primary");
+        btnOk.setOnAction(e -> {
+            result.set(textField.getText());
+            stage.close();
+        });
+
+        // Enter key support
+        textField.setOnAction(e -> {
+            result.set(textField.getText());
+            stage.close();
+        });
+
+        actions.getChildren().addAll(btnCancel, btnOk);
+        root.setBottom(actions);
+
+        Scene scene = new Scene(root);
+        applyStyles(scene);
+
+        stage.setScene(scene);
+        stage.setOnShown(e -> textField.requestFocus());
+        stage.showAndWait();
+
+        return result.get();
     }
 }

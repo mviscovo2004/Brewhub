@@ -42,7 +42,7 @@ public class EventsView extends BorderPane {
         HBox header = new HBox(20);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("📅 Eventi");
+        Label title = new Label("\uD83D\uDCC5 Eventi");
         title.getStyleClass().add("section-title");
 
         Region spacer = new Region();
@@ -100,7 +100,7 @@ public class EventsView extends BorderPane {
             }
 
             // Section: Upcoming Events
-            Label upcomingLabel = new Label("📅 Eventi in programma");
+            Label upcomingLabel = new Label("\uD83D\uDCC5 Eventi in programma");
             upcomingLabel.getStyleClass().add("section-header"); // You might want to define this in CSS or reuse
                                                                  // section-title with smaller font
             upcomingLabel.setStyle(
@@ -108,7 +108,7 @@ public class EventsView extends BorderPane {
             eventsContainer.getChildren().add(upcomingLabel);
 
             if (upcomingEvents.isEmpty()) {
-                eventsContainer.getChildren().add(createEmptyState("📅", "Nessun evento in programma."));
+                eventsContainer.getChildren().add(createEmptyState("\uD83D\uDCC5", "Nessun evento in programma."));
             } else {
                 for (Evento e : upcomingEvents) {
                     eventsContainer.getChildren().add(new EventCard(e, utenteLoggato));
@@ -121,14 +121,14 @@ public class EventsView extends BorderPane {
             eventsContainer.getChildren().add(separator);
 
             // Section: Past Events
-            Label pastLabel = new Label("🕰️ Eventi Passati");
+            Label pastLabel = new Label("\uD83D\uDD70 Eventi Passati");
             // pastLabel.getStyleClass().add("section-header");
             pastLabel.setStyle(
                     "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #5D4037; -fx-padding: 10 0 5 0; -fx-opacity: 0.8;");
             eventsContainer.getChildren().add(pastLabel);
 
             if (pastEvents.isEmpty()) {
-                eventsContainer.getChildren().add(createEmptyState("🕰️", "Nessun evento passato recente."));
+                eventsContainer.getChildren().add(createEmptyState("\uD83D\uDD70", "Nessun evento passato recente."));
             } else {
                 for (Evento e : pastEvents) {
                     EventCard card = new EventCard(e, utenteLoggato);

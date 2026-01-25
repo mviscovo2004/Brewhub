@@ -3,7 +3,6 @@ package it.univaq.brewhub.dao.impl;
 import it.univaq.brewhub.DatabaseManager;
 import it.univaq.brewhub.Evento;
 import it.univaq.brewhub.dao.EventoDAO;
-import it.univaq.brewhub.utility.Log;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

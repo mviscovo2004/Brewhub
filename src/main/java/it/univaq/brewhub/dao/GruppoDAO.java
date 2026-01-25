@@ -13,4 +13,8 @@ public interface GruppoDAO {
     void addMembro(int idGruppo, String username);
 
     void removeMembro(int idGruppo, String username);
+
+    void renameGruppo(int id, String nuovoNome);
+
+    void deleteGruppo(int id);
 }

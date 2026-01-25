@@ -9,6 +9,14 @@ import it.univaq.brewhub.dao.UtenteDAO;
 import it.univaq.brewhub.dao.impl.GruppoDAOImpl;
 import it.univaq.brewhub.dao.impl.MessaggioDAOImpl;
 import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
+import it.univaq.brewhub.dao.impl.PostDAOImpl;
+import it.univaq.brewhub.dao.PostDAO;
+import it.univaq.brewhub.Post;
+import it.univaq.brewhub.UI.components.PostCard;
+import it.univaq.brewhub.MediaManager;
+import java.io.File;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -17,13 +25,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
+import javafx.scene.Scene;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ChatView {
 
@@ -34,10 +42,12 @@ public class ChatView {
     private final MessaggioDAO messaggioDAO = new MessaggioDAOImpl();
     private final GruppoDAO gruppoDAO = new GruppoDAOImpl();
     private final UtenteDAO utenteDAO = new UtenteDAOImpl();
+    private final PostDAO postDAO = new PostDAOImpl();
 
     private VBox messageContainer;
     private ScrollPane chatScroll;
-    private ListView<ChatSession> conversationList;
+    private ListView<ChatSession> privateChatList;
+    private ListView<ChatSession> groupChatList;
     private Label lblChatUser;
     private HBox inputArea;
 
@@ -97,6 +107,86 @@ public class ChatView {
         }
     }
 
+    // Custom Cell for Chat List
+    private class ChatListCell extends ListCell<ChatSession> {
+        public ChatListCell() {
+            getStyleClass().add("chat-conversation-item");
+        }
+
+        @Override
+        public void updateSelected(boolean selected) {
+            super.updateSelected(selected);
+            if (getGraphic() != null) {
+                if (selected) {
+                    getGraphic().setStyle("-fx-background-color: #D7CCC8; -fx-background-radius: 10;");
+                } else {
+                    getGraphic().setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+                }
+            }
+        }
+
+        @Override
+        protected void updateItem(ChatSession item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setStyle("-fx-background-color: transparent;");
+                setContextMenu(null);
+            } else {
+                HBox cell = new HBox(12);
+                cell.setAlignment(Pos.CENTER_LEFT);
+                cell.setPadding(new Insets(8));
+
+                // Avatar
+                Circle avatar = new Circle(20);
+                avatar.setFill(javafx.scene.paint.Color.web(item.isGroup() ? "#5D4037" : "#8D6E63"));
+
+                String initialChar = item.getName().length() > 0 ? item.getName().substring(0, 1).toUpperCase()
+                        : "?";
+                Label initial = new Label(initialChar);
+                initial.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                StackPane avatarStack = new StackPane(avatar, initial);
+
+                // Name
+                String displayName = item.isGroup() ? item.getName() : "@" + item.getName();
+                Label name = new Label(displayName);
+                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 14px;");
+
+                cell.getChildren().addAll(avatarStack, name);
+
+                setGraphic(cell);
+                setText(null);
+
+                if (isSelected()) {
+                    cell.setStyle("-fx-background-color: #D7CCC8; -fx-background-radius: 10;");
+                } else {
+                    cell.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+                }
+
+                // Context Menu
+                ContextMenu cm = new ContextMenu();
+                if (item.isGroup()) {
+                    MenuItem renameItem = new MenuItem("Rinomina Gruppo");
+                    renameItem.setOnAction(e -> handleRenameGroup(item));
+
+                    MenuItem leaveItem = new MenuItem("Abbandona Gruppo");
+                    leaveItem.setOnAction(e -> handleLeaveGroup(item));
+
+                    MenuItem deleteItem = new MenuItem("Elimina Gruppo");
+                    deleteItem.setOnAction(e -> handleDeleteGroup(item));
+
+                    cm.getItems().addAll(renameItem, leaveItem, deleteItem);
+                } else {
+                    MenuItem deleteItem = new MenuItem("Elimina Conversazione");
+                    deleteItem.setOnAction(e -> handleDeletePrivateChat(item));
+                    cm.getItems().add(deleteItem);
+                }
+                setContextMenu(cm);
+            }
+        }
+    }
+
     public ChatView(Stage stage, Utente currentUser, String activeChatUser) {
         this.stage = stage;
         this.currentUser = currentUser;
@@ -142,70 +232,30 @@ public class ChatView {
         sidebarHeader.getChildren().addAll(btnBack, sidebarTitle, spacer, btnNew);
 
         // Sidebar List
-        conversationList = new ListView<>();
-        conversationList.getStyleClass().add("chat-conversation-list");
-        conversationList.setCellFactory(param -> new ListCell<>() {
-            {
-                getStyleClass().add("chat-conversation-item");
-            }
 
-            @Override
-            public void updateSelected(boolean selected) {
-                super.updateSelected(selected);
-                if (getGraphic() != null) {
-                    if (selected) {
-                        getGraphic().setStyle("-fx-background-color: #D7CCC8; -fx-background-radius: 10;");
-                    } else {
-                        getGraphic().setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
-                    }
-                }
-            }
+        // Private Chats Section
+        Label lblPrivate = new Label("CHAT PRIVATE");
+        lblPrivate
+                .setStyle("-fx-font-weight: bold; -fx-text-fill: #8D6E63; -fx-font-size: 11px; -fx-padding: 10 0 5 0;");
 
-            @Override
-            protected void updateItem(ChatSession item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    HBox cell = new HBox(12);
-                    cell.setAlignment(Pos.CENTER_LEFT);
-                    cell.setPadding(new Insets(8));
+        privateChatList = new ListView<>();
+        privateChatList.getStyleClass().add("chat-conversation-list");
+        privateChatList.setCellFactory(param -> new ChatListCell());
 
-                    // Avatar
-                    Circle avatar = new Circle(20);
-                    avatar.setFill(javafx.scene.paint.Color.web(item.isGroup() ? "#5D4037" : "#8D6E63"));
+        // Groups Section
+        Label lblGroups = new Label("GRUPPI");
+        lblGroups
+                .setStyle("-fx-font-weight: bold; -fx-text-fill: #8D6E63; -fx-font-size: 11px; -fx-padding: 15 0 5 0;");
 
-                    String initialChar = item.getName().length() > 0 ? item.getName().substring(0, 1).toUpperCase()
-                            : "?";
-                    Label initial = new Label(initialChar);
-                    initial.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-                    StackPane avatarStack = new StackPane(avatar, initial);
-
-                    // Name
-                    String displayName = item.isGroup() ? item.getName() : "@" + item.getName();
-                    Label name = new Label(displayName);
-                    name.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 14px;");
-
-                    cell.getChildren().addAll(avatarStack, name);
-
-                    setGraphic(cell);
-                    setText(null);
-
-                    if (isSelected()) {
-                        cell.setStyle("-fx-background-color: #D7CCC8; -fx-background-radius: 10;");
-                    } else {
-                        cell.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
-                    }
-                }
-            }
-        });
+        groupChatList = new ListView<>();
+        groupChatList.getStyleClass().add("chat-conversation-list");
+        groupChatList.setCellFactory(param -> new ChatListCell());
 
         loadConversations();
 
-        sidebar.getChildren().addAll(sidebarHeader, conversationList);
-        VBox.setVgrow(conversationList, Priority.ALWAYS);
+        sidebar.getChildren().addAll(sidebarHeader, lblPrivate, privateChatList, lblGroups, groupChatList);
+        VBox.setVgrow(privateChatList, Priority.ALWAYS);
+        VBox.setVgrow(groupChatList, Priority.ALWAYS);
 
         // --- Main Chat Area ---
         VBox chatArea = new VBox();
@@ -282,11 +332,18 @@ public class ChatView {
         if (activeSession != null) {
             updateHeader(activeSession);
             // Select if present
-            if (conversationList.getItems().contains(activeSession)) {
-                conversationList.getSelectionModel().select(activeSession);
+            if (activeSession.isGroup()) {
+                if (groupChatList.getItems().contains(activeSession)) {
+                    groupChatList.getSelectionModel().select(activeSession);
+                } else {
+                    loadChat(activeSession);
+                }
             } else {
-                // If it's a new 1-to-1 chat not in history yet
-                loadChat(activeSession);
+                if (privateChatList.getItems().contains(activeSession)) {
+                    privateChatList.getSelectionModel().select(activeSession);
+                } else {
+                    loadChat(activeSession);
+                }
             }
         } else {
             lblChatUser.setText("Seleziona una conversazione");
@@ -294,9 +351,20 @@ public class ChatView {
             messageContainer.getChildren().add(createEmptyPlaceholder());
         }
 
-        // Listener
-        conversationList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+        // Listeners for selection synchronization
+        privateChatList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
+                groupChatList.getSelectionModel().clearSelection();
+                activeSession = newVal;
+                updateHeader(newVal);
+                inputArea.setDisable(false);
+                loadChat(newVal);
+            }
+        });
+
+        groupChatList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                privateChatList.getSelectionModel().clearSelection();
                 activeSession = newVal;
                 updateHeader(newVal);
                 inputArea.setDisable(false);
@@ -334,24 +402,33 @@ public class ChatView {
     }
 
     private void loadConversations() {
-        List<ChatSession> items = new ArrayList<>();
-
         // 1. Groups
+        List<ChatSession> groupItems = new ArrayList<>();
         List<Gruppo> gruppi = gruppoDAO.getGruppiUtente(currentUser.getUsername());
         for (Gruppo g : gruppi) {
-            items.add(ChatSession.group(g.getId(), g.getNome()));
+            groupItems.add(ChatSession.group(g.getId(), g.getNome()));
         }
+        groupChatList.getItems().setAll(groupItems);
 
         // 2. Private Chats
+        List<ChatSession> privateItems = new ArrayList<>();
         List<String> users = messaggioDAO.getUtentiConversazioni(currentUser.getUsername());
         for (String u : users) {
-            items.add(ChatSession.user(u));
+            privateItems.add(ChatSession.user(u));
         }
+        privateChatList.getItems().setAll(privateItems);
 
-        conversationList.getItems().setAll(items);
-
-        if (activeSession != null && !items.contains(activeSession)) {
-            conversationList.getItems().add(0, activeSession);
+        // Only add if not present and is active (e.g. newly started 1-to-1)
+        if (activeSession != null) {
+            if (activeSession.isGroup()) {
+                if (!groupChatList.getItems().contains(activeSession))
+                    groupChatList.getItems().add(0, activeSession);
+                groupChatList.getSelectionModel().select(activeSession);
+            } else {
+                if (!privateChatList.getItems().contains(activeSession))
+                    privateChatList.getItems().add(0, activeSession);
+                privateChatList.getSelectionModel().select(activeSession);
+            }
         }
     }
 
@@ -390,40 +467,61 @@ public class ChatView {
             HBox bubbleRow = new HBox();
             bubbleRow.setAlignment(isMe ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
 
-            VBox bubble = new VBox(2);
-            bubble.setMaxWidth(400);
-            bubble.getStyleClass().add("chat-bubble");
-            bubble.getStyleClass().add(isMe ? "chat-bubble-sent" : "chat-bubble-received");
+            // Handle Shared Post
+            if (m.getContenuto() != null && m.getContenuto().startsWith("[POST:::")
+                    && m.getContenuto().endsWith("]")) {
+                try {
+                    String idStr = m.getContenuto().substring(8, m.getContenuto().length() - 1);
+                    int postId = Integer.parseInt(idStr);
+                    Post sharedPost = postDAO.findById(postId);
 
-            if (!isMe && !m.isLetto() && !session.isGroup()) {
-                // Mark private read. Group read state is complex, skipping for simplicity or
-                // mark all
-                messaggioDAO.segnaComeLetto(m.getId());
+                    Node postBubble;
+                    if (sharedPost != null) {
+                        postBubble = createSharedPostBubble(sharedPost, isMe);
+                    } else {
+                        // Post deleted
+                        Label errLbl = new Label("Post non disponibile (Eliminato)");
+                        errLbl.setStyle("-fx-font-style: italic; -fx-text-fill: #777;");
+                        VBox errBox = new VBox(errLbl);
+                        errBox.getStyleClass().add("chat-bubble");
+                        errBox.getStyleClass().add(isMe ? "chat-bubble-sent" : "chat-bubble-received");
+                        postBubble = errBox;
+                    }
+
+                    if (session.isGroup() && !isMe) {
+                        VBox groupBubbleEnv = new VBox(2);
+                        Label senderName = new Label("@" + m.getSender());
+                        senderName.setStyle("-fx-font-size: 10px; -fx-text-fill: #5D4037; -fx-font-weight: bold;");
+                        groupBubbleEnv.getChildren().addAll(senderName, postBubble);
+                        bubbleRow.getChildren().add(groupBubbleEnv);
+                    } else {
+                        bubbleRow.getChildren().add(postBubble);
+                    }
+
+                    // Add timestamp to the row or bubble? Usually inside bubble, but for custom
+                    // node
+                    // it's tricky.
+                    // Let's attach a small timestamp below the bubble for shared content
+                    Label time = new Label();
+                    try {
+                        time.setText(LocalDateTime.parse(m.getTimestamp()).format(dtf));
+                    } catch (Exception e) {
+                        time.setText("??:??");
+                    }
+                    time.setStyle(
+                            "-fx-font-size: 10px; -fx-text-fill: #888; -fx-padding: 0 5;");
+                    // If isMe, timestamp left of bubble? No, usually bottom right inside.
+                    // For now, let's just append it to the row
+                    // bubbleRow.getChildren().add(time); // Handling layout is hard here.
+                    // Let's ignore timestamp for shared posts to keep it simple, or add it below.
+
+                } catch (Exception ex) {
+                    // Fallback to text
+                    bubbleRow.getChildren().add(createSimpleMessageBubble(m, isMe, session, dtf));
+                }
+            } else {
+                bubbleRow.getChildren().add(createSimpleMessageBubble(m, isMe, session, dtf));
             }
-
-            if (session.isGroup() && !isMe) {
-                Label senderName = new Label("@" + m.getSender());
-                senderName.setStyle("-fx-font-size: 10px; -fx-text-fill: #5D4037; -fx-font-weight: bold;");
-                bubble.getChildren().add(senderName);
-            }
-
-            Label content = new Label(m.getContenuto());
-            content.setWrapText(true);
-            content.setStyle(isMe ? "-fx-text-fill: #3E2723;" : "-fx-text-fill: #212121;");
-
-            Label time = new Label();
-            try {
-                time.setText(LocalDateTime.parse(m.getTimestamp()).format(dtf));
-            } catch (Exception e) {
-                time.setText("??:??");
-            }
-            time.getStyleClass().add("chat-timestamp");
-
-            HBox timeBox = new HBox(time);
-            timeBox.setAlignment(Pos.BOTTOM_RIGHT);
-
-            bubble.getChildren().addAll(content, timeBox);
-            bubbleRow.getChildren().add(bubble);
 
             messageContainer.getChildren().add(bubbleRow);
         }
@@ -433,130 +531,699 @@ public class ChatView {
     }
 
     private void showNewChatDialog() {
-        Alert typeDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        typeDialog.setTitle("Nuova Conversazione");
-        typeDialog.setHeaderText("Che tipo di chat vuoi creare?");
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Nuova Conversazione");
 
-        ButtonType btnPrivate = new ButtonType("Chat Privata");
-        ButtonType btnGroup = new ButtonType("Nuovo Gruppo");
-        ButtonType btnCancel = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
+        // Load CSS
+        try {
+            dialog.getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+        }
 
-        typeDialog.getButtonTypes().setAll(btnPrivate, btnGroup, btnCancel);
+        // Add Close button type to allow closing (it will be hidden/managed)
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        Node closeBtn = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (closeBtn != null)
+            closeBtn.setVisible(false); // Hide default button, we use ours or standard X
 
-        Optional<ButtonType> result = typeDialog.showAndWait();
-        if (result.isPresent()) {
-            if (result.get() == btnPrivate) {
-                handleNewPrivateChat();
-            } else if (result.get() == btnGroup) {
-                handleNewGroupChat();
+        VBox root = new VBox(25);
+        root.setPadding(new Insets(30));
+        root.setAlignment(Pos.CENTER);
+        // Ensure background matches
+        root.setStyle("-fx-background-color: #FFFBF5; -fx-min-width: 400px;");
+
+        Label title = new Label("Nuova Conversazione");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
+
+        Label subtitle = new Label("Scegli come vuoi comunicare");
+        subtitle.setStyle("-fx-text-fill: #8D6E63; -fx-font-size: 14px;");
+
+        HBox buttonsBox = new HBox(20);
+        buttonsBox.setAlignment(Pos.CENTER);
+
+        // Private Chat Button
+        VBox btnPrivate = createOptionButton("\uD83D\uDC64", "Chat Privata", "Inizia una conversazione singola");
+        btnPrivate.setOnMouseClicked(e -> {
+            dialog.close();
+            handleNewPrivateChat();
+        });
+
+        // Group Chat Button
+        VBox btnGroup = createOptionButton("\uD83D\uDC65", "Nuovo Gruppo", "Crea un gruppo con più amici");
+        btnGroup.setOnMouseClicked(e -> {
+            dialog.close();
+            handleNewGroupChat();
+        });
+
+        buttonsBox.getChildren().addAll(btnPrivate, btnGroup);
+
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+        btnCancel.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #A1887F; -fx-underline: true; -fx-cursor: hand;");
+        btnCancel.setOnAction(e -> dialog.close());
+
+        root.getChildren().addAll(title, subtitle, buttonsBox, btnCancel);
+        dialog.getDialogPane().setContent(root);
+
+        dialog.showAndWait();
+    }
+
+    private VBox createOptionButton(String icon, String title, String desc) {
+        VBox box = new VBox(10);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(20));
+        box.setPrefWidth(180);
+        box.setPrefHeight(160);
+
+        // Style as a card/button
+        box.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2); -fx-cursor: hand; -fx-border-color: #EFEBE9; -fx-border-radius: 15;");
+
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 40px;");
+
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037; -fx-font-size: 16px;");
+
+        Label descLbl = new Label(desc);
+        descLbl.setWrapText(true);
+        descLbl.setAlignment(Pos.CENTER);
+        descLbl.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        descLbl.setStyle("-fx-text-fill: #A1887F; -fx-font-size: 11px;");
+
+        box.getChildren().addAll(iconLbl, titleLbl, descLbl);
+
+        // Hover animation
+        box.setOnMouseEntered(e -> box.setStyle(
+                "-fx-background-color: #FFF8E1; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(93,64,55,0.2), 8, 0, 0, 4); -fx-cursor: hand; -fx-border-color: #D7CCC8; -fx-border-radius: 15; -fx-scale-x: 1.05; -fx-scale-y: 1.05;"));
+        box.setOnMouseExited(e -> box.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2); -fx-cursor: hand; -fx-border-color: #EFEBE9; -fx-border-radius: 15; -fx-scale-x: 1.0; -fx-scale-y: 1.0;"));
+
+        return box;
+    }
+
+    private void handleNewPrivateChat() {
+        Stage stage = new Stage();
+        stage.setTitle("Nuova Chat Privata");
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        // Use BorderPane for reliable layout resizing
+        BorderPane root = new BorderPane();
+        root.setPadding(new Insets(15));
+        root.setPrefWidth(420);
+        root.setPrefHeight(450);
+        root.setStyle("-fx-background-color: #FFFBF5;");
+
+        // TOP: Title + Search
+        VBox topBox = new VBox(10);
+        topBox.setPadding(new Insets(0, 0, 10, 0));
+
+        Label titleLbl = new Label("Seleziona Utente");
+        titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Cerca per nome...");
+        searchField.getStyleClass().add("text-field");
+        searchField.setStyle("-fx-background-radius: 20; -fx-padding: 8;");
+
+        topBox.getChildren().addAll(titleLbl, searchField);
+        root.setTop(topBox);
+
+        // CENTER: ListView
+        ListView<Utente> userList = new ListView<>();
+        userList.getStyleClass().add("list-view");
+        userList.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #EFEBE9; -fx-border-radius: 8;");
+
+        Label placeholder = new Label("Caricamento...");
+        placeholder.setStyle("-fx-text-fill: #A1887F; -fx-font-style: italic;");
+        userList.setPlaceholder(placeholder);
+
+        // Wrap ListView in a StackPane to ensure proper sizing and event handling
+        // context
+        StackPane listContainer = new StackPane(userList);
+        listContainer.setPadding(new Insets(0));
+        VBox.setVgrow(listContainer, Priority.ALWAYS);
+
+        root.setCenter(listContainer);
+
+        // BOTTOM: Cancel Button
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+        btnCancel.setOnAction(e -> stage.close());
+
+        HBox bottomBox = new HBox(btnCancel);
+        bottomBox.setAlignment(Pos.CENTER_RIGHT);
+        bottomBox.setPadding(new Insets(10, 0, 0, 0));
+        root.setBottom(bottomBox);
+
+        // Initial Loading Logic (Synchronous)
+        Runnable loadInitial = () -> {
+            try {
+                placeholder.setText("Caricamento suggerimenti...");
+                List<Utente> res = utenteDAO.findTopActiveUsers(30);
+                res.removeIf(u -> u.getUsername().equals(currentUser.getUsername()));
+                userList.getItems().setAll(res);
+                if (res.isEmpty())
+                    placeholder.setText("Nessun utente trovato.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                placeholder.setText("Errore inizializzazione: " + ex.getMessage());
+            }
+        };
+
+        // Search Logic (Async)
+        javafx.concurrent.Service<List<Utente>> searchService = new javafx.concurrent.Service<>() {
+            @Override
+            protected javafx.concurrent.Task<List<Utente>> createTask() {
+                final String query = searchField.getText() == null ? "" : searchField.getText().trim();
+                return new javafx.concurrent.Task<>() {
+                    @Override
+                    protected List<Utente> call() throws Exception {
+                        List<Utente> res;
+                        if (query.isEmpty()) {
+                            res = utenteDAO.findTopActiveUsers(30);
+                        } else {
+                            res = utenteDAO.searchByUsername(query);
+                        }
+                        res.removeIf(u -> u.getUsername().equals(currentUser.getUsername()));
+                        return res;
+                    }
+                };
+            }
+        };
+
+        searchService.setOnSucceeded(e -> {
+            userList.getItems().setAll(searchService.getValue());
+            if (userList.getItems().isEmpty()) {
+                if (searchField.getText() == null || searchField.getText().isEmpty())
+                    placeholder.setText("Nessun utente suggerito trovato.");
+                else
+                    placeholder.setText("Nessun utente trovato per '" + searchField.getText() + "'");
+            }
+        });
+
+        searchService.setOnFailed(e -> {
+            Throwable ex = searchService.getException();
+            if (ex != null)
+                ex.printStackTrace();
+            placeholder.setText("Errore ricerca: " + (ex != null ? ex.getMessage() : "Sconosciuto"));
+        });
+
+        searchField.textProperty().addListener((obs, old, val) -> {
+            searchService.cancel();
+            searchService.restart();
+        });
+
+        userList.setCellFactory(param -> new ListCell<>() {
+            private final Circle avatar = new Circle(16);
+            private final Label initial = new Label();
+            private final StackPane avatarStack = new StackPane(avatar, initial);
+            private final Label name = new Label();
+            private final Label nameFull = new Label();
+            private final VBox infoBox = new VBox(0, name, nameFull);
+            private final Button btnStart = new Button("\u27A4");
+            private final Region spacer = new Region();
+            private final HBox rootBox = new HBox(10, avatarStack, infoBox, spacer, btnStart);
+
+            {
+                avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
+                initial.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 13px;");
+                nameFull.setStyle("-fx-text-fill: #8D6E63; -fx-font-size: 11px;");
+                btnStart.getStyleClass().add("button-primary");
+                btnStart.setStyle(
+                        "-fx-background-radius: 50; -fx-min-width: 28px; -fx-min-height: 28px; -fx-padding: 0; -fx-font-size: 11px;");
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                rootBox.setAlignment(Pos.CENTER_LEFT);
+                rootBox.setPadding(new Insets(4, 8, 4, 8));
+            }
+
+            @Override
+            protected void updateItem(Utente item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    initial.setText(item.getUsername().substring(0, 1).toUpperCase());
+                    name.setText("@" + item.getUsername());
+                    nameFull.setText(item.getNome() + " " + item.getCognome());
+
+                    btnStart.setOnAction(e -> {
+                        openChatForUser(item);
+                        stage.close();
+                    });
+
+                    setOnMouseEntered(e -> setStyle("-fx-background-color: #FFF8E1;"));
+                    setOnMouseExited(e -> setStyle("-fx-background-color: transparent;"));
+
+                    setGraphic(rootBox);
+                }
+            }
+        });
+
+        userList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && userList.getSelectionModel().getSelectedItem() != null) {
+                openChatForUser(userList.getSelectionModel().getSelectedItem());
+                stage.close();
+            }
+        });
+
+        // Scene setup
+        Scene scene = new Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+        }
+
+        stage.setScene(scene);
+        stage.setOnShown(e -> userList.requestFocus()); // Focus trick
+        stage.show();
+
+        loadInitial.run();
+    }
+
+    private void openChatForUser(Utente u) {
+        try {
+            ChatSession session = ChatSession.user(u.getUsername());
+            activeSession = session;
+            loadConversations();
+
+            // It's a user, so private list
+            privateChatList.getSelectionModel().select(session);
+
+            loadChat(session);
+            inputArea.setDisable(false);
+            updateHeader(session);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleNewGroupChat() {
+        Stage stage = new Stage();
+        stage.setTitle("Crea Nuovo Gruppo");
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        // Use BorderPane for reliable layout
+        BorderPane root = new BorderPane();
+        root.setPadding(new Insets(15));
+        root.setPrefWidth(380);
+        root.setPrefHeight(450);
+        root.setStyle("-fx-background-color: #FFFBF5;");
+
+        // TOP area
+        VBox topBox = new VBox(10);
+        topBox.setPadding(new Insets(0, 0, 10, 0));
+
+        Label titleLbl = new Label("Crea Gruppo");
+        titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Nome del gruppo");
+        nameField.getStyleClass().add("text-field");
+        nameField.setStyle("-fx-background-radius: 20; -fx-padding: 8;");
+
+        Label lblPart = new Label("Seleziona Partecipanti");
+        lblPart.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037; -fx-font-size: 12px;");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Cerca utenti...");
+        searchField.getStyleClass().add("text-field");
+        searchField.setStyle("-fx-font-size: 11px; -fx-background-radius: 15; -fx-padding: 5;");
+
+        topBox.getChildren().addAll(titleLbl, nameField, lblPart, searchField);
+        root.setTop(topBox);
+
+        ListView<Utente> userList = new ListView<>();
+        userList.getStyleClass().add("list-view");
+        userList.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #EFEBE9; -fx-border-radius: 8;");
+
+        Label placeholder = new Label("Caricamento...");
+        placeholder.setStyle("-fx-text-fill: #A1887F; -fx-font-style: italic;");
+        userList.setPlaceholder(placeholder);
+
+        // Wrap ListView in a StackPane to ensure proper sizing and event handling
+        // context
+        StackPane listContainer = new StackPane(userList);
+        listContainer.setPadding(new Insets(0));
+        VBox.setVgrow(listContainer, Priority.ALWAYS);
+
+        root.setCenter(listContainer);
+
+        // BOTTOM: Buttons
+        Button btnCreate = new Button("Crea");
+        btnCreate.getStyleClass().add("button-primary");
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+        btnCancel.setOnAction(e -> stage.close());
+
+        HBox bottomBox = new HBox(10, btnCancel, btnCreate);
+        bottomBox.setAlignment(Pos.CENTER_RIGHT);
+        bottomBox.setPadding(new Insets(10, 0, 0, 0));
+        root.setBottom(bottomBox);
+
+        java.util.Set<String> selectedUsernames = new java.util.HashSet<>();
+
+        // Background service
+        javafx.concurrent.Service<List<Utente>> searchService = new javafx.concurrent.Service<>() {
+            @Override
+            protected javafx.concurrent.Task<List<Utente>> createTask() {
+                final String query = searchField.getText() == null ? "" : searchField.getText().trim();
+                return new javafx.concurrent.Task<>() {
+                    @Override
+                    protected List<Utente> call() throws Exception {
+                        List<Utente> res;
+                        if (query.isEmpty()) {
+                            // OPTIMIZATION: Load top 30 active users
+                            res = utenteDAO.findTopActiveUsers(30);
+                        } else {
+                            res = utenteDAO.searchByUsername(query);
+                        }
+                        res.removeIf(u -> u.getUsername().equals(currentUser.getUsername()));
+                        return res;
+                    }
+                };
+            }
+        };
+
+        searchService.setOnSucceeded(e -> {
+            userList.getItems().setAll(searchService.getValue());
+            if (userList.getItems().isEmpty())
+                placeholder.setText("Nessun utente trovato");
+        });
+        searchService.setOnFailed(e -> placeholder.setText("Errore caricamento"));
+        searchService.restart();
+
+        searchField.textProperty().addListener((o, old, v) -> {
+            searchService.cancel();
+            searchService.restart();
+        });
+
+        // Optimized Cell
+        userList.setCellFactory(param -> new ListCell<>() {
+            private final Circle avatar = new Circle(16);
+            private final Label initial = new Label();
+            private final StackPane avatarStack = new StackPane(avatar, initial);
+            private final Label name = new Label();
+            private final Label nameFull = new Label();
+            private final VBox infoBox = new VBox(0, name, nameFull);
+            private final Button btnToggle = new Button();
+            private final Region spacer = new Region();
+            private final HBox rootBox = new HBox(10, avatarStack, infoBox, spacer, btnToggle);
+
+            {
+                avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
+                initial.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 13px;");
+                nameFull.setStyle("-fx-text-fill: #8D6E63; -fx-font-size: 11px;");
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                rootBox.setAlignment(Pos.CENTER_LEFT);
+                rootBox.setPadding(new Insets(4, 8, 4, 8));
+            }
+
+            @Override
+            protected void updateItem(Utente item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    initial.setText(item.getUsername().substring(0, 1).toUpperCase());
+                    name.setText("@" + item.getUsername());
+                    nameFull.setText(item.getNome() + " " + item.getCognome());
+
+                    boolean isSelected = selectedUsernames.contains(item.getUsername());
+                    updateBtn(isSelected);
+
+                    btnToggle.setOnAction(e -> {
+                        boolean sel = !selectedUsernames.contains(item.getUsername());
+                        if (sel)
+                            selectedUsernames.add(item.getUsername());
+                        else
+                            selectedUsernames.remove(item.getUsername());
+                        updateBtn(sel);
+                        userList.refresh();
+                    });
+
+                    // Row Hover
+                    setOnMouseEntered(e -> setStyle("-fx-background-color: #FFF8E1;"));
+                    setOnMouseExited(e -> setStyle("-fx-background-color: transparent;"));
+
+                    setGraphic(rootBox);
+                }
+            }
+
+            private void updateBtn(boolean sel) {
+                if (sel) {
+                    btnToggle.setText("\u2713");
+                    btnToggle.getStyleClass().remove("button-primary");
+                    btnToggle.setStyle(
+                            "-fx-background-color: #6B8E23; -fx-text-fill: white; -fx-background-radius: 50; -fx-min-width: 28px; -fx-min-height: 28px; -fx-font-weight: bold; -fx-font-size: 12px;");
+                } else {
+                    btnToggle.setText("+");
+                    if (!btnToggle.getStyleClass().contains("button-primary"))
+                        btnToggle.getStyleClass().add("button-primary");
+                    btnToggle.setStyle(
+                            "-fx-background-radius: 50; -fx-min-width: 28px; -fx-min-height: 28px; -fx-padding: 0; -fx-font-size: 12px;");
+                }
+            }
+        });
+
+        userList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 1 && userList.getSelectionModel().getSelectedItem() != null) {
+                // No action for single row click in group mode to avoid confusion with button
+            }
+        });
+
+        btnCreate.setOnAction(e -> {
+            String name = nameField.getText();
+            if (name == null || name.isBlank()) {
+                DialogUtils.showWarning("Attenzione", "Inserisci un nome per il gruppo.", stage);
+                return;
+            }
+            if (selectedUsernames.isEmpty()) {
+                DialogUtils.showWarning("Attenzione", "Seleziona almeno un partecipante.", stage);
+                return;
+            }
+
+            try {
+                int gid = gruppoDAO.createGruppo(name, currentUser.getUsername(), new ArrayList<>(selectedUsernames));
+                if (gid > 0) {
+                    ChatSession session = ChatSession.group(gid, name);
+                    activeSession = session;
+                    loadConversations();
+                    groupChatList.getSelectionModel().select(session);
+                    loadChat(session);
+                    inputArea.setDisable(false);
+                    updateHeader(session);
+                    stage.close();
+                } else {
+                    DialogUtils.showError("Errore", "Errore creazione gruppo.", stage);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                DialogUtils.showError("Errore", "Errore DB: " + ex.getMessage(), stage);
+            }
+        });
+
+        // Scene setup
+        Scene scene = new Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+        }
+
+        stage.setScene(scene);
+        stage.setOnShown(e -> userList.requestFocus());
+        stage.show();
+    }
+
+    private Node createSharedPostBubble(Post post, boolean isMe) {
+        VBox bubble = new VBox(5);
+        bubble.setMaxWidth(300);
+        bubble.getStyleClass().add("chat-bubble");
+        bubble.getStyleClass().add(isMe ? "chat-bubble-sent" : "chat-bubble-received");
+        bubble.setStyle(bubble.getStyle() + "; -fx-padding: 8; -fx-cursor: hand;");
+
+        // Header: Author
+        HBox header = new HBox(8);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label authorName = new Label(post.getAutore().getUsername());
+        authorName.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 12px;");
+
+        Label tag = new Label("CONDIVISO");
+        tag.setStyle(
+                "-fx-font-size: 9px; -fx-text-fill: #888; -fx-background-color: #EEE; -fx-padding: 2 4; -fx-background-radius: 4;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        header.getChildren().addAll(authorName, spacer, tag);
+
+        // Content Preview
+        Label title = new Label(post.getTitolo());
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #333;");
+        title.setWrapText(true);
+
+        bubble.getChildren().addAll(header, title);
+
+        // Thumbnail if image
+        if (post.getTipo() == Post.TipoPost.FOTO && post.getMedia() != null) {
+            try {
+                File f = MediaManager.getMediaFile(post.getMedia());
+                if (f != null && f.exists()) {
+                    Image img = new Image(f.toURI().toString(), 280, 0, true, true);
+                    ImageView iv = new ImageView(img);
+                    iv.setFitWidth(280);
+                    iv.setPreserveRatio(true);
+                    iv.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);"); // Slight
+                                                                                                         // shadow
+
+                    // Clip to rounded corners
+                    javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(280, 150);
+                    clip.setArcWidth(10);
+                    clip.setArcHeight(10);
+                    iv.setClip(null); // Simple view for now
+
+                    bubble.getChildren().add(iv);
+                }
+            } catch (Exception e) {
+            }
+        }
+
+        // Interaction
+        bubble.setOnMouseClicked(e -> showPostDialog(post));
+
+        return bubble;
+    }
+
+    private Node createSimpleMessageBubble(Messaggio m, boolean isMe, ChatSession session, DateTimeFormatter dtf) {
+        VBox bubble = new VBox(2);
+        bubble.setMaxWidth(400);
+        bubble.getStyleClass().add("chat-bubble");
+        bubble.getStyleClass().add(isMe ? "chat-bubble-sent" : "chat-bubble-received");
+
+        if (!isMe && !m.isLetto() && !session.isGroup()) {
+            messaggioDAO.segnaComeLetto(m.getId());
+        }
+
+        if (session.isGroup() && !isMe) {
+            Label senderName = new Label("@" + m.getSender());
+            senderName.setStyle("-fx-font-size: 10px; -fx-text-fill: #5D4037; -fx-font-weight: bold;");
+            bubble.getChildren().add(senderName);
+        }
+
+        Label content = new Label(m.getContenuto());
+        content.setWrapText(true);
+        content.setStyle(isMe ? "-fx-text-fill: #3E2723;" : "-fx-text-fill: #212121;");
+
+        Label time = new Label();
+        try {
+            time.setText(LocalDateTime.parse(m.getTimestamp()).format(dtf));
+        } catch (Exception e) {
+            time.setText("??:??");
+        }
+        time.getStyleClass().add("chat-timestamp");
+
+        HBox timeBox = new HBox(time);
+        timeBox.setAlignment(Pos.BOTTOM_RIGHT);
+
+        bubble.getChildren().addAll(content, timeBox);
+        return bubble;
+    }
+
+    private void showPostDialog(Post post) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Post Condiviso");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.initOwner(stage.getScene().getWindow());
+
+        PostCard card = new PostCard(post, currentUser, null); // No refresh callback needed strictly
+        // Add padding to card
+        card.setPadding(new Insets(10));
+
+        ScrollPane sp = new ScrollPane(card);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(600);
+        sp.setPrefWidth(720);
+        sp.getStyleClass().add("scroll-pane"); // Reuse styles
+        sp.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        dialog.getDialogPane().setContent(sp);
+        dialog.showAndWait();
+    }
+
+    private void handleRenameGroup(ChatSession session) {
+        String name = DialogUtils.showInputDialog("Rinomina Gruppo", "Inserisci il nuovo nome per il gruppo:",
+                session.getName(), stage);
+        if (name != null && !name.isBlank()) {
+            gruppoDAO.renameGruppo(session.getGroupId(), name.trim());
+            loadConversations();
+            if (activeSession != null && activeSession.equals(session)) {
+                updateHeader(ChatSession.group(session.getGroupId(), name.trim()));
             }
         }
     }
 
-    private void handleNewPrivateChat() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nuova Chat Privata");
-        dialog.setHeaderText("Inserisci lo username dell'utente");
-        dialog.setContentText("Username:");
-
-        dialog.showAndWait().ifPresent(username -> {
-            try {
-                if (username.equalsIgnoreCase(currentUser.getUsername())) {
-                    new Alert(Alert.AlertType.WARNING, "Non puoi chattare con te stesso!").show();
-                    return;
-                }
-                Utente u = utenteDAO.findByUsername(username);
-                if (u != null) {
-                    ChatSession session = ChatSession.user(u.getUsername());
-                    activeSession = session;
-                    loadConversations(); // might add it to list
-                    conversationList.getSelectionModel().select(session);
-                    loadChat(session);
-                    lblChatUser.setText("Conversazione con @" + session.getName());
-                    inputArea.setDisable(false);
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Utente non trovato!").show();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+    private void handleLeaveGroup(ChatSession session) {
+        if (DialogUtils.showConfirmation("Abbandona Gruppo",
+                "Sei sicuro di voler abbandonare il gruppo '" + session.getName() + "'?", stage)) {
+            gruppoDAO.removeMembro(session.getGroupId(), currentUser.getUsername());
+            // If active, clear it
+            if (activeSession != null && activeSession.equals(session)) {
+                activeSession = null;
+                messageContainer.getChildren().clear();
+                messageContainer.getChildren().add(createEmptyPlaceholder());
+                lblChatUser.setText("Seleziona una conversazione");
+                inputArea.setDisable(true);
             }
-        });
+            loadConversations();
+        }
     }
 
-    private void handleNewGroupChat() {
-        // Simple dialog for group creation
-        Dialog<Boolean> dialog = new Dialog<>();
-        dialog.setTitle("Crea Nuovo Gruppo");
-        dialog.setHeaderText("Inserisci nome e partecipanti");
-
-        ButtonType createBtnType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(createBtnType, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        TextField nameField = new TextField();
-        nameField.setPromptText("Nome del gruppo");
-
-        // Let's list some users to add - simplistic approach: list all followed users?
-        // Or text area for csv? Let's use a TextArea for comma separated usernames for
-        // MVP safety
-        // since getting all users for checkboxes might be heavy if many users.
-        // Better: Search user like "Add Member" - but for complexity reduction:
-        // multi-select if possible?
-        // Let's stick to: Enter usernames (comma separated)
-
-        TextArea membersField = new TextArea();
-        membersField.setPromptText("Username partecipanti (separati da virgola)");
-        membersField.setPrefRowCount(3);
-
-        grid.add(new Label("Nome Gruppo:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Partecipanti:"), 0, 1);
-        grid.add(membersField, 1, 1);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == createBtnType) {
-                String name = nameField.getText();
-                String membersStr = membersField.getText();
-                if (name == null || name.isBlank())
-                    return false;
-
-                List<String> members = new ArrayList<>();
-                if (membersStr != null && !membersStr.isBlank()) {
-                    String[] parts = membersStr.split(",");
-                    for (String p : parts) {
-                        String clean = p.trim();
-                        if (!clean.isEmpty() && !clean.equalsIgnoreCase(currentUser.getUsername())) {
-                            members.add(clean);
-                        }
-                    }
+    private void handleDeleteGroup(ChatSession session) {
+        // Check if creator
+        Gruppo g = gruppoDAO.getGruppo(session.getGroupId());
+        if (g != null && g.getCreatore().equals(currentUser.getUsername())) {
+            if (DialogUtils.showConfirmation("Elimina Gruppo",
+                    "Sei sicuro di voler ELIMINARE DEFINITIVAMENTE il gruppo '" + session.getName()
+                            + "'? L'azione è irreversibile.",
+                    stage)) {
+                gruppoDAO.deleteGruppo(session.getGroupId());
+                if (activeSession != null && activeSession.equals(session)) {
+                    activeSession = null;
+                    messageContainer.getChildren().clear();
+                    messageContainer.getChildren().add(createEmptyPlaceholder());
+                    lblChatUser.setText("Seleziona una conversazione");
+                    inputArea.setDisable(true);
                 }
-
-                int gid = gruppoDAO.createGruppo(name, currentUser.getUsername(), members);
-                if (gid > 0) {
-                    ChatSession gSession = ChatSession.group(gid, name);
-                    activeSession = gSession;
-                    return true;
-                }
-            }
-            return false;
-        });
-
-        dialog.showAndWait().ifPresent(success -> {
-            if (success) {
                 loadConversations();
-                conversationList.getSelectionModel().select(activeSession);
-                loadChat(activeSession);
-                updateHeader(activeSession);
-                inputArea.setDisable(false);
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Errore creazione gruppo. Controlla i dati.").show();
             }
-        });
+        } else {
+            DialogUtils.showWarning("Attenzione",
+                    "Solo il creatore (" + (g != null ? g.getCreatore() : "?") + ") può eliminare il gruppo.", stage);
+        }
+    }
+
+    private void handleDeletePrivateChat(ChatSession session) {
+        if (DialogUtils.showConfirmation("Elimina Chat",
+                "Sei sicuro di voler eliminare la conversazione con @" + session.getName() + "?", stage)) {
+            messaggioDAO.deleteConversazione(currentUser.getUsername(), session.getName());
+            if (activeSession != null && activeSession.equals(session)) {
+                activeSession = null;
+                messageContainer.getChildren().clear();
+                messageContainer.getChildren().add(createEmptyPlaceholder());
+                lblChatUser.setText("Seleziona una conversazione");
+                inputArea.setDisable(true);
+            }
+            loadConversations();
+        }
     }
 }

@@ -241,6 +241,29 @@ public class DatabaseManager {
                                         ")";
                         stmt.execute(sqlPartecipazioni);
 
+                        // Creazione tabella Sfide
+                        String sqlSfide = "CREATE TABLE IF NOT EXISTS sfide (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "titolo TEXT NOT NULL, " +
+                                        "descrizione TEXT, " +
+                                        "premio TEXT, " +
+                                        "scadenza TEXT NOT NULL, " +
+                                        "creatore TEXT NOT NULL, " +
+                                        "partecipanti_count INTEGER DEFAULT 0, " +
+                                        "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlSfide);
+
+                        // Creazione tabella Partecipazioni Sfide
+                        String sqlPartecipazioniSfide = "CREATE TABLE IF NOT EXISTS partecipazioni_sfide (" +
+                                        "sfida_id INTEGER NOT NULL, " +
+                                        "utente_username TEXT NOT NULL, " +
+                                        "PRIMARY KEY (sfida_id, utente_username), " +
+                                        "FOREIGN KEY(sfida_id) REFERENCES sfide(id) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlPartecipazioniSfide);
+
                 } catch (SQLException e) {
                         // Gestione errore inizializzazione DB
                         System.err.println("Errore inizializzazione DB: " + e.getMessage());

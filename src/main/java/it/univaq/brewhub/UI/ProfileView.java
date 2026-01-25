@@ -331,13 +331,18 @@ public class ProfileView {
 
             // Logica Save Differenziata
             if (utente.getTipo() == it.univaq.brewhub.Utente.TipoUtente.TORREFATTORE && torrefattoreDetails != null) {
-                String azienda = finalFldAzienda.getText().trim();
-                if (azienda.isEmpty()) {
-                    DialogUtils.showError("Errore", "Nome Azienda obbligatorio.", stage);
-                    return;
+                if (finalFldAzienda != null) {
+                    String azienda = finalFldAzienda.getText().trim();
+                    if (azienda.isEmpty()) {
+                        DialogUtils.showError("Errore", "Nome Azienda obbligatorio.", stage);
+                        return;
+                    }
+                    torrefattoreDetails.setNomeAzienda(azienda);
                 }
-                torrefattoreDetails.setNomeAzienda(azienda);
-                torrefattoreDetails.setDescrizione(finalAreaDesc.getText());
+
+                if (finalAreaDesc != null) {
+                    torrefattoreDetails.setDescrizione(finalAreaDesc.getText());
+                }
                 torrefattoreDetails.setFotoProfilo(nuovoPercorsoFoto);
 
                 // Keep base fields consistent if needed, but we rely on nomeAzienda mainly
@@ -364,8 +369,14 @@ public class ProfileView {
 
             } else {
                 // STANDARD USER
-                String nuovoNome = finalFldNome.getText().trim();
-                String nuovoCognome = finalFldCognome.getText().trim();
+                String nuovoNome = "";
+                String nuovoCognome = "";
+
+                if (finalFldNome != null)
+                    nuovoNome = finalFldNome.getText().trim();
+
+                if (finalFldCognome != null)
+                    nuovoCognome = finalFldCognome.getText().trim();
 
                 if (nuovoNome.isEmpty() || nuovoCognome.isEmpty()) {
                     DialogUtils.showError("Errore", "Nome e Cognome obbligatori.", stage);

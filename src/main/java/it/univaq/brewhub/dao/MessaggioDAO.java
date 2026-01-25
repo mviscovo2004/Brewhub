@@ -47,4 +47,6 @@ public interface MessaggioDAO {
      * @return Numero di messaggi non letti.
      */
     int contaNonLetti(String receiver);
+
+    void deleteConversazione(String user1, String user2);
 }

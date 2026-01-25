@@ -200,10 +200,14 @@ public class UtenteDAOImpl implements UtenteDAO {
         u.setPasswordCrypto(rs.getString("password_hash")); // Setta hash
 
         String tipoStr = rs.getString("tipo");
-        try {
-            u.setTipo(TipoUtente.valueOf(tipoStr));
-        } catch (IllegalArgumentException e) {
-            u.setTipo(TipoUtente.APPASSIONATO); // Default
+        if (tipoStr != null) {
+            try {
+                u.setTipo(TipoUtente.valueOf(tipoStr));
+            } catch (IllegalArgumentException e) {
+                u.setTipo(TipoUtente.APPASSIONATO); // Default
+            }
+        } else {
+            u.setTipo(TipoUtente.APPASSIONATO); // Default if null
         }
 
         u.setFotoProfilo(rs.getString("foto_uri"));
@@ -290,6 +294,38 @@ public class UtenteDAOImpl implements UtenteDAO {
             }
         }
         return 0;
+    }
+
+    @Override
+    public java.util.List<Utente> getFollowers(String username) throws SQLException {
+        java.util.List<Utente> list = new java.util.ArrayList<>();
+        String sql = "SELECT u.* FROM utenti u JOIN followers f ON u.username = f.follower_username WHERE f.followed_username = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUtente(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public java.util.List<Utente> getFollowing(String username) throws SQLException {
+        java.util.List<Utente> list = new java.util.ArrayList<>();
+        String sql = "SELECT u.* FROM utenti u JOIN followers f ON u.username = f.followed_username WHERE f.follower_username = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUtente(rs));
+                }
+            }
+        }
+        return list;
     }
 
     @Override
@@ -398,14 +434,10 @@ public class UtenteDAOImpl implements UtenteDAO {
 
     @Override
     public java.util.List<Utente> findTopActiveUsers(int limit) throws SQLException {
-        // Top users by number of posts
-        String sql = "SELECT u.*, COUNT(p.id) as post_count " +
-                "FROM utenti u " +
-                "LEFT JOIN post p ON u.username = p.autore_username " +
-                "WHERE u.username NOT LIKE 'deleted_%' " +
-                "GROUP BY u.username " +
-                "ORDER BY post_count DESC " +
-                "LIMIT ?";
+        // Optimization: Replaced heavy aggregation (COUNT posts) which caused timeouts
+        // on large datasets.
+        // Now returning a simple list of users.
+        String sql = "SELECT * FROM utenti WHERE username NOT LIKE 'deleted_%' LIMIT ?";
 
         java.util.List<Utente> list = new java.util.ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();

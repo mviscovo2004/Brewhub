@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import java.util.List;
 
 public class PostCard extends VBox {
 
@@ -107,6 +108,25 @@ public class PostCard extends VBox {
         }
         Label authorLbl = new Label(displayAuthor);
         authorLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723;");
+
+        // Navigation Logic
+        if (!displayAuthor.equals("Utente eliminato")) {
+            authorLbl.setCursor(javafx.scene.Cursor.HAND);
+            avatarContainer.setCursor(javafx.scene.Cursor.HAND);
+
+            javafx.event.EventHandler<javafx.scene.input.MouseEvent> navHandler = e -> {
+                if (this.getScene() != null && this.getScene().getWindow() instanceof javafx.stage.Stage) {
+                    javafx.stage.Stage s = (javafx.stage.Stage) this.getScene().getWindow();
+                    this.dispose(); // Stop video if playing
+                    it.univaq.brewhub.UI.UserProfileView profileView = new it.univaq.brewhub.UI.UserProfileView(s,
+                            utenteLoggato, post.getAutore());
+                    s.getScene().setRoot(profileView.getView());
+                }
+            };
+
+            authorLbl.setOnMouseClicked(navHandler);
+            avatarContainer.setOnMouseClicked(navHandler);
+        }
 
         // Verified Badge Logic
         HBox authorBox = new HBox(5, authorLbl);
@@ -196,23 +216,23 @@ public class PostCard extends VBox {
             this.mediaPlayer = mp;
 
             if (mp != null) {
-                Button btnPlay = new Button("\u25B6\uFE0F");
+                Button btnPlay = new Button("\u25B6");
                 btnPlay.getStyleClass().add("video-button");
                 btnPlay.setStyle("-fx-font-size: 16px;");
 
                 btnPlay.setOnAction(e -> {
                     if (mp.getStatus() == MediaPlayer.Status.PLAYING) {
                         mp.pause();
-                        btnPlay.setText("\u25B6\uFE0F");
+                        btnPlay.setText("\u25B6");
                     } else {
                         mp.play();
-                        btnPlay.setText("\u23F8\uFE0F");
+                        btnPlay.setText("\u23F8");
                     }
                 });
 
                 mp.setOnEndOfMedia(() -> {
                     mp.stop();
-                    btnPlay.setText("\u25B6\uFE0F");
+                    btnPlay.setText("\u25B6");
                 });
 
                 Slider timeSlider = new Slider();
@@ -356,10 +376,109 @@ public class PostCard extends VBox {
             }
         });
 
+        // --- SHARE BUTTON ---
+        Button btnShare = new Button("\u27A1 Condividi");
+        btnShare.getStyleClass().add("share-button");
+        btnShare.setOnAction(e -> showShareDialog());
+
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
-            actions.getChildren().add(btnSave);
+            actions.getChildren().addAll(btnSave, btnShare);
         }
         this.getChildren().add(actions);
+    }
+
+    private void showShareDialog() {
+        Stage stage = new Stage();
+        stage.setTitle("Condividi Post");
+        stage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        if (this.getScene() != null && this.getScene().getWindow() != null) {
+            stage.initOwner(this.getScene().getWindow());
+        }
+
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("modal-root");
+        root.setPrefWidth(400);
+
+        // Header
+        Label titleLbl = new Label("Condividi Post");
+        titleLbl.getStyleClass().add("modal-title");
+        titleLbl.setAlignment(Pos.CENTER);
+        titleLbl.setMaxWidth(Double.MAX_VALUE);
+        root.setTop(titleLbl);
+
+        // Content
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(20, 0, 20, 0));
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        Label lblDest = new Label("Invia questo post a:");
+        lblDest.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037;");
+
+        ComboBox<String> userCombo = new ComboBox<>();
+        userCombo.setEditable(true);
+        userCombo.setPromptText("Cerca utente o seleziona...");
+        userCombo.setMaxWidth(Double.MAX_VALUE);
+        userCombo.getStyleClass().add("choice-box");
+        // Style the editor of combobox if needed, but usually inherits
+
+        try {
+            // Load users from recent conversations
+            List<String> recent = new it.univaq.brewhub.dao.impl.MessaggioDAOImpl()
+                    .getUtentiConversazioni(utenteLoggato.getUsername());
+            userCombo.getItems().setAll(recent);
+        } catch (Exception e) {
+        }
+
+        content.getChildren().addAll(lblDest, userCombo);
+        root.setCenter(content);
+
+        // Actions
+        HBox actions = new HBox(15);
+        actions.getStyleClass().add("dialog-actions");
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button btnCancel = new Button("Annulla");
+        btnCancel.getStyleClass().add("button-secondary");
+        btnCancel.setOnAction(e -> stage.close());
+
+        Button btnSend = new Button("Invia");
+        btnSend.getStyleClass().add("button-primary");
+        btnSend.setOnAction(e -> {
+            String receiver = userCombo.getValue();
+            if (receiver != null && !receiver.isBlank()) {
+                try {
+                    it.univaq.brewhub.Messaggio m = new it.univaq.brewhub.Messaggio();
+                    m.setSender(utenteLoggato.getUsername());
+                    m.setReceiver(receiver.trim());
+                    // Protocol: [POST:::ID]
+                    m.setContenuto("[POST:::" + post.getId() + "]");
+                    m.setTimestamp(java.time.LocalDateTime.now().toString());
+                    m.setLetto(false);
+
+                    new it.univaq.brewhub.dao.impl.MessaggioDAOImpl().create(m);
+
+                    stage.close();
+                    DialogUtils.showInfo("Condiviso", "Post inviato a " + receiver, this.getScene().getWindow());
+                } catch (Exception ex) {
+                    DialogUtils.showError("Errore", "Impossibile inviare: " + ex.getMessage(),
+                            this.getScene().getWindow());
+                }
+            } else {
+                DialogUtils.showWarning("Attenzione", "Seleziona un destinatario.", stage);
+            }
+        });
+
+        actions.getChildren().addAll(btnCancel, btnSend);
+        root.setBottom(actions);
+
+        Scene scene = new Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception ex) {
+        }
+
+        stage.setScene(scene);
+        stage.showAndWait();
     }
 
     private void createCommentsSection() {
@@ -545,23 +664,76 @@ public class PostCard extends VBox {
         }
     }
 
+    private MediaView mediaView;
+
     private void caricaVideo(MediaView view, String path) {
+        this.mediaView = view;
         try {
             if (path != null && !path.isEmpty()) {
                 File file = MediaManager.getMediaFile(path);
                 if (file != null && file.exists()) {
-                    Media media = new Media(file.toURI().toString());
-                    media.setOnError(() -> Log.error("Errore media", media.getError()));
-                    MediaPlayer mp = new MediaPlayer(media);
-                    mp.setOnError(() -> Log.error("Errore player video", mp.getError()));
-                    view.setMediaPlayer(mp);
+                    try {
+                        Media media = new Media(file.toURI().toString());
+
+                        media.setOnError(() -> handleMediaError(view, media.getError()));
+
+                        MediaPlayer mp = new MediaPlayer(media);
+                        mp.setOnError(() -> handleMediaError(view, mp.getError()));
+
+                        view.setMediaPlayer(mp);
+                    } catch (Exception e) {
+                        handleMediaError(view, e);
+                    }
                 } else {
                     Log.warning("File video non trovato: " + path);
+                    showErrorPlaceholder(view, "File non trovato");
                 }
             }
         } catch (Exception e) {
             Log.error("Errore in caricaVideo: " + path, e);
+            handleMediaError(view, e);
         }
+    }
+
+    private void handleMediaError(MediaView view, Throwable t) {
+        if (isDisposed)
+            return;
+
+        String msg = "Impossibile riprodurre video";
+        if (t != null) {
+            // Ignore trivial errors if playing?
+            if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                return;
+            }
+            Log.error("Errore Media Player", t);
+            if (t.getMessage() != null && t.getMessage().contains("ERROR_MEDIA_INVALID")) {
+                msg = "Formato video non supportato";
+            }
+        }
+        showErrorPlaceholder(view, msg);
+    }
+
+    private void showErrorPlaceholder(MediaView view, String msg) {
+        javafx.application.Platform.runLater(() -> {
+            if (view.getParent() instanceof javafx.scene.layout.Pane) {
+                javafx.scene.layout.Pane parent = (javafx.scene.layout.Pane) view.getParent();
+                parent.getChildren().clear();
+
+                VBox errorBox = new VBox(5);
+                errorBox.setAlignment(Pos.CENTER);
+                errorBox.setPadding(new Insets(20));
+                errorBox.setStyle("-fx-background-color: #FFEBEE; -fx-border-color: #FFCDD2; -fx-border-radius: 5;");
+
+                Label icon = new Label("\u26A0");
+                icon.setStyle("-fx-font-size: 24px;");
+
+                Label lbl = new Label(msg);
+                lbl.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
+
+                errorBox.getChildren().addAll(icon, lbl);
+                parent.getChildren().add(errorBox);
+            }
+        });
     }
 
     // showAlert method removed
@@ -642,14 +814,24 @@ public class PostCard extends VBox {
         dialogStage.showAndWait();
     }
 
+    private boolean isDisposed = false;
+
     public void dispose() {
+        isDisposed = true;
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.stop();
+                if (mediaView != null) {
+                    mediaView.setMediaPlayer(null);
+                }
                 mediaPlayer.dispose();
             } catch (Exception e) {
                 // Ignore
             }
         }
+        mediaPlayer = null;
+        mediaView = null;
+        // Force GC to help release native file locks/GStreamer handles
+        System.gc();
     }
 }

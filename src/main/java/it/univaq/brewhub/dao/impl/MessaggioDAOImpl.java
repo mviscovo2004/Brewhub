@@ -156,4 +156,19 @@ public class MessaggioDAOImpl implements MessaggioDAO {
         }
         return m;
     }
+
+    @Override
+    public void deleteConversazione(String user1, String user2) {
+        String sql = "DELETE FROM messaggi WHERE id_gruppo IS NULL AND ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?))";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user1);
+            pstmt.setString(2, user2);
+            pstmt.setString(3, user2);
+            pstmt.setString(4, user1);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

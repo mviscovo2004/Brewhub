@@ -112,4 +112,46 @@ public class GruppoDAOImpl implements GruppoDAO {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void renameGruppo(int id, String nuovoNome) {
+        String sql = "UPDATE gruppi SET nome = ? WHERE id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, nuovoNome);
+            pstmt.setInt(2, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteGruppo(int id) {
+        // Manually delete dependencies first to be safe (membri_gruppo, messaggi)
+        // Note: messaggi table has id_gruppo
+        String sqlMembers = "DELETE FROM membri_gruppo WHERE id_gruppo = ?";
+        String sqlMsgs = "DELETE FROM messaggi WHERE id_gruppo = ?";
+        String sqlGroup = "DELETE FROM gruppi WHERE id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+            // Delete members
+            try (PreparedStatement p1 = conn.prepareStatement(sqlMembers)) {
+                p1.setInt(1, id);
+                p1.executeUpdate();
+            }
+            // Delete messages
+            try (PreparedStatement p2 = conn.prepareStatement(sqlMsgs)) {
+                p2.setInt(1, id);
+                p2.executeUpdate();
+            }
+            // Delete group
+            try (PreparedStatement p3 = conn.prepareStatement(sqlGroup)) {
+                p3.setInt(1, id);
+                p3.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

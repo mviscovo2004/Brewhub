@@ -257,6 +257,29 @@ public class UserProfileView {
     }
 
     private void updateProfileLogic(Button followBtn, Label lblFoll, Label lblFollng) {
+        // --- Click Handlers for Count ---
+        VBox boxFoll = (VBox) lblFoll.getParent();
+        boxFoll.setCursor(javafx.scene.Cursor.HAND);
+        boxFoll.setOnMouseClicked(e -> {
+            try {
+                java.util.List<Utente> list = utenteDAO.getFollowers(profileUser.getUsername());
+                showUserListDialog("Followers", list);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        VBox boxFollng = (VBox) lblFollng.getParent();
+        boxFollng.setCursor(javafx.scene.Cursor.HAND);
+        boxFollng.setOnMouseClicked(e -> {
+            try {
+                java.util.List<Utente> list = utenteDAO.getFollowing(profileUser.getUsername());
+                showUserListDialog("Following", list);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
         Runnable refresh = () -> {
             try {
                 lblFoll.setText(String.valueOf(utenteDAO.getFollowersCount(profileUser.getUsername())));
@@ -283,7 +306,6 @@ public class UserProfileView {
                                 utenteDAO.follow(currentUser.getUsername(), profileUser.getUsername());
 
                             // Refresh logic inline or reload view
-                            // Here we just reload the view to be safe and simple
                             stopAllPlayers();
                             stage.getScene().setRoot(new UserProfileView(stage, currentUser, profileUser).getView());
                         } catch (Exception ex) {
@@ -296,6 +318,109 @@ public class UserProfileView {
             }
         };
         refresh.run();
+    }
+
+    private void showUserListDialog(String title, java.util.List<Utente> users) {
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle(title);
+        dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("modal-root");
+        root.setPrefWidth(350);
+        root.setPrefHeight(400);
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("modal-title");
+        titleLbl.setAlignment(Pos.CENTER);
+        titleLbl.setMaxWidth(Double.MAX_VALUE);
+        root.setTop(titleLbl);
+
+        if (users.isEmpty()) {
+            Label empty = new Label("Nessun utente.");
+            empty.setStyle("-fx-text-fill: #8D6E63; -fx-padding: 20; -fx-alignment: center;");
+            empty.setMaxWidth(Double.MAX_VALUE);
+            empty.setAlignment(Pos.CENTER);
+            root.setCenter(empty);
+        } else {
+            ListView<Utente> listView = new ListView<>();
+            listView.getItems().setAll(users);
+            listView.getStyleClass().add("list-view");
+            listView.setStyle("-fx-background-color: transparent; -fx-padding: 10;");
+
+            listView.setCellFactory(param -> new ListCell<>() {
+                private final HBox box = new HBox(10);
+                private final Circle avatar = new Circle(16);
+                private final Label name = new Label();
+
+                {
+                    box.setAlignment(Pos.CENTER_LEFT);
+                    box.setPadding(new Insets(5));
+                    name.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-font-size: 13px;");
+                    avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
+                }
+
+                @Override
+                protected void updateItem(Utente item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setGraphic(null);
+                        setText(null);
+                        setStyle("-fx-background-color: transparent;");
+                    } else {
+                        name.setText("@" + item.getUsername());
+                        // Try loading avatar logic if needed or just color
+                        // Simple placeholder for efficiency in dialog
+                        setGraphic(box);
+                        box.getChildren().setAll(avatar, name);
+
+                        // Torrefattore badge check?
+                        if (item.getTipo() == Utente.TipoUtente.TORREFATTORE) {
+                            // Simple text marker for now as we don't have easy access to the Badge class
+                            // instance without duplication
+                            Label badge = new Label("\u2713");
+                            badge.setStyle("-fx-text-fill: #D4A574; -fx-font-weight: bold;");
+                            box.getChildren().add(badge);
+                        }
+
+                        setOnMouseEntered(e -> setStyle("-fx-background-color: #FFF8E1; -fx-cursor: hand;"));
+                        setOnMouseExited(e -> setStyle("-fx-background-color: transparent;"));
+                    }
+                }
+            });
+
+            listView.setOnMouseClicked(e -> {
+                Utente selected = listView.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    dialogStage.close();
+                    stopAllPlayers(); // Stop current view resources
+                    // Navigate to clicked profile
+                    UserProfileView upv = new UserProfileView(stage, currentUser, selected);
+                    stage.getScene().setRoot(upv.getView());
+                }
+            });
+
+            root.setCenter(listView);
+        }
+
+        // Close Button
+        Button btnClose = new Button("Chiudi");
+        btnClose.getStyleClass().add("button-secondary");
+        btnClose.setOnAction(e -> dialogStage.close());
+        HBox bottom = new HBox(btnClose);
+        bottom.setAlignment(Pos.CENTER);
+        bottom.setPadding(new Insets(10));
+        root.setBottom(bottom);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception ex) {
+        }
+
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
     }
 
     private void loadPosts(VBox container) {

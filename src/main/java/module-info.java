@@ -21,4 +21,7 @@
     exports it.univaq.brewhub.dao;
     exports it.univaq.brewhub.dao.impl;
     exports it.univaq.brewhub.utility;
+    exports it.univaq.brewhub.model;
+
+    opens it.univaq.brewhub.model;
 }

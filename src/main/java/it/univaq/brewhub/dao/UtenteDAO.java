@@ -60,6 +60,10 @@ public interface UtenteDAO {
 
     int getFollowingCount(String username) throws SQLException;
 
+    java.util.List<Utente> getFollowers(String username) throws SQLException;
+
+    java.util.List<Utente> getFollowing(String username) throws SQLException;
+
     // Gestione Archivio (Post Salvati)
     void addToArchive(String username, int postId) throws SQLException;
 

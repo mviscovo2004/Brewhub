@@ -2,7 +2,7 @@ package it.univaq.brewhub.UI;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;

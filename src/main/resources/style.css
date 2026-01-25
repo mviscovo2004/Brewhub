@@ -433,7 +433,8 @@
     -fx-border-color: #FFCDD2;
 }
 
-.save-button {
+.save-button,
+.share-button {
     -fx-padding: 6 14;
     -fx-font-size: 12;
     -fx-background-color: transparent;
@@ -445,7 +446,8 @@
     -fx-cursor: hand;
 }
 
-.save-button:hover {
+.save-button:hover,
+.share-button:hover {
     -fx-background-color: #EFEBE9;
 }
 
@@ -1453,4 +1455,43 @@
     -fx-fill: #FFF8F3;
     /* White Cream */
     -fx-stroke: transparent;
+}
+
+/* ============================================
+   GLOBAL CONTEXT MENU & MENU ITEMS
+   ============================================ */
+.context-menu {
+    -fx-background-color: #FFFBF5;
+    /* Cream background */
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #D4A574;
+    /* Accent border */
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.2), 10, 0, 0, 3);
+    -fx-padding: 5;
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8 15;
+}
+
+.menu-item:focused {
+    -fx-background-color: #FFF8E1;
+    /* Lighter cream/yellow hover */
+    -fx-background-radius: 4;
+}
+
+.menu-item .label {
+    -fx-text-fill: #3E2723;
+    /* Dark coffee text */
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: #5D4037;
+    /* Medium coffee text on hover */
+    -fx-font-weight: bold;
 }
