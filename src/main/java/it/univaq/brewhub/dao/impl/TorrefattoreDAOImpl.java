@@ -91,6 +91,26 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
     }
 
     @Override
+    public void update(Torrefattore t) throws SQLException {
+        // 1. Aggiorna dati base utente
+        utenteDAO.update(t);
+
+        // 2. Aggiorna dati specifici torrefattore
+        String sql = "UPDATE torrefattori SET nome_azienda = ?, partita_iva = ?, indirizzo = ?, descrizione = ? WHERE username = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, t.getNomeAzienda());
+            pstmt.setString(2, t.getPartitaIva());
+            pstmt.setString(3, t.getIndirizzo());
+            pstmt.setString(4, t.getDescrizione());
+            pstmt.setString(5, t.getUsername());
+
+            pstmt.executeUpdate();
+        }
+    }
+
+    @Override
     public void delete(String username) throws SQLException {
         String sql = "DELETE FROM torrefattori WHERE username = ?";
         try (Connection conn = DatabaseManager.getConnection();

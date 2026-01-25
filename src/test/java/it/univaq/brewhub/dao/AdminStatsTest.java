@@ -12,20 +12,37 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AdminStatsTest {
 
+    private static final String TEST_DB_PATH = "brewhub_test_admin.db";
+
     private static final UtenteDAOImpl utenteDAO = new UtenteDAOImpl();
     private static final PostDAOImpl postDAO = new PostDAOImpl();
 
     @BeforeAll
-    static void initDB() {
+    static void setUp() throws SQLException {
+        File dbFile = new File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
         DatabaseManager.init();
-        // Clean DB for tests ideally, or just be robust
-        // For simplicity, we'll try to keep data distinct or clean up
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            File dbFile = new File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
     }
 
     @BeforeEach

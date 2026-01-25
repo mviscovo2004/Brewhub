@@ -41,6 +41,10 @@ public class ProfileView {
      */
     private String nuovoPercorsoFoto = null;
 
+    // DAO specifici
+    private final it.univaq.brewhub.dao.TorrefattoreDAO torrefattoreDAO = new it.univaq.brewhub.dao.impl.TorrefattoreDAOImpl();
+    private it.univaq.brewhub.Torrefattore torrefattoreDetails = null; // Popolato se l'utente è torrefattore
+
     /**
      * Costruttore della vista profilo.
      * 
@@ -61,6 +65,29 @@ public class ProfileView {
      * @return Parent Il nodo radice della vista.
      */
     public Parent getView() {
+
+        // Se è Torrefattore, recuperiamo i dettagli aggiornati
+        if (utente.getTipo() == it.univaq.brewhub.Utente.TipoUtente.TORREFATTORE) {
+            try {
+                torrefattoreDetails = torrefattoreDAO.findByUsername(utente.getUsername());
+                // Se per qualche motivo è null (inconsistenza), usiamo un oggetto vuoto o
+                // gestiamo l'errore
+                if (torrefattoreDetails == null) {
+                    // Fallback: proviamo a castare se possibile o creiamo placeholder
+                    torrefattoreDetails = new it.univaq.brewhub.Torrefattore();
+                    torrefattoreDetails.setUsername(utente.getUsername());
+                    // copy base fields
+                    torrefattoreDetails.setNome(utente.getNome());
+                    torrefattoreDetails.setCognome(utente.getCognome());
+                    torrefattoreDetails.setFotoProfilo(utente.getFotoProfilo());
+                    torrefattoreDetails.setPasswordCrypto(utente.getPasswordCrypto());
+                }
+            } catch (SQLException e) {
+                Log.error("Errore recupero dettagli torrefattore", e);
+            }
+        }
+
+        // Contenitore principale
 
         // Contenitore principale
         javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
@@ -157,26 +184,76 @@ public class ProfileView {
         grid.setVgap(20);
 
         // Username
+        // Username
         Label lblUser = new Label("Username");
         lblUser.getStyleClass().add("subtitle-label");
+
+        HBox usernameLabelBox = new HBox(10, lblUser);
+        usernameLabelBox.setAlignment(Pos.CENTER_LEFT);
+
+        if (utente.getTipo() == Utente.TipoUtente.TORREFATTORE) {
+            it.univaq.brewhub.UI.components.VerificationBadge badge = new it.univaq.brewhub.UI.components.VerificationBadge(
+                    14);
+            usernameLabelBox.getChildren().add(badge);
+        }
+
         TextField fldUsername = new TextField(utente.getUsername());
         fldUsername.setEditable(false);
         fldUsername.getStyleClass().addAll("text-field", "text-field-readonly");
         fldUsername.setMaxWidth(Double.MAX_VALUE);
 
-        // Nome
-        Label lblNome = new Label("Nome");
-        lblNome.getStyleClass().add("subtitle-label");
-        TextField fldNome = new TextField(utente.getNome());
-        fldNome.getStyleClass().add("text-field");
-        fldNome.setMaxWidth(Double.MAX_VALUE);
+        // Campi dinamici: Azienda+Descrizione OR Nome+Cognome
+        TextField fldNome = null;
+        TextField fldCognome = null;
 
-        // Cognome
-        Label lblCognome = new Label("Cognome");
-        lblCognome.getStyleClass().add("subtitle-label");
-        TextField fldCognome = new TextField(utente.getCognome());
-        fldCognome.getStyleClass().add("text-field");
-        fldCognome.setMaxWidth(Double.MAX_VALUE);
+        TextField fldAzienda = null;
+        javafx.scene.control.TextArea areaDesc = null;
+
+        if (utente.getTipo() == it.univaq.brewhub.Utente.TipoUtente.TORREFATTORE && torrefattoreDetails != null) {
+            // --- FIELDS TORREFATTORE ---
+            Label lblAzienda = new Label("Nome Azienda");
+            lblAzienda.getStyleClass().add("subtitle-label");
+            fldAzienda = new TextField(torrefattoreDetails.getNomeAzienda());
+            fldAzienda.getStyleClass().add("text-field");
+            fldAzienda.setMaxWidth(Double.MAX_VALUE);
+
+            Label lblDesc = new Label("Descrizione");
+            lblDesc.getStyleClass().add("subtitle-label");
+            areaDesc = new javafx.scene.control.TextArea(torrefattoreDetails.getDescrizione());
+            areaDesc.getStyleClass().add("text-area");
+            areaDesc.setWrapText(true);
+            areaDesc.setPrefRowCount(3);
+            areaDesc.setMaxWidth(Double.MAX_VALUE);
+
+            // Aggiunta alla griglia
+            // Row 1: Azienda (span 2 cols)
+            VBox aziendaBox = new VBox(5, lblAzienda, fldAzienda);
+            grid.add(aziendaBox, 0, 1, 2, 1);
+
+            // Row 2: Descrizione (span 2 cols)
+            VBox descBox = new VBox(5, lblDesc, areaDesc);
+            grid.add(descBox, 0, 2, 2, 1);
+
+        } else {
+            // --- FIELDS UTENTE STANDARD ---
+            Label lblNome = new Label("Nome");
+            lblNome.getStyleClass().add("subtitle-label");
+            fldNome = new TextField(utente.getNome());
+            fldNome.getStyleClass().add("text-field");
+            fldNome.setMaxWidth(Double.MAX_VALUE);
+
+            Label lblCognome = new Label("Cognome");
+            lblCognome.getStyleClass().add("subtitle-label");
+            fldCognome = new TextField(utente.getCognome());
+            fldCognome.getStyleClass().add("text-field");
+            fldCognome.setMaxWidth(Double.MAX_VALUE);
+
+            // Row 1: Nome | Cognome
+            VBox nomeBox = new VBox(5, lblNome, fldNome);
+            VBox cognomeBox = new VBox(5, lblCognome, fldCognome);
+            grid.add(nomeBox, 0, 1);
+            grid.add(cognomeBox, 1, 1);
+        }
 
         // Constraint colonne griglia: 50% e 50%
         javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
@@ -187,14 +264,10 @@ public class ProfileView {
 
         // Layout Griglia
         // Row 0: Username (spanning 2 cols? Or just left?) Let's span 2 for separation
-        VBox userBox = new VBox(5, lblUser, fldUsername);
+        VBox userBox = new VBox(5, usernameLabelBox, fldUsername);
         grid.add(userBox, 0, 0, 2, 1);
 
-        // Row 1: Nome | Cognome
-        VBox nomeBox = new VBox(5, lblNome, fldNome);
-        VBox cognomeBox = new VBox(5, lblCognome, fldCognome);
-        grid.add(nomeBox, 0, 1);
-        grid.add(cognomeBox, 1, 1);
+        // Grid layout logic already handled above in conditional block
 
         // Sezione Sicurezza
         Label lblSicurezza = new Label("Sicurezza");
@@ -247,35 +320,78 @@ public class ProfileView {
 
         btnAnnulla.setOnAction(e -> tornaAllaHome());
 
+        // Final refs for variables in lambda
+        final TextField finalFldNome = fldNome;
+        final TextField finalFldCognome = fldCognome;
+        final TextField finalFldAzienda = fldAzienda;
+        final javafx.scene.control.TextArea finalAreaDesc = areaDesc;
+
         btnSalva.setOnAction(e -> {
-            String nuovoNome = fldNome.getText().trim();
-            String nuovoCognome = fldCognome.getText().trim();
             String nuovaPw = fldNuovaPass.getText();
 
-            if (nuovoNome.isEmpty() || nuovoCognome.isEmpty()) {
-                DialogUtils.showError("Errore", "Nome e Cognome obbligatori.", stage);
-                return;
-            }
-
-            utente.setNome(nuovoNome);
-            utente.setCognome(nuovoCognome);
-            utente.setFotoProfilo(nuovoPercorsoFoto);
-
-            if (!nuovaPw.isEmpty()) {
-                if (nuovaPw.length() < 8) {
-                    DialogUtils.showError("Errore", "Password min. 8 caratteri.", stage);
+            // Logica Save Differenziata
+            if (utente.getTipo() == it.univaq.brewhub.Utente.TipoUtente.TORREFATTORE && torrefattoreDetails != null) {
+                String azienda = finalFldAzienda.getText().trim();
+                if (azienda.isEmpty()) {
+                    DialogUtils.showError("Errore", "Nome Azienda obbligatorio.", stage);
                     return;
                 }
-                utente.setPassword(nuovaPw);
-            }
+                torrefattoreDetails.setNomeAzienda(azienda);
+                torrefattoreDetails.setDescrizione(finalAreaDesc.getText());
+                torrefattoreDetails.setFotoProfilo(nuovoPercorsoFoto);
 
-            try {
-                new UtenteDAOImpl().update(utente);
-                DialogUtils.showInfo("Successo", "Profilo aggiornato!", stage);
-                tornaAllaHome();
-            } catch (SQLException ex) {
-                DialogUtils.showError("Errore DB", ex.getMessage(), stage);
-            }
+                // Keep base fields consistent if needed, but we rely on nomeAzienda mainly
+                // Maybe update nome/cognome to match azienda/empty? Or keep them as is in DB?
+                // For simplicity, let's keep nome/cognome as is or ignored for Roasters display
+
+                if (!nuovaPw.isEmpty()) {
+                    if (nuovaPw.length() < 8) {
+                        DialogUtils.showError("Errore", "Password min. 8 caratteri.", stage);
+                        return;
+                    }
+                    torrefattoreDetails.setPassword(nuovaPw);
+                }
+
+                try {
+                    torrefattoreDAO.update(torrefattoreDetails);
+                    // Update session object too
+                    utente.setFotoProfilo(nuovoPercorsoFoto); // reflect changes immediately
+                    DialogUtils.showInfo("Successo", "Profilo Aziendale aggiornato!", stage);
+                    tornaAllaHome();
+                } catch (SQLException ex) {
+                    DialogUtils.showError("Errore DB", ex.getMessage(), stage);
+                }
+
+            } else {
+                // STANDARD USER
+                String nuovoNome = finalFldNome.getText().trim();
+                String nuovoCognome = finalFldCognome.getText().trim();
+
+                if (nuovoNome.isEmpty() || nuovoCognome.isEmpty()) {
+                    DialogUtils.showError("Errore", "Nome e Cognome obbligatori.", stage);
+                    return;
+                }
+
+                utente.setNome(nuovoNome);
+                utente.setCognome(nuovoCognome);
+                utente.setFotoProfilo(nuovoPercorsoFoto);
+
+                if (!nuovaPw.isEmpty()) {
+                    if (nuovaPw.length() < 8) {
+                        DialogUtils.showError("Errore", "Password min. 8 caratteri.", stage);
+                        return;
+                    }
+                    utente.setPassword(nuovaPw);
+                }
+
+                try {
+                    new UtenteDAOImpl().update(utente);
+                    DialogUtils.showInfo("Successo", "Profilo aggiornato!", stage);
+                    tornaAllaHome();
+                } catch (SQLException ex) {
+                    DialogUtils.showError("Errore DB", ex.getMessage(), stage);
+                }
+            } // End else Standard User
         });
 
         // Assemblaggio Right Column

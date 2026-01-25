@@ -23,5 +23,13 @@ public interface TorrefattoreDAO {
      */
     Torrefattore findByUsername(String username) throws SQLException;
 
+    /**
+     * Aggiorna i dati del torrefattore.
+     * 
+     * @param torrefattore Il torrefattore con i dati aggiornati.
+     * @throws SQLException In caso di errore SQL.
+     */
+    void update(Torrefattore torrefattore) throws SQLException;
+
     void delete(String username) throws SQLException;
 }

@@ -58,9 +58,9 @@ public class HomeView {
     private Button btnSavedPosts;
     private VBox sidebarContent;
 
+    private ScrollPane feedScroll;
+
     /**
-     * 
-     * /**
      * Costruttore della HomeView.
      *
      * @param stage         Lo stage principale dell'applicazione.
@@ -128,6 +128,12 @@ public class HomeView {
                         lblUser.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C1810;");
 
                         itemBox.getChildren().addAll(avatar, lblUser);
+
+                        if (u.getTipo() == Utente.TipoUtente.TORREFATTORE) {
+                            it.univaq.brewhub.UI.components.VerificationBadge badge = new it.univaq.brewhub.UI.components.VerificationBadge(
+                                    12);
+                            itemBox.getChildren().add(badge);
+                        }
 
                         CustomMenuItem item = new CustomMenuItem(itemBox);
                         item.setHideOnClick(true);
@@ -340,7 +346,7 @@ public class HomeView {
 
         loadFeed();
 
-        ScrollPane feedScroll = new ScrollPane(feedLayout);
+        feedScroll = new ScrollPane(feedLayout);
         feedScroll.setFitToWidth(true);
         feedScroll.getStyleClass().add("scroll-pane");
 
@@ -546,9 +552,22 @@ public class HomeView {
         postStage.showAndWait();
     }
 
+    private void restoreFeedView() {
+        if (stage.getScene() == null || stage.getScene().getRoot() == null)
+            return;
+        if (stage.getScene().getRoot() instanceof BorderPane) {
+            BorderPane root = (BorderPane) stage.getScene().getRoot();
+            if (root.getCenter() != feedScroll) {
+                root.setCenter(feedScroll);
+            }
+        }
+    }
+
     private void loadFeed() {
         if (feedLayout == null)
             return;
+
+        restoreFeedView();
 
         setActiveSection("Home");
         feedLayout.getChildren().clear();
@@ -598,6 +617,7 @@ public class HomeView {
     private void loadFeedPopular() {
         if (feedLayout == null)
             return;
+        restoreFeedView();
         setActiveSection("Popolari");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -627,6 +647,7 @@ public class HomeView {
     private void loadFeedFollowed() {
         if (feedLayout == null)
             return;
+        restoreFeedView();
         setActiveSection("Followed");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -662,6 +683,7 @@ public class HomeView {
     private void loadFeedLiked() {
         if (feedLayout == null)
             return;
+        restoreFeedView();
         setActiveSection("MiPiace");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -691,6 +713,7 @@ public class HomeView {
         if (feedLayout == null)
             return;
 
+        restoreFeedView();
         setActiveSection(c.getNome());
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -721,6 +744,7 @@ public class HomeView {
         if (feedLayout == null)
             return;
 
+        restoreFeedView();
         setActiveSection("Torrefattori");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -758,6 +782,7 @@ public class HomeView {
         if (feedLayout == null)
             return;
 
+        restoreFeedView();
         setActiveSection("Salvati");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -833,6 +858,7 @@ public class HomeView {
             return;
         }
 
+        restoreFeedView();
         // Clear feed layout
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -961,6 +987,7 @@ public class HomeView {
     private void performUserManagementSearch() {
         if (feedLayout == null)
             return;
+        restoreFeedView();
         setActiveSection("GestioneUtenti");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -1062,6 +1089,7 @@ public class HomeView {
     private void openCategoryManagement() {
         if (feedLayout == null)
             return;
+        restoreFeedView();
         setActiveSection("GestioneCategorie"); // Highlight sidebar
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -1296,6 +1324,11 @@ public class HomeView {
             btnTorr.setOnAction(e -> loadFeedByTorrefattori());
             sidebarContent.getChildren().add(btnTorr);
 
+            // Button Eventi (New Feature)
+            Button btnEvents = creaNavButton("\uD83C\uDF89  Eventi", "Eventi".equals(currentSection));
+            btnEvents.setOnAction(e -> loadEventsView());
+            sidebarContent.getChildren().add(btnEvents);
+
             for (Categoria c : cats) {
                 if (c.getNome().equalsIgnoreCase("Torrefattori"))
                     continue;
@@ -1305,8 +1338,12 @@ public class HomeView {
                     icon = "\uD83D\uDCC2";
                     if (c.getNome().equalsIgnoreCase("Miscele"))
                         icon = "\uD83E\uDED8";
-                    else if (c.getNome().equalsIgnoreCase("Eventi"))
-                        icon = "\uD83C\uDF89";
+
+                    // Se la categoria è "Eventi", la saltiamo qui per usare il bottone dedicato che
+                    // apre la View specifica
+                    if (c.getNome().equalsIgnoreCase("Eventi"))
+                        continue;
+
                 }
 
                 Button btnCat = creaNavButton(icon + "  " + c.getNome(), c.getNome().equals(currentSection));
@@ -1384,6 +1421,7 @@ public class HomeView {
         if (feedLayout == null)
             return;
 
+        restoreFeedView();
         setActiveSection("GestioneDB");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -1492,6 +1530,7 @@ public class HomeView {
         if (feedLayout == null)
             return;
 
+        restoreFeedView();
         setActiveSection("Dashboard");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -1577,6 +1616,51 @@ public class HomeView {
         }
     }
 
+    private void loadEventsView() {
+        if (feedLayout == null)
+            return;
+
+        setActiveSection("Eventi");
+        feedLayout.getChildren().clear();
+        stopAllPlayers();
+
+        // Non usiamo createHeaderLabel perché EventsView ha il suo header interno,
+        // ma HomeView si aspetta di riempire feedLayout.
+        // In questo caso, EventsView è un BorderPane.
+        // Possiamo aggiungerlo direttamente al feedLayout?
+        // EventsView è progettata come una View intera (BorderPane).
+        // Se vogliamo integrarla nel feedLayout (VBox), dobbiamo estrarre il contenuto
+        // o aggiungerla così com'è.
+        // Essendo un BorderPane, javafx permette di aggiungerlo a VBox.
+        // Ma EventsView gestisce il suo scroll. feedLayout è dentro uno ScrollPane
+        // (home).
+        // Doppio scroll potrebbe essere brutto.
+        // Soluzione: EventsView dovrebbe essere un contenuto, non un contenitore con
+        // scroll se possibile.
+        // Ma ho fatto EventsView con ScrollPane interno.
+
+        // Modifica: Sostituire il centro della root view?
+        // HomeView ha: Top(Header), Left(Sidebar), Center(FeedScroll).
+        // Se sostituisco Center, perdo lo scroll del feed (che è quello che voglio).
+
+        // Quindi:
+        EventsView eventsView = new EventsView(utenteLoggato);
+        // Sostituiamo il contenuto centrale di root
+        BorderPane root = (BorderPane) stage.getScene().getRoot();
+        // Ma HomeView.getView() crea un nuovo root. Qui siamo in un'istanza già
+        // visualizzata.
+        // Dobbiamo accedere al root esistente.
+        // stage.getScene().getRoot() dovrebbe essere il BorderPane creato in getView().
+
+        if (root.getCenter() instanceof ScrollPane) {
+            root.setCenter(eventsView);
+        } else if (root.getCenter() instanceof EventsView) {
+            // Già lì
+        } else {
+            root.setCenter(eventsView);
+        }
+    }
+
     private VBox createStatCard(String title, String value, String icon, String bgColor, String textColor) {
         VBox card = new VBox(10);
         card.setAlignment(Pos.CENTER);
@@ -1606,9 +1690,6 @@ public class HomeView {
     private Label createHeaderLabel(String text) {
         Label lbl = new Label(text);
         lbl.getStyleClass().add("section-title");
-        // Extra styling for "wow" factor
-        lbl.setStyle(
-                "-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #3E2723; -fx-padding: 0 0 10 0; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2,0,0,1);");
         return lbl;
     }
 

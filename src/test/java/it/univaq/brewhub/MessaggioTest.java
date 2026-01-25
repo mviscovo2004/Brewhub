@@ -11,7 +11,33 @@ import it.univaq.brewhub.dao.impl.GruppoDAOImpl;
 import it.univaq.brewhub.Utente.TipoUtente;
 import java.util.ArrayList;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
 public class MessaggioTest {
+
+    private static final String TEST_DB_PATH = "brewhub_test_messaggi.db";
+
+    @BeforeAll
+    public static void setUp() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
+    }
 
     @Test
     public void testCostruttoriGetterSetter() {
@@ -40,7 +66,6 @@ public class MessaggioTest {
 
     @Test
     public void testMetodiDB() throws SQLException {
-        it.univaq.brewhub.DatabaseManager.init();
         MessaggioDAOImpl msgDAO = new MessaggioDAOImpl();
         UtenteDAOImpl userDAO = new UtenteDAOImpl();
 

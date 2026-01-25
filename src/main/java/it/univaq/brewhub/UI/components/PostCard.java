@@ -113,10 +113,8 @@ public class PostCard extends VBox {
         authorBox.setAlignment(Pos.CENTER_LEFT);
 
         if (post.getAutore().getTipo() == Utente.TipoUtente.TORREFATTORE) {
-            Label verifiedBadge = new Label("\u2714"); // Checkmark
-            verifiedBadge.getStyleClass().add("verified-badge");
-            verifiedBadge.setTooltip(new Tooltip("Torrefattore Verificato"));
-            authorBox.getChildren().add(verifiedBadge);
+            VerificationBadge badge = new VerificationBadge(16);
+            authorBox.getChildren().add(badge);
         }
 
         // BADGE TIPO UTENTE

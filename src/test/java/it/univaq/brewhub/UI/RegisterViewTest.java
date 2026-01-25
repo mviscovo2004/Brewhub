@@ -25,8 +25,50 @@ import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
 @ExtendWith(ApplicationExtension.class)
 class RegisterViewTest {
+
+    private static final String TEST_DB_PATH = "brewhub_test_ui_register.db";
+
+    @BeforeAll
+    public static void setupClass() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        // Retry deletion for up to 2 seconds
+        for (int i = 0; i < 20; i++) {
+            try {
+                java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+                if (!dbFile.exists())
+                    break;
+
+                System.gc();
+                Thread.sleep(100);
+
+                if (dbFile.delete()) {
+                    break;
+                }
+            } catch (Exception e) {
+                // Ignore and retry
+            }
+        }
+
+        // Final attempt
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists()) {
+            System.err.println("WARNING: Could not delete test DB file: " + TEST_DB_PATH);
+            dbFile.deleteOnExit();
+        }
+    }
 
     private final String TEST_USER = "testUserReg";
     private final String TEST_TORREFATTORE = "testTorreReg";
@@ -131,15 +173,11 @@ class RegisterViewTest {
         // Clicca su Registrati
         robot.clickOn("#btnRegistrati");
 
-        // Verifica passaggio alla Home (verificando assenza form o presenza elementi
-        // home)
-        // Poiché HomeView non è facilmente verificabile senza mockare tutto,
-        // controlliamo che non ci siano errori
-        // o che la scena sia cambiata.
-        // Possiamo verificare che non sia più visibile il pulsante registrati?
-        // O meglio, cerchiamo un elemento della Home. "Crea un nuovo post" è un buon
-        // candidato se siamo loggati.
-        // Ma HomeView constructor richiede Utente.
+        // Debug failure
+        if (robot.lookup("#lblErrore").tryQuery().map(node -> node.isVisible()).orElse(false)) {
+            javafx.scene.control.Label lbl = robot.lookup("#lblErrore").queryAs(javafx.scene.control.Label.class);
+            org.junit.jupiter.api.Assertions.fail("Registration failed with UI error: " + lbl.getText());
+        }
 
         // Verify that we are NOT on register view anymore or specific element of
         // HomeView exists
@@ -148,21 +186,6 @@ class RegisterViewTest {
         // root changed.
         // Actually, let's verify error label is NOT visible, verify button is NOT
         // visible (stage root changed).
-
-        // Note: verifying scene root change with TestFX is finding elements of new
-        // scene.
-        // Let's assume checking for something generic like a logout button or sidebar
-        // if possible.
-        // Or simply that the registration button is gone.
-        // robot.lookup("#btnRegistrati").query() should throw or return nothing/not
-        // visible if scene changed effectively?
-        // Actually if scene root replaced, the old nodes are detached.
-
-        // verifyThat("#lblErrore", isVisible().negate()); // Not enough, it's invisible
-        // by default.
-
-        // Let's trust that if no error appears and we clicked, it went through.
-        // Ideally we check DB too.
 
         UtenteDAOImpl dao = new UtenteDAOImpl();
         try {
@@ -241,6 +264,5 @@ class RegisterViewTest {
 
     @BeforeEach
     void setupDB() throws SQLException {
-        DatabaseManager.init();
     }
 }

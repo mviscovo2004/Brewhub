@@ -18,7 +18,33 @@ import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
  * Verifica il corretto funzionamento dei costruttori, dei metodi getter/setter
  * e delle interazioni con il database (CRUD).
  */
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
 public class PostTest {
+
+    private static final String TEST_DB_PATH = "brewhub_test_posts.db";
+
+    @BeforeAll
+    public static void setUp() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
+    }
 
     /**
      * Test del costruttore per post di tipo TESTO.

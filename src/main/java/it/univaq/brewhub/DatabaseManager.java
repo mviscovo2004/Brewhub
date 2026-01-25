@@ -14,7 +14,18 @@ public class DatabaseManager {
 
         // Il file del DB verrà creato nella cartella del progetto
         /** URL di connessione JDBC per SQLite. */
-        private static final String URL = "jdbc:sqlite:brewhub.db";
+        // Il file del DB verrà creato nella cartella del progetto
+        /** URL di connessione JDBC per SQLite. */
+        private static String connectionUrl = "jdbc:sqlite:brewhub.db";
+
+        /**
+         * Configura il database manager per usare un database di test.
+         * 
+         * @param dbPath Percorso del file db di test
+         */
+        public static void configureTestDatabase(String dbPath) {
+                connectionUrl = "jdbc:sqlite:" + dbPath;
+        }
 
         /**
          * Ottiene una connessione attiva al database SQLite.
@@ -23,7 +34,7 @@ public class DatabaseManager {
          * @throws SQLException In caso di errore di connessione.
          */
         public static Connection getConnection() throws SQLException {
-                return DriverManager.getConnection(URL);
+                return DriverManager.getConnection(connectionUrl);
         }
 
         /**
@@ -208,12 +219,27 @@ public class DatabaseManager {
                                 // Colonna probabilmente già esistente
                         }
 
-                        // Alter table per id_gruppo su messaggi se non esiste (migrazione)
-                        try {
-                                stmt.execute("ALTER TABLE messaggi ADD COLUMN id_gruppo INTEGER REFERENCES gruppi(id) ON DELETE CASCADE");
-                        } catch (SQLException e) {
-                                // Colonna probabilmente già esistente
-                        }
+                        // Creazione tabella Eventi
+                        String sqlEventi = "CREATE TABLE IF NOT EXISTS eventi (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "nome TEXT NOT NULL, " +
+                                        "descrizione TEXT, " +
+                                        "data TEXT NOT NULL, " +
+                                        "luogo TEXT NOT NULL, " +
+                                        "organizzatore TEXT NOT NULL, " +
+                                        "FOREIGN KEY(organizzatore) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlEventi);
+
+                        // Creazione tabella Partecipazioni
+                        String sqlPartecipazioni = "CREATE TABLE IF NOT EXISTS partecipazioni (" +
+                                        "evento_id INTEGER NOT NULL, " +
+                                        "utente_username TEXT NOT NULL, " +
+                                        "PRIMARY KEY (evento_id, utente_username), " +
+                                        "FOREIGN KEY(evento_id) REFERENCES eventi(id) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                        ")";
+                        stmt.execute(sqlPartecipazioni);
 
                 } catch (SQLException e) {
                         // Gestione errore inizializzazione DB

@@ -252,6 +252,14 @@
     -fx-font-weight: bold;
 }
 
+.section-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3E2723;
+    -fx-padding: 0 0 10 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 2, 0, 0, 1);
+}
+
 .subtitle-label {
     -fx-text-fill: #8D6E63;
     -fx-font-size: 14;
@@ -1430,4 +1438,19 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #3E2723;
+}
+
+/* ============================================
+   VERIFICATION BADGE
+   ============================================ */
+.verification-seal {
+    -fx-fill: #D4A574;
+    /* Coffee Gold Accent */
+    -fx-stroke: transparent;
+}
+
+.verification-check {
+    -fx-fill: #FFF8F3;
+    /* White Cream */
+    -fx-stroke: transparent;
 }

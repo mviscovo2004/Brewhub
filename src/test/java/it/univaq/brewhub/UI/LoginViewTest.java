@@ -12,6 +12,11 @@ import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import it.univaq.brewhub.DatabaseManager;
+import java.sql.SQLException;
+
 @ExtendWith(ApplicationExtension.class)
 /**
  * Classe di test per l'interfaccia grafica di Login (LoginView).
@@ -23,6 +28,29 @@ import static org.testfx.matcher.control.LabeledMatchers.hasText;
  * - Tentativo di login con credenziali errate.
  */
 class LoginViewTest {
+
+    private static final String TEST_DB_PATH = "brewhub_test_ui_login.db";
+
+    @BeforeAll
+    public static void setupClass() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
+    }
 
     /**
      * Metodo di avvio (Start) eseguito prima di ogni test.

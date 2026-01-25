@@ -3,6 +3,7 @@ package it.univaq.brewhub.dao;
 import it.univaq.brewhub.DatabaseManager;
 import it.univaq.brewhub.Torrefattore;
 import it.univaq.brewhub.dao.impl.TorrefattoreDAOImpl;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
@@ -11,13 +12,29 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TorrefattoreTest {
 
+    private static final String TEST_DB_PATH = "brewhub_test_torrefattori.db";
     private static TorrefattoreDAO torrefattoreDAO;
 
     @BeforeAll
-    static void setup() {
-        // Inizializza DB (crea tabelle se non esistono)
+    static void setup() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
         DatabaseManager.init();
         torrefattoreDAO = new TorrefattoreDAOImpl();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
     }
 
     @Test

@@ -68,10 +68,9 @@ public class UserProfileView {
         HBox usernameBox = new HBox(8, lblUsername);
         usernameBox.setAlignment(Pos.CENTER);
         if (profileUser.getTipo() == Utente.TipoUtente.TORREFATTORE) {
-            Label verifiedBadge = new Label("\u2714");
-            verifiedBadge.getStyleClass().add("verified-badge-large"); // Larger for profile
-            verifiedBadge.setTooltip(new Tooltip("Torrefattore Verificato"));
-            usernameBox.getChildren().add(verifiedBadge);
+            it.univaq.brewhub.UI.components.VerificationBadge badge = new it.univaq.brewhub.UI.components.VerificationBadge(
+                    20);
+            usernameBox.getChildren().add(badge);
         }
 
         Label lblName = new Label();

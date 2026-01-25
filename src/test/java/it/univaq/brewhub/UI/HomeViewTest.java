@@ -23,8 +23,36 @@ import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
+import it.univaq.brewhub.DatabaseManager;
+
 @ExtendWith(ApplicationExtension.class)
 class HomeViewTest {
+
+    private static final String TEST_DB_PATH = "brewhub_test_ui_home.db";
+
+    @BeforeAll
+    public static void setupClass() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        try {
+            System.gc();
+            Thread.sleep(100);
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+        }
+    }
 
     private final String TEST_USER = "testUserHome";
     private final String POST_TITLE = "Titolo TestFX";
@@ -52,8 +80,6 @@ class HomeViewTest {
 
     @BeforeEach
     void setupDB() throws SQLException {
-        // Inizializza il DB (crea tabelle mancanti come 'likes')
-        it.univaq.brewhub.DatabaseManager.init();
 
         UtenteDAOImpl dao = new UtenteDAOImpl();
         // Assicuriamoci che l'utente esista nel DB

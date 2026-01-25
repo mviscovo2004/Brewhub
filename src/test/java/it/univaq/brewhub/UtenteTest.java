@@ -16,6 +16,30 @@ import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
  */
 public class UtenteTest {
 
+    private static final String TEST_DB_PATH = "brewhub_test_utenti.db";
+
+    @BeforeAll
+    public static void setUp() throws SQLException {
+        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+        if (dbFile.exists())
+            dbFile.delete();
+        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
+        DatabaseManager.init();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        try {
+            System.gc();
+            Thread.sleep(100); // Wait for file release
+            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
+            if (dbFile.exists())
+                dbFile.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Test del costruttore per il profilo OSPITE.
      * Verifica che un utente ospite abbia username impostato, ma password null
@@ -109,13 +133,6 @@ public class UtenteTest {
 
         UtenteDAOImpl dao = new UtenteDAOImpl();
 
-        // CLEANUP PREVENTIVO:
-        try {
-            dao.delete(u.getUsername());
-        } catch (SQLException e) {
-            // Ignora se l'utente non esiste già (situazione normale)
-        }
-
         // 1. REGISTRAZIONE
         // Salva il nuovo utente nel DB
         dao.create(u);
@@ -157,12 +174,6 @@ public class UtenteTest {
     public void testSearchExcludesDeleted() throws SQLException {
         UtenteDAOImpl dao = new UtenteDAOImpl();
         String tempUsername = "toBeDeletedUser";
-
-        // 0. Cleanup
-        try {
-            dao.delete(tempUsername);
-        } catch (Exception e) {
-        }
 
         // 1. Create a user
         Utente u = new Utente("Test", "Del", tempUsername, "pwd", TipoUtente.APPASSIONATO, null);
@@ -214,8 +225,4 @@ public class UtenteTest {
         assertNull(session.getCurrentUser());
     }
 
-    @BeforeAll
-    public static void init() {
-        // Init logic if needed
-    }
 }

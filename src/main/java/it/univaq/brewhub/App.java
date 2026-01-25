@@ -23,19 +23,24 @@ public class App extends Application {
      */
     @Override
     public void start(Stage stage) {
-        // Creazione della vista di login
-        LoginView login = new LoginView(stage);
+        try {
+            // Creazione della vista di login
+            LoginView login = new LoginView(stage);
 
-        // Creazione della scena con dimensioni fisse
-        Scene scene = new Scene(login.getView());
+            // Creazione della scena con dimensioni fisse
+            Scene scene = new Scene(login.getView());
 
-        // Applica il tema personalizzato (caffè)
-        ThemeManager.applyTheme(scene);
+            // Applica il tema personalizzato (caffè)
+            ThemeManager.applyTheme(scene);
 
-        // Configurazione e visualizzazione dello stage
-        stage.setScene(scene);
-        stage.setTitle("BrewHub"); // Imposta titolo opzionale
-        stage.show();
+            // Configurazione e visualizzazione dello stage
+            stage.setScene(scene);
+            stage.setTitle("BrewHub"); // Imposta titolo opzionale
+            stage.show();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.err.println("CRITICAL ERROR STARTING APP: " + t.getMessage());
+        }
     }
 
     /**
