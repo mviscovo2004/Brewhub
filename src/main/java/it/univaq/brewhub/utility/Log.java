@@ -6,16 +6,16 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 /**
- * Classe di utilità per la gestione del logging centralizzato.
- * Configura il logger di sistema e fornisce metodi di comodo per loggare
- * messaggi.
+ * Classe di utilità per il logging centralizzato dell'applicazione.
+ * Wrapper intorno a {@link java.util.logging.Logger} per semplificare l'invio
+ * di messaggi di log.
  */
 public class Log {
-    /** Istanza del Logger Java standard. */
+
     private static final Logger LOGGER = Logger.getLogger("BrewHub");
 
+    // Blocco statico per configurare il logger all'avvio
     static {
-        // Configurazione base console
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
         handler.setLevel(Level.ALL);
@@ -25,28 +25,28 @@ public class Log {
     }
 
     /**
-     * Logga un messaggio informativo (Level.INFO).
-     *
-     * @param msg Il messaggio da loggare.
+     * Logga un messaggio informativo.
+     * 
+     * @param msg Il messaggio.
      */
     public static void info(String msg) {
         LOGGER.info(msg);
     }
 
     /**
-     * Logga un messaggio di errore (Level.SEVERE) con relativa eccezione.
-     *
+     * Logga un errore grave con relativa eccezione.
+     * 
      * @param msg Il messaggio di errore.
-     * @param e   L'eccezione causante (Throwable).
+     * @param e   L'eccezione catturata.
      */
     public static void error(String msg, Throwable e) {
         LOGGER.log(Level.SEVERE, msg, e);
     }
 
     /**
-     * Logga un messaggio di avviso (Level.WARNING).
-     *
-     * @param msg Il messaggio di avviso.
+     * Logga un avvertimento.
+     * 
+     * @param msg Il messaggio di warning.
      */
     public static void warning(String msg) {
         LOGGER.warning(msg);

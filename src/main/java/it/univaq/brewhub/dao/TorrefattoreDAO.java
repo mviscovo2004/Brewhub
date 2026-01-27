@@ -3,33 +3,37 @@ package it.univaq.brewhub.dao;
 import it.univaq.brewhub.Torrefattore;
 import java.sql.SQLException;
 
+/**
+ * Interfaccia DAO per la gestione specifica dei Torrefattori.
+ */
 public interface TorrefattoreDAO {
 
     /**
-     * Crea un nuovo Torrefattore nel sistema.
-     * Salva sia i dati utente che i dettagli specifici del torrefattore.
-     * 
-     * @param torrefattore L'oggetto Torrefattore da salvare.
-     * @throws SQLException In caso di errore SQL.
+     * Crea un nuovo torrefattore.
+     * @param torrefattore Dati del torrefattore.
+     * @throws SQLException Errore SQL.
      */
     void create(Torrefattore torrefattore) throws SQLException;
 
     /**
-     * Cerca un Torrefattore tramite username.
-     * 
-     * @param username Lo username da cercare.
-     * @return L'oggetto Torrefattore popolato o null se non trovato.
-     * @throws SQLException In caso di errore SQL.
+     * Cerca un torrefattore per username.
+     * @param username Username.
+     * @return Torrefattore trovato o null.
+     * @throws SQLException Errore SQL.
      */
     Torrefattore findByUsername(String username) throws SQLException;
 
     /**
-     * Aggiorna i dati del torrefattore.
-     * 
-     * @param torrefattore Il torrefattore con i dati aggiornati.
-     * @throws SQLException In caso di errore SQL.
+     * Aggiorna i dati di un torrefattore.
+     * @param torrefattore Dati aggiornati.
+     * @throws SQLException Errore SQL.
      */
     void update(Torrefattore torrefattore) throws SQLException;
 
+    /**
+     * Elimina un torrefattore.
+     * @param username Username.
+     * @throws SQLException Errore SQL.
+     */
     void delete(String username) throws SQLException;
 }

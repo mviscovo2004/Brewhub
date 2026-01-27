@@ -5,107 +5,88 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.util.UUID;
 import it.univaq.brewhub.utility.Log;
 
 /**
- * Gestione dei file media (immagini, video) per i post.
- * Si occupa di salvare, copiare e recuperare i file dalla directory dedicata
- * "media".
+ * Gestore per i file multimediali (immagini, video) dell'applicazione.
+ * <p>Si occupa di salvare, recuperare e gestire i percorsi dei file nella cartella locale 'media'.</p>
  */
 public class MediaManager {
 
-    // Cartella dedicata ai media
-    /** Nome della cartella dedicata ai media. */
     private static final String MEDIA_FOLDER = "media";
 
     /**
-     * Inizializza la cartella media all'avvio dell'applicazione.
-     * Se la cartella non esiste, viene creata.
+     * Inizializza la cartella dei media se non esiste.
      */
     public static void initMediaFolder() {
         try {
+            // Crea la directory 'media' nella root del progetto se assente
             Path mediaPath = Paths.get(MEDIA_FOLDER);
-
-            // Crea la cartella media se non esiste
             if (!Files.exists(mediaPath)) {
                 Files.createDirectories(mediaPath);
             }
         } catch (IOException e) {
             System.err.println("Errore durante creazione cartella media: " + e.getMessage());
-            Log.error("Errore durante la copia del media", e);
+            Log.error("Errore durante la creazione cartella media", e);
         }
     }
 
     /**
-     * Copia un file media selezionato dall'utente nella cartella interna
-     * dell'applicazione.
-     * Genera un nome univoco per evitare conflitti.
-     *
-     * @param file Il file sorgente selezionato.
-     * @return String Il percorso relativo del file copiato (es. "/media/uuid.jpg"),
-     *         o null in caso di errore.
+     * Copia un file selezionato nella cartella gestita dall'applicazione.
+     * Genera un nome file univoco (UUID) per evitare conflitti.
+     * 
+     * @param file Il file sorgente selezionato dall'utente.
+     * @return Il percorso relativo (es. "/media/uuid.jpg") o null se errore.
      */
     public static String copyMediaToFolder(File file) {
-        // Controllo file valido
         if (file == null || !file.exists()) {
             return null;
         }
-
         try {
-            // Crea il nome univoco del file
+            // Genera nome univoco preservando l'estensione
             String extension = getFileExtension(file.getName());
             String fileName = UUID.randomUUID().toString() + (extension.isEmpty() ? "" : "." + extension);
+            
             Path sourcePath = file.toPath();
             Path destPath = Paths.get(MEDIA_FOLDER, fileName);
-
-            // Copia il file
+            
+            // Esegue la copia fisica
             Files.copy(sourcePath, destPath);
-
-            // Ritorna il percorso relativo usando slash e senza prefisso di disco per
-            // portabilità
+            
+            // Standardizza i percorsi con forward slash per compatibilità DB/UI su OS diversi
             String rel = "/" + MEDIA_FOLDER + "/" + fileName;
             return rel.replace('\\', '/');
         } catch (IOException e) {
             System.err.println("Errore durante la copia del file: " + e.getMessage());
-            Log.error("Errore durante eliminazione file", e);
+            Log.error("Errore durante la copia del media", e);
             return null;
         }
     }
 
-    /**
-     * Estrae l'estensione da un nome file.
-     *
-     * @param fileName Il nome del file.
-     * @return L'estensione (senza punto) o stringa vuota se non presente.
-     */
     private static String getFileExtension(String fileName) {
         int lastIndex = fileName.lastIndexOf('.');
         return lastIndex > 0 ? fileName.substring(lastIndex + 1).toLowerCase() : "";
     }
 
     /**
-     * Recupera un oggetto File a partire dal percorso relativo memorizzato nel DB.
-     *
-     * @param relativePath Il percorso relativo (es. "media/foto.jpg" o
-     *                     "/media/foto.jpg").
-     * @return File L'oggetto File corrispondente, o null se non trovato o path
-     *         invalido.
+     * Recupera l'oggetto File fisico dato un percorso relativo.
+     * 
+     * @param relativePath Il percorso salvato nel DB (es. "/media/abc.jpg").
+     * @return L'oggetto {@link File} se esiste, altrimenti null.
      */
     public static File getMediaFile(String relativePath) {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
         }
-
-        // Accetta sia "media/xxx" che "/media/xxx" rimuovendo lo slash iniziale se
-        // presente
+        // Rimuovi slash iniziale se presente per permettere il resolve corretto
         String rel = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+        
+        // Risolvi il path relativo rispetto alla working directory corrente
         Path projectRoot = Paths.get("").toAbsolutePath();
         Path mediaPath = projectRoot.resolve(rel);
+        
         File file = mediaPath.toFile();
-
-        // Controlla se il file esiste fisicamente
         if (file.exists()) {
             return file;
         }
@@ -113,31 +94,27 @@ public class MediaManager {
     }
 
     /**
-     * Calcola il percorso relativo di un file media rispetto alla root del
-     * progetto.
-     * Utile per verificare se un file è già nella cartella gestita.
-     *
-     * @param file Il file di cui calcolare il path.
-     * @return String Il percorso relativo o null se il file non è nella cartella
-     *         media.
+     * Calcola il percorso relativo di un file che si trova già nella cartella media.
+     * Utile se si seleziona un file già presente.
+     * 
+     * @param file Il file fisico.
+     * @return Il percorso relativo o null se il file è esterno.
      */
     public static String getRelativePath(File file) {
         if (file == null)
             return null;
-
         try {
             Path projectRoot = Paths.get("").toAbsolutePath();
             Path mediaFolder = projectRoot.resolve(MEDIA_FOLDER).toAbsolutePath();
             Path filePath = file.toPath().toAbsolutePath();
-
-            // Verifica che il file sia effettivamente dentro la cartella media
+            
+            // Controlla se il file è effettivamente dentro la cartella media
             if (filePath.startsWith(mediaFolder)) {
-                // Calcola il percorso relativo
                 Path rel = mediaFolder.relativize(filePath);
                 return "/" + MEDIA_FOLDER + "/" + rel.toString().replace('\\', '/');
             }
         } catch (Exception e) {
-            Log.error("Errore caricamento immagine default", e);
+            Log.error("Errore calcolo path relativo", e);
         }
         return null;
     }

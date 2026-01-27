@@ -8,52 +8,47 @@ import javafx.stage.Stage;
 
 /**
  * Classe principale dell'applicazione BrewHub.
- * Estende la classe Application di JavaFX e gestisce l'avvio dell'interfaccia
- * grafica.
+ * <p>
+ * Estende {@link Application} di JavaFX e funge da punto di ingresso.
+ * Si occupa di inizializzare il database e mostrare la prima schermata (Login).
+ * </p>
  */
 public class App extends Application {
 
     /**
      * Metodo di avvio dell'applicazione JavaFX.
-     * Inizializza la LoginView, configura la scena principale, applica il tema
-     * e mostra la finestra (Stage).
-     *
-     * @param stage Lo stage primario per questa applicazione, nel quale la scena
-     *              dell'app viene impostata.
+     * <p>Configura lo stage primario, applica il tema e mostra la vista di login.</p>
+     * 
+     * @param stage Lo stage (finestra) principale fornito dal sistema.
      */
     @Override
     public void start(Stage stage) {
         try {
-            // Creazione della vista di login
             LoginView login = new LoginView(stage);
-
-            // Creazione della scena con dimensioni fisse
             Scene scene = new Scene(login.getView());
-
-            // Applica il tema personalizzato (caffè)
             ThemeManager.applyTheme(scene);
-
-            // Configurazione e visualizzazione dello stage
+            
             stage.setScene(scene);
-            stage.setTitle("BrewHub"); // Imposta titolo opzionale
+            stage.setTitle("BrewHub"); 
             stage.show();
         } catch (Throwable t) {
+            // Gestione errori critici all'avvio per evitare crash silenziosi
             t.printStackTrace();
             System.err.println("CRITICAL ERROR STARTING APP: " + t.getMessage());
         }
     }
 
     /**
-     * Entry point principale dell'applicazione Java.
-     * Inizializza il database e lancia l'applicazione JavaFX.
-     *
+     * Punto di ingresso standard (main).
+     * <p>Inizializza il database e lancia il runtime JavaFX.</p>
+     * 
      * @param args Argomenti da riga di comando (non utilizzati).
      */
     public static void main(String[] args) {
-        // Inizializzazione delle tabelle del database se non esistono
+        // Inizializza il database (creazione tabelle, migrazioni)
         DatabaseManager.init();
-
-        // Avvio del ciclo di vita JavaFX
+        
+        // Avvia l'interfaccia grafica
         launch();
     }
 }

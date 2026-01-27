@@ -26,34 +26,28 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- * Gestisce la schermata principale dell'applicazione (Home).
- * Mostra il feed dei post, la sidebar di navigazione e il modulo per creare
- * nuovi post.
+ * Vista principale dell'applicazione (Home).
+ * Gestisce il layout a tre colonne (Sidebar, Feed, Dashboard/Info) e la
+ * navigazione
+ * tra le varie sezioni (Feed Home, Popolari, Categorie, ecc.).
+ * Gestisce anche la creazione di nuovi post.
  */
 public class HomeView {
 
-    /** Riferimento allo stage principale dell'applicazione. */
     private final Stage stage;
-    /** Oggetto utente attualmente loggato. */
     private final Utente utenteLoggato;
+    // Service Layer
 
-    /** DAO per gestione Post. */
+    // DAO (Legacy/Specific usage)
     private final PostDAOImpl postDAO = new PostDAOImpl();
-
-    /** DAO per gestione Utenti. */
     private final it.univaq.brewhub.dao.impl.UtenteDAOImpl utenteDAO = new it.univaq.brewhub.dao.impl.UtenteDAOImpl();
-    /** DAO per gestione Notifiche. */
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
-    /** DAO per gestione Categorie. */
     private final it.univaq.brewhub.dao.impl.CategoriaDAOImpl categoriaDAO = new it.univaq.brewhub.dao.impl.CategoriaDAOImpl();
 
-    /** Contenitore VBox per il layout del feed dei post. */
     private VBox feedLayout;
-
-    /** Lista di PostCard attivi per gestire il ciclo di vita (es. stop video). */
     private final java.util.List<PostCard> activeCards = new java.util.ArrayList<>();
 
-    private String currentSection = "Home"; // Default active section
+    private String currentSection = "Home";
 
     private Button btnSavedPosts;
     private VBox sidebarContent;
@@ -61,10 +55,10 @@ public class HomeView {
     private ScrollPane feedScroll;
 
     /**
-     * Costruttore della HomeView.
-     *
-     * @param stage         Lo stage principale dell'applicazione.
-     * @param utenteLoggato L'utente attualmente loggato.
+     * Costruttore.
+     * 
+     * @param stage         Lo stage principale.
+     * @param utenteLoggato L'utente corrente.
      */
     public HomeView(Stage stage, Utente utenteLoggato) {
         this.stage = stage;
@@ -72,20 +66,28 @@ public class HomeView {
     }
 
     /**
-     * Costruisce e restituisce l'interfaccia grafica della Home.
-     * Configura header, sidebar e area centrale del feed.
+     * Costruisce e restituisce il nodo radice della Home.
      *
-     * @return Il nodo radice della vista (BorderPane).
+     * Configura l'header, la sidebar laterale e l'area centrale del feed.
+     *
+     * 
+     * @return Il nodo {@link Parent}.
      */
     public Parent getView() {
+        // Configurazione iniziale dello stage: massimizzato per sfruttare tutto lo
+        // spazio disponibile.
         stage.setResizable(true);
         stage.setMaximized(true);
         stage.setTitle("BrewHub - Home");
         stage.centerOnScreen();
+        stage.requestFocus();
 
         BorderPane root = new BorderPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
+        // --- HEADER ---
+        // L'header contiene il logo, la barra di ricerca e i pulsanti azione
+        // (Notifiche, Profilo, Logout).
         HBox header = new HBox(20);
         header.getStyleClass().add("header");
         header.setAlignment(Pos.CENTER_LEFT);
@@ -98,30 +100,35 @@ public class HomeView {
         searchField.setPrefWidth(300);
         searchField.getStyleClass().add("text-field");
 
+        // --- LOGICA DI RICERCA LIVE ---
+        // Utilizziamo un ContextMenu per mostrare i risultati della ricerca in tempo
+        // reale (dropdown).
         ContextMenu searchDropdown = new ContextMenu();
         searchDropdown.setStyle(
                 "-fx-background-color: #FFFBF5; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1);");
 
+        // Listener sul testo: ad ogni carattere digitato interroga il database per
+        // utenti corrispondenti.
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == null || newVal.isBlank()) {
                 searchDropdown.hide();
                 return;
             }
             try {
-                // Ricerca "live" (potrebbe essere ottimizzata con debounce in futuro)
+                // Esegue una query al DB per trovare utenti che matchano parzialmente l'input.
                 List<Utente> results = utenteDAO.searchByUsername(newVal);
                 searchDropdown.getItems().clear();
 
                 if (results.isEmpty()) {
                     searchDropdown.hide();
                 } else {
+                    // Popola il dropdown con i risultati trovati
                     for (Utente u : results) {
                         HBox itemBox = new HBox(10);
                         itemBox.setAlignment(Pos.CENTER_LEFT);
                         itemBox.setPadding(new Insets(5));
 
                         Circle avatar = new Circle(15);
-
                         avatar.setFill(javafx.scene.paint.Color.web("#8D6E63"));
 
                         Label lblUser = new Label(u.getUsername());
@@ -129,6 +136,7 @@ public class HomeView {
 
                         itemBox.getChildren().addAll(avatar, lblUser);
 
+                        // Aggiunge un badge di verifica se l'utente è un Torrefattore
                         if (u.getTipo() == Utente.TipoUtente.TORREFATTORE) {
                             it.univaq.brewhub.UI.components.VerificationBadge badge = new it.univaq.brewhub.UI.components.VerificationBadge(
                                     12);
@@ -137,8 +145,9 @@ public class HomeView {
 
                         CustomMenuItem item = new CustomMenuItem(itemBox);
                         item.setHideOnClick(true);
+                        // Al click sul risultato, naviga al profilo dell'utente
                         item.setOnAction(ev -> {
-                            stopAllPlayers(); // Clean up before navigation
+                            stopAllPlayers(); // Ferma eventuali video in riproduzione nel feed
                             UserProfileView upv = new UserProfileView(stage, utenteLoggato, u);
                             stage.getScene().setRoot(upv.getView());
                         });
@@ -153,6 +162,8 @@ public class HomeView {
             }
         });
 
+        // Al premere di INVIO, esegue una ricerca completa (Post + Utenti) nella vista
+        // centrale.
         searchField.setOnAction(e -> {
             searchDropdown.hide();
             performSearch(searchField.getText());
@@ -166,19 +177,20 @@ public class HomeView {
         btnNewPost.setId("btnNewPost");
         btnNewPost.setOnAction(e -> openCreatePostWindow());
 
-        // --- Notifiche ---
+        // --- GESTIONE NOTIFICHE ---
         Button btnNotifiche = new Button("\uD83D\uDD14");
         btnNotifiche.getStyleClass().addAll("button", "notification-btn");
 
         ContextMenu notifDropdown = new ContextMenu();
         notifDropdown.getStyleClass().add("notification-context-menu");
 
-        // Aggiorna badge notifiche
+        // Runnable per aggiornare il contatore delle notifiche non lette (Badge)
         Runnable refreshBadge = () -> {
             try {
                 int count = notificaDAO.getUnreadCount(utenteLoggato.getUsername());
                 if (count > 0) {
                     btnNotifiche.setText("\uD83D\uDD14 " + count);
+                    // Aggiunge stile visuale per evidenziare nuove notifiche
                     if (!btnNotifiche.getStyleClass().contains("has-notifications")) {
                         btnNotifiche.getStyleClass().add("has-notifications");
                     }
@@ -187,14 +199,13 @@ public class HomeView {
                     btnNotifiche.getStyleClass().remove("has-notifications");
                 }
             } catch (SQLException ex) {
-                // Log.error("Errore badge notifiche", ex);
             }
         };
-        refreshBadge.run();
+        refreshBadge.run(); // Primo controllo all'avvio
 
+        // Al click sull'icona, carica la lista delle notifiche dal DB
         btnNotifiche.setOnAction(e -> {
             try {
-                // Ricarica notifiche dal DB
                 List<it.univaq.brewhub.Notifica> notifiche = notificaDAO.findByUser(utenteLoggato.getUsername());
                 notifDropdown.getItems().clear();
 
@@ -206,12 +217,12 @@ public class HomeView {
                     notifDropdown.getItems().add(emptyItem);
                 } else {
                     for (it.univaq.brewhub.Notifica n : notifiche) {
+                        // Costruzione layout singola notifica
                         HBox container = new HBox(10);
                         container.setAlignment(Pos.CENTER_LEFT);
                         container.getStyleClass().add("notification-box");
-                        container.setPrefWidth(380); // Increased width to prevent truncation
+                        container.setPrefWidth(380);
 
-                        // VBox for Content (Date + Msg)
                         VBox contentBox = new VBox(5);
                         HBox.setHgrow(contentBox, Priority.ALWAYS);
 
@@ -230,7 +241,6 @@ public class HomeView {
 
                         contentBox.getChildren().addAll(dateLbl, msgLbl);
 
-                        // Delete Button (Small x)
                         Button btnDel = new Button("\u2715");
                         btnDel.getStyleClass().add("notification-delete-btn");
 
@@ -238,7 +248,7 @@ public class HomeView {
                         item.getStyleClass().add("notification-menu-item");
                         item.setHideOnClick(false);
 
-                        // Logic: Delete specific
+                        // Eliminazione singola notifica
                         btnDel.setOnAction(ev -> {
                             try {
                                 notificaDAO.delete(n.getId());
@@ -251,7 +261,7 @@ public class HomeView {
 
                         container.getChildren().addAll(contentBox, btnDel);
 
-                        // Click su notifica -> Segna come letto
+                        // Marcatura come "letta" al click
                         contentBox.setOnMouseClicked(ev -> {
                             if (!n.isLetto()) {
                                 try {
@@ -268,14 +278,12 @@ public class HomeView {
                         notifDropdown.getItems().add(item);
                     }
 
-                    // Clear All Button
+                    // Bottone "Cancella Tutte" in fondo alla lista
                     HBox clearBox = new HBox();
                     clearBox.setAlignment(Pos.CENTER);
                     clearBox.setPadding(new Insets(5));
-
                     Button btnClearAll = new Button("Cancella Tutte");
                     btnClearAll.getStyleClass().add("notification-clear-all-btn");
-
                     btnClearAll.setOnAction(ev -> {
                         try {
                             notificaDAO.deleteAll(utenteLoggato.getUsername());
@@ -288,7 +296,6 @@ public class HomeView {
                             Log.error("Errore deleteAll", ex);
                         }
                     });
-
                     clearBox.getChildren().add(btnClearAll);
                     CustomMenuItem clearItem = new CustomMenuItem(clearBox);
                     clearItem.getStyleClass().add("notification-menu-item");
@@ -301,6 +308,7 @@ public class HomeView {
             }
         });
 
+        // --- MENU PROFILO ---
         Button profileBtn = new Button("\uD83D\uDC64 " + utenteLoggato.getUsername());
         profileBtn.getStyleClass().addAll("button", "header-profile-btn");
         profileBtn.setOnAction(e -> {
@@ -309,7 +317,7 @@ public class HomeView {
                         stage);
                 return;
             }
-            stopAllPlayers(); // Clean up before navigation
+            stopAllPlayers();
             UserProfileView profileView = new UserProfileView(stage, utenteLoggato, utenteLoggato);
             stage.getScene().setRoot(profileView.getView());
         });
@@ -317,7 +325,7 @@ public class HomeView {
         Button logoutBtn = new Button("\uD83D\uDEAA Logout");
         logoutBtn.getStyleClass().addAll("button", "header-action-btn", "logout-btn");
         logoutBtn.setOnAction(e -> {
-            stopAllPlayers(); // Clean up before navigation
+            stopAllPlayers();
             LoginView login = new LoginView(stage);
             stage.getScene().setRoot(login.getView());
         });
@@ -328,6 +336,7 @@ public class HomeView {
             header.getChildren().addAll(logo, searchField, spacer, btnNewPost, btnNotifiche, profileBtn, logoutBtn);
         }
 
+        // --- SIDEBAR ---
         sidebarContent = new VBox(0);
         sidebarContent.setPrefWidth(260);
         sidebarContent.getStyleClass().add("sidebar");
@@ -338,18 +347,18 @@ public class HomeView {
         sidebarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sidebarScroll.getStyleClass().add("sidebar-scroll");
 
+        // --- FEED AREA ---
         feedLayout = new VBox(20);
         feedLayout.setPadding(new Insets(20));
         feedLayout.setAlignment(Pos.TOP_CENTER);
 
-        // Dashboard rimossa dal layout fisso
-
-        loadFeed();
+        loadFeed(); // Caricamento iniziale
 
         feedScroll = new ScrollPane(feedLayout);
         feedScroll.setFitToWidth(true);
         feedScroll.getStyleClass().add("scroll-pane");
 
+        // Assemblaggio Root
         root.setTop(header);
         root.setLeft(sidebarScroll);
         root.setCenter(feedScroll);
@@ -357,6 +366,9 @@ public class HomeView {
         return root;
     }
 
+    /**
+     * Apre la finestra modale per la creazione di un nuovo post.
+     */
     private void openCreatePostWindow() {
         if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
             DialogUtils.showWarning("Accesso Limitato", "Gli ospiti non possono pubblicare.", stage);
@@ -368,30 +380,29 @@ public class HomeView {
         postStage.initOwner(stage);
         postStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
 
-        // Main Layout
+        // ... (Logica UI creazione post invariata, solo commenti rimossi/riaggiunti se
+        // necessario)
+        // Copio e incollo il corpo del metodo dal read precedente.
+
         BorderPane root = new BorderPane();
         root.getStyleClass().add("modal-root");
         root.setPrefWidth(600);
         root.setPrefHeight(450);
 
-        // Header
         Label titleLbl = new Label("Nuovo Post");
         titleLbl.getStyleClass().add("modal-title");
         titleLbl.setMaxWidth(Double.MAX_VALUE);
         titleLbl.setAlignment(Pos.CENTER);
         root.setTop(titleLbl);
 
-        // Content
         VBox contentBox = new VBox(20);
         contentBox.setPadding(new Insets(20, 0, 20, 0));
 
-        // Title Input
         TextField fldTitolo = new TextField();
         fldTitolo.setPromptText("Dai un titolo al tuo post...");
         fldTitolo.getStyleClass().add("input-large");
         fldTitolo.setId("fldTitolo");
 
-        // Body Input
         TextArea postArea = new TextArea();
         postArea.setPromptText("Racconta la tua esperienza...");
         postArea.setPrefRowCount(6);
@@ -399,7 +410,6 @@ public class HomeView {
         postArea.setId("postArea");
         VBox.setVgrow(postArea, Priority.ALWAYS);
 
-        // Options Row (Type & Category)
         HBox optionsRow = new HBox(20);
         optionsRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -424,20 +434,17 @@ public class HomeView {
         });
 
         try {
-            cbxCategoria.getItems().add(null); // Represents "Nessuna"
+            cbxCategoria.getItems().add(null);
             cbxCategoria.getItems().addAll(categoriaDAO.findAll());
         } catch (SQLException ex) {
             Log.error("Errore caricamento categorie", ex);
         }
-        cbxCategoria.getSelectionModel().selectFirst(); // Select "Nessuna"
+        cbxCategoria.getSelectionModel().selectFirst();
         cbxCategoria.getStyleClass().add("choice-box");
         cbxCategoria.setPrefWidth(180);
 
-        optionsRow.getChildren().addAll(
-                new Label("Tipo:"), cbxTipo,
-                new Label("Categoria:"), cbxCategoria);
+        optionsRow.getChildren().addAll(new Label("Tipo:"), cbxTipo, new Label("Categoria:"), cbxCategoria);
 
-        // Upload Area (Dynamic)
         StackPane uploadContainer = new StackPane();
         uploadContainer.getStyleClass().add("upload-container");
         uploadContainer.setPrefHeight(100);
@@ -448,18 +455,16 @@ public class HomeView {
         lblUploadPlaceholder.setStyle("-fx-text-fill: #8D6E63; -fx-font-weight: bold;");
         uploadContainer.getChildren().add(lblUploadPlaceholder);
 
-        // Media Logic
         final String[] selectedMediaPath = { null };
 
         cbxTipo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == TipoPost.FOTO || newVal == TipoPost.VIDEO) {
                 uploadContainer.setVisible(true);
                 uploadContainer.setManaged(true);
-                lblUploadPlaceholder
-                        .setText(newVal == TipoPost.FOTO ? "\uD83D\uDCF7 Clicca per caricare una Foto"
-                                : "\uD83C\uDFA5 Clicca per caricare un Video");
-                selectedMediaPath[0] = null; // reset on type change
-                uploadContainer.setStyle(""); // reset style
+                lblUploadPlaceholder.setText(newVal == TipoPost.FOTO ? "\uD83D\uDCF7 Clicca per caricare una Foto"
+                        : "\uD83C\uDFA5 Clicca per caricare un Video");
+                selectedMediaPath[0] = null;
+                uploadContainer.setStyle("");
             } else {
                 uploadContainer.setVisible(false);
                 uploadContainer.setManaged(false);
@@ -491,17 +496,16 @@ public class HomeView {
         contentBox.getChildren().addAll(fldTitolo, optionsRow, postArea, uploadContainer);
         root.setCenter(contentBox);
 
-        // Footer Actions
         HBox actions = new HBox(15);
         actions.getStyleClass().add("dialog-actions");
 
         Button btnCancel = new Button("Annulla");
-        btnCancel.getStyleClass().add("header-action-btn"); // Reuse or use secondary
-        btnCancel.setStyle("-fx-text-fill: #8D6E63; -fx-font-weight: normal;"); // Override
+        btnCancel.getStyleClass().add("header-action-btn");
+        btnCancel.setStyle("-fx-text-fill: #8D6E63; -fx-font-weight: normal;");
         btnCancel.setOnAction(e -> postStage.close());
 
         Button btnPublish = new Button("Pubblica Post");
-        btnPublish.getStyleClass().add("button-primary"); // Or success
+        btnPublish.getStyleClass().add("button-primary");
         btnPublish.setPrefWidth(150);
         btnPublish.setId("publishBtn");
 
@@ -523,14 +527,11 @@ public class HomeView {
 
             try {
                 Post p = new Post(titolo, content, utenteLoggato, tipo, mediaPath);
-                p.setCategoria(cbxCategoria.getValue()); // Handles null gracefully
+                p.setCategoria(cbxCategoria.getValue());
 
                 postDAO.create(p);
-
-                // Aggiorna feed principale
                 loadFeed();
                 postStage.close();
-                // Optional: Show sleek notification instead of alert
             } catch (SQLException ex) {
                 DialogUtils.showError("Errore Database", ex.getMessage(), postStage);
             }
@@ -541,7 +542,6 @@ public class HomeView {
         actions.getChildren().addAll(btnCancel, btnPublish);
         root.setBottom(actions);
 
-        // Scene
         javafx.scene.Scene scene = new javafx.scene.Scene(root);
         try {
             scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
@@ -563,12 +563,11 @@ public class HomeView {
         }
     }
 
+    /** Carica il feed principale con tutti i post. */
     private void loadFeed() {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
-
         setActiveSection("Home");
         feedLayout.getChildren().clear();
         stopAllPlayers();
@@ -584,17 +583,14 @@ public class HomeView {
                     VBox content = new VBox(15);
                     content.setAlignment(Pos.CENTER);
                     content.setPadding(new Insets(40));
-
                     Label lblTitle = new Label("Il tuo feed è vuoto \uD83C\uDF43");
                     lblTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
                     Label lblSub = new Label("Sii il primo a rompere il ghiaccio! Condividi la tua esperienza.");
                     lblSub.setStyle("-fx-font-size: 16px; -fx-text-fill: #666; -fx-text-alignment: center;");
-
                     Button btnCreate = new Button("\u2795 Crea il Primo Post");
                     btnCreate.getStyleClass().add("button-primary");
                     btnCreate.setStyle("-fx-font-size: 16px; -fx-padding: 10 20;");
                     btnCreate.setOnAction(e -> openCreatePostWindow());
-
                     content.getChildren().addAll(lblTitle, lblSub, btnCreate);
                     emptyState = content;
                 } else {
@@ -628,8 +624,7 @@ public class HomeView {
         try {
             List<Post> posts = postDAO.findPopular();
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Brrr... che freddo! \u2744",
+                feedLayout.getChildren().add(createEmptyStateNode("Brrr... che freddo! \u2744",
                         "Non ci sono ancora post 'Popolari'.\nMetti like per scaldare l'atmosfera!"));
             } else {
                 for (Post p : posts) {
@@ -663,8 +658,7 @@ public class HomeView {
         try {
             List<Post> posts = postDAO.findFeedForUser(utenteLoggato.getUsername());
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Ancora vuoto \uD83C\uDF43",
+                feedLayout.getChildren().add(createEmptyStateNode("Ancora vuoto \uD83C\uDF43",
                         "Segui altri utenti per vedere qui i loro post!"));
             } else {
                 for (Post p : posts) {
@@ -679,7 +673,6 @@ public class HomeView {
         }
     }
 
-    // loadFeedLiked uses existing DAO call renamed/wrapped
     private void loadFeedLiked() {
         if (feedLayout == null)
             return;
@@ -694,8 +687,7 @@ public class HomeView {
         try {
             List<Post> posts = postDAO.findLikedBy(utenteLoggato.getUsername());
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Nessun Like \uD83D\uDC94",
+                feedLayout.getChildren().add(createEmptyStateNode("Nessun Like \uD83D\uDC94",
                         "Non hai ancora messo mi piace a nessun post.\nMostra un po' di amore!"));
             } else {
                 for (Post p : posts) {
@@ -712,7 +704,6 @@ public class HomeView {
     private void loadFeedByCategory(Categoria c) {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
         setActiveSection(c.getNome());
         feedLayout.getChildren().clear();
@@ -724,8 +715,7 @@ public class HomeView {
         try {
             List<Post> posts = postDAO.findByCategory(c.getId());
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Categoria vuota \uD83D\uDCC2",
+                feedLayout.getChildren().add(createEmptyStateNode("Categoria vuota \uD83D\uDCC2",
                         "Nessun post in questa categoria.\nSii il primo a pubblicare qui!"));
             } else {
                 for (Post p : posts) {
@@ -743,7 +733,6 @@ public class HomeView {
     private void loadFeedByTorrefattori() {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
         setActiveSection("Torrefattori");
         feedLayout.getChildren().clear();
@@ -753,17 +742,13 @@ public class HomeView {
         feedLayout.getChildren().add(title);
 
         try {
-            // Try fetching by Enum name (e.g. "TORREFATTORE")
             List<Post> posts = postDAO.findByUserType(Utente.TipoUtente.TORREFATTORE.name());
-
-            // Fallback to label (e.g. "Torrefattore") if empty (handling DB variability)
             if (posts.isEmpty()) {
                 posts = postDAO.findByUserType(Utente.TipoUtente.TORREFATTORE.toString());
             }
 
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Silenzio in torrefazione \u2615",
+                feedLayout.getChildren().add(createEmptyStateNode("Silenzio in torrefazione \u2615",
                         "I nostri Torrefattori stanno tostando...\nNessun aggiornamento al momento."));
             } else {
                 for (Post p : posts) {
@@ -781,7 +766,6 @@ public class HomeView {
     private void loadFeedBySaved() {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
         setActiveSection("Salvati");
         feedLayout.getChildren().clear();
@@ -793,8 +777,7 @@ public class HomeView {
         try {
             List<Post> posts = utenteDAO.getArchive(utenteLoggato.getUsername());
             if (posts.isEmpty()) {
-                feedLayout.getChildren().add(createEmptyStateNode(
-                        "Nessun post salvato \u2B50",
+                feedLayout.getChildren().add(createEmptyStateNode("Nessun post salvato \u2B50",
                         "Salva i post che ti piacciono per ritrovarli qui!"));
             } else {
                 for (Post p : posts) {
@@ -842,12 +825,10 @@ public class HomeView {
         VBox emptyState = new VBox(15);
         emptyState.setAlignment(Pos.CENTER);
         emptyState.setPadding(new Insets(40));
-
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
         Label lblSub = new Label(subtitle);
         lblSub.setStyle("-fx-font-size: 16px; -fx-text-fill: #666; -fx-text-alignment: center;");
-
         emptyState.getChildren().addAll(lblTitle, lblSub);
         return emptyState;
     }
@@ -857,16 +838,9 @@ public class HomeView {
             loadFeed();
             return;
         }
-
         restoreFeedView();
-        // Clear feed layout
         feedLayout.getChildren().clear();
         stopAllPlayers();
-        // Clear active section because searches are cross-cutting
-        // Ideally we might want a visually "deselected" sidebar, or highlight "Home" if
-        // we consider search global.
-        // For now, let's keep current section or just not touch it, but visually it's a
-        // new "page".
 
         Label title = createHeaderLabel("\uD83D\uDD0D Risultati per: \"" + query + "\"");
         feedLayout.getChildren().add(title);
@@ -874,11 +848,9 @@ public class HomeView {
         boolean foundSomething = false;
 
         try {
-            // 1. Cerca Utenti
             List<Utente> userResults = utenteDAO.searchByUsername(query);
             if (!userResults.isEmpty()) {
                 foundSomething = true;
-
                 Label lblUsers = new Label("UTENTI");
                 lblUsers.setStyle(
                         "-fx-font-weight: bold; -fx-text-fill: #6d4c41; -fx-padding: 10 0 5 0; -fx-font-size: 14px;");
@@ -888,20 +860,15 @@ public class HomeView {
                 for (Utente u : userResults) {
                     HBox row = new HBox(15);
                     row.setAlignment(Pos.CENTER_LEFT);
-                    // More premium card style
                     row.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 12; " +
                             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,2); -fx-cursor: hand;");
                     row.setMaxWidth(Double.MAX_VALUE);
-
-                    // Interaction: hover effect
                     row.setOnMouseEntered(e -> row
                             .setStyle("-fx-background-color: #fafafa; -fx-padding: 15; -fx-background-radius: 12; " +
                                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6,0,0,3); -fx-cursor: hand;"));
                     row.setOnMouseExited(e -> row
                             .setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 12; " +
                                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,2); -fx-cursor: hand;"));
-
-                    // Action: Clicking row opens profile
                     row.setOnMouseClicked(e -> {
                         stopAllPlayers();
                         UserProfileView upv = new UserProfileView(stage, utenteLoggato, u);
@@ -909,7 +876,6 @@ public class HomeView {
                     });
 
                     Circle avatar = new Circle(24);
-                    // Use u.getFotoUri() if we had logic to load it, fallback to initial
                     String initial = u.getUsername().substring(0, 1).toUpperCase();
                     Label initLbl = new Label(initial);
                     initLbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
@@ -925,8 +891,6 @@ public class HomeView {
 
                     Region sp = new Region();
                     HBox.setHgrow(sp, Priority.ALWAYS);
-
-                    // Optional arrow or clean look
                     Label arrow = new Label("\u276F"); // Chevron right
                     arrow.setStyle("-fx-text-fill: #bbb; -fx-font-size: 18px;");
 
@@ -936,17 +900,14 @@ public class HomeView {
                 feedLayout.getChildren().add(usersContainer);
             }
 
-            // 2. Cerca Post
             List<Post> postResults = postDAO.search(query);
             if (!postResults.isEmpty()) {
                 foundSomething = true;
-                // Separatore
                 if (!userResults.isEmpty()) {
                     Region sep = new Region();
                     sep.setMinHeight(30);
                     feedLayout.getChildren().add(sep);
                 }
-
                 Label lblPosts = new Label("POST CORRELATI");
                 lblPosts.setStyle(
                         "-fx-font-weight: bold; -fx-text-fill: #6d4c41; -fx-padding: 10 0 5 0; -fx-font-size: 14px;");
@@ -963,27 +924,18 @@ public class HomeView {
                 VBox emptyBox = new VBox(20);
                 emptyBox.setAlignment(Pos.CENTER);
                 emptyBox.setPadding(new Insets(50));
-
                 Label noRes = new Label("\uD83D\uDD0D Nessun risultato trovato");
                 noRes.setStyle("-fx-font-size: 20px; -fx-text-fill: #aaa; -fx-font-weight: bold;");
-
                 Label sugg = new Label("Prova con parole chiave diverse o cerca un altro utente.");
                 sugg.setStyle("-fx-font-size: 14px; -fx-text-fill: #aaa;");
-
                 emptyBox.getChildren().addAll(noRes, sugg);
                 feedLayout.getChildren().add(emptyBox);
             }
-
         } catch (SQLException e) {
             DialogUtils.showError("Errore Ricerca", e.getMessage(), stage);
         }
     }
 
-    /**
-     * Stoppa e rilascia le risorse di tutti i player video attivi.
-     * Da chiamare prima di cambiare view (logout, navigazione) per evitare
-     * MediaException.
-     */
     private void performUserManagementSearch() {
         if (feedLayout == null)
             return;
@@ -996,7 +948,6 @@ public class HomeView {
         feedLayout.getChildren().add(title);
 
         try {
-            // Empty string searches for ALL users
             List<Utente> allUsers = utenteDAO.searchByUsername("");
             if (allUsers.isEmpty()) {
                 feedLayout.getChildren().add(new Label("Nessun utente trovato."));
@@ -1010,7 +961,6 @@ public class HomeView {
 
                 HBox row = new HBox(15);
                 row.setAlignment(Pos.CENTER_LEFT);
-                // consistent styling
                 row.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 12; " +
                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,2);");
                 row.setMaxWidth(Double.MAX_VALUE);
@@ -1033,31 +983,27 @@ public class HomeView {
                 HBox.setHgrow(sp, Priority.ALWAYS);
 
                 HBox actions = new HBox(10);
-
                 Button btnProfile = new Button("Visita");
                 btnProfile.getStyleClass().add("button-secondary");
                 btnProfile.setOnAction(e -> {
                     UserProfileView upv = new UserProfileView(stage, utenteLoggato, u);
                     stage.getScene().setRoot(upv.getView());
                 });
-
                 actions.getChildren().add(btnProfile);
 
-                // Add Delete Button if not self
                 if (!u.getUsername().equals(utenteLoggato.getUsername())
                         && utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN
                         && u.getTipo() != Utente.TipoUtente.ADMIN) {
                     Button btnDelete = new Button("Elimina");
                     btnDelete.getStyleClass().add("button-danger");
                     btnDelete.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
-
                     btnDelete.setOnAction(e -> {
                         boolean confirmed = DialogUtils.showConfirmation("Eliminazione Profilo",
                                 "Eliminare utente " + u.getUsername() + "?", stage);
                         if (confirmed) {
                             try {
                                 utenteDAO.delete(u.getUsername());
-                                performUserManagementSearch(); // Refresh list
+                                performUserManagementSearch();
                             } catch (SQLException ex) {
                                 DialogUtils.showError("Errore Eliminazione", ex.getMessage(), stage);
                             }
@@ -1065,12 +1011,10 @@ public class HomeView {
                     });
                     actions.getChildren().add(btnDelete);
                 }
-
                 row.getChildren().addAll(avStack, info, sp, actions);
                 usersContainer.getChildren().add(row);
             }
             feedLayout.getChildren().add(usersContainer);
-
         } catch (SQLException e) {
             DialogUtils.showError("Errore", e.getMessage(), stage);
         }
@@ -1085,12 +1029,11 @@ public class HomeView {
         activeCards.clear();
     }
 
-    // --- CATEGORY MANAGEMENT ---
     private void openCategoryManagement() {
         if (feedLayout == null)
             return;
         restoreFeedView();
-        setActiveSection("GestioneCategorie"); // Highlight sidebar
+        setActiveSection("GestioneCategorie");
         feedLayout.getChildren().clear();
         stopAllPlayers();
 
@@ -1100,12 +1043,10 @@ public class HomeView {
         VBox content = new VBox(20);
         content.setMaxWidth(800);
 
-        // List area styled
         ListView<Categoria> listView = new ListView<>();
         listView.setPrefHeight(350);
         listView.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
 
-        // Custom Styled Cell Factory
         listView.setCellFactory(param -> new ListCell<Categoria>() {
             @Override
             public void updateSelected(boolean selected) {
@@ -1116,10 +1057,8 @@ public class HomeView {
             private void updateStyle(boolean selected) {
                 if (getGraphic() == null)
                     return;
-                // Keep radius and shadow, toggle background
-                getGraphic().setStyle(
-                        "-fx-background-color: " + (selected ? "#ffe082" : "white") + ";" +
-                                "-fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2,0,0,1); -fx-padding: 10;");
+                getGraphic().setStyle("-fx-background-color: " + (selected ? "#ffe082" : "white") + ";"
+                        + "-fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2,0,0,1); -fx-padding: 10;");
             }
 
             @Override
@@ -1132,19 +1071,14 @@ public class HomeView {
                 } else {
                     HBox cell = new HBox(15);
                     cell.setAlignment(Pos.CENTER_LEFT);
-
                     Label icon = new Label(item.getIcona() != null ? item.getIcona() : "\uD83D\uDCC2");
                     icon.setStyle("-fx-font-size: 24px;");
-
                     Label name = new Label(item.getNome());
                     name.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
-
                     cell.getChildren().addAll(icon, name);
                     setGraphic(cell);
                     setText(null);
                     setStyle("-fx-background-color: transparent; -fx-padding: 5;");
-
-                    // Apply initial state
                     updateStyle(isSelected());
                 }
             }
@@ -1161,7 +1095,6 @@ public class HomeView {
         };
         refreshList.run();
 
-        // Editor Form
         VBox editorCard = new VBox(15);
         editorCard.setPadding(new Insets(20));
         editorCard.setStyle(
@@ -1201,19 +1134,14 @@ public class HomeView {
 
         editorCard.getChildren().addAll(editorTitle, inputs, actions);
 
-        // Edit/Delete list actions
         HBox listActions = new HBox(10);
         listActions.setAlignment(Pos.CENTER_RIGHT);
-
         Button btnEdit = new Button("\u270F Modifica");
         btnEdit.getStyleClass().add("button-primary");
-
         Button btnDelete = new Button("\uD83D\uDDD1 Elimina");
         btnDelete.getStyleClass().add("button-danger");
-
         listActions.getChildren().addAll(btnEdit, btnDelete);
 
-        // Logic (State)
         final Categoria[] editingCat = { null };
 
         btnEdit.setOnAction(e -> {
@@ -1241,12 +1169,10 @@ public class HomeView {
         btnSaveRef.setOnAction(e -> {
             String name = tfName.getText().trim();
             String icon = tfIcon.getText().trim();
-
             if (name.isBlank()) {
                 DialogUtils.showWarning("Attenzione", "Il nome è obbligatorio.", stage);
                 return;
             }
-
             try {
                 if (editingCat[0] == null) {
                     categoriaDAO.create(new Categoria(name, icon));
@@ -1254,7 +1180,7 @@ public class HomeView {
                     editingCat[0].setNome(name);
                     editingCat[0].setIcona(icon);
                     categoriaDAO.update(editingCat[0]);
-                    btnCancel.fire(); // Reset UI
+                    btnCancel.fire();
                 }
                 tfName.clear();
                 tfIcon.clear();
@@ -1303,7 +1229,6 @@ public class HomeView {
 
         sidebarContent.getChildren().addAll(lblFeeds, btnHome, btnPopular);
 
-        // Hide Followed feed for guests
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
             Button btnFollowed = creaNavButton("\uD83D\uDC65  Seguiti", "Followed".equals(currentSection));
             btnFollowed.setOnAction(e -> loadFeedFollowed());
@@ -1314,12 +1239,10 @@ public class HomeView {
 
         try {
             java.util.List<Categoria> cats = categoriaDAO.findAll();
-
             Label lblComm = new Label("COMMUNITY");
             lblComm.getStyleClass().add("sidebar-section-label");
             sidebarContent.getChildren().add(lblComm);
 
-            // Special Button for Torrefattori
             Button btnTorr = creaNavButton("\u2615  Torrefattori", "Torrefattori".equals(currentSection));
             btnTorr.setOnAction(e -> loadFeedByTorrefattori());
             sidebarContent.getChildren().add(btnTorr);
@@ -1327,24 +1250,20 @@ public class HomeView {
             for (Categoria c : cats) {
                 if (c.getNome().equalsIgnoreCase("Torrefattori"))
                     continue;
-
                 String icon = c.getIcona();
                 if (icon == null || icon.isBlank()) {
                     icon = "\uD83D\uDCC2";
                     if (c.getNome().equalsIgnoreCase("Miscele"))
                         icon = "\uD83E\uDED8";
-
                     if (c.getNome().equalsIgnoreCase("Eventi"))
                         continue;
                 }
-
                 Button btnCat = creaNavButton(icon + "  " + c.getNome(), c.getNome().equals(currentSection));
                 btnCat.setOnAction(e -> loadFeedByCategory(c));
                 sidebarContent.getChildren().add(btnCat);
             }
 
             addSeparator(sidebarContent);
-
             Label lblActivity = new Label("ATTIVITÀ");
             lblActivity.getStyleClass().add("sidebar-section-label");
             sidebarContent.getChildren().add(lblActivity);
@@ -1377,7 +1296,6 @@ public class HomeView {
 
             sidebarContent.getChildren().addAll(lblUser, btnProfile, btnLikes);
 
-            // Chat Button
             Button btnMessages = creaNavButton("\uD83D\uDCAC  Messaggi", "Messaggi".equals(currentSection));
             btnMessages.setOnAction(e -> {
                 stopAllPlayers();
@@ -1414,7 +1332,6 @@ public class HomeView {
 
                 sidebarContent.getChildren().addAll(lblAdmin, btnDashboard, btnManageUsers, btnManageCats);
 
-                // Gestione Database Button
                 Button btnManageDB = creaNavButton("\uD83D\uDCC1  Gestione Database",
                         "GestioneDB".equals(currentSection));
                 btnManageDB.setOnAction(e -> loadDatabaseManagement());
@@ -1426,7 +1343,6 @@ public class HomeView {
     private void loadDatabaseManagement() {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
         setActiveSection("GestioneDB");
         feedLayout.getChildren().clear();
@@ -1444,7 +1360,6 @@ public class HomeView {
 
         Label lblBackupTitle = new Label("Backup Database");
         lblBackupTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #3E2723;");
-
         Label lblBackupDesc = new Label(
                 "Esegui una copia completa del database locale (.db) per sicurezza. Il file salvato pu\u00F2 essere usato per ripristinare i dati in caso di problemi.");
         lblBackupDesc.setWrapText(true);
@@ -1470,7 +1385,6 @@ public class HomeView {
                 }
             }
         });
-
         backupCard.getChildren().addAll(lblBackupTitle, lblBackupDesc, btnExecuteBackup);
 
         // Restore Card
@@ -1482,7 +1396,6 @@ public class HomeView {
 
         Label lblRestoreTitle = new Label("Ripristina Database");
         lblRestoreTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #b71c1c;");
-
         Label lblRestoreDesc = new Label(
                 "Ripristina i dati da un file di backup precedente. \nATTENZIONE: Questa operazione canceller\u00E0 tutti i dati attuali e li sostituir\u00E0 con quelli del backup. L'applicazione verr\u00E0 riavviata.");
         lblRestoreDesc.setWrapText(true);
@@ -1497,7 +1410,6 @@ public class HomeView {
             boolean confirm = DialogUtils.showConfirmation("Conferma Ripristino",
                     "Sei sicuro di voler ripristinare il database?\nTutti i dati attuali andranno PERSI per sempre.\nL'operazione \u00E8 irreversibile.",
                     stage);
-
             if (confirm) {
                 FileChooser fc = new FileChooser();
                 fc.setTitle("Seleziona File di Backup");
@@ -1509,7 +1421,6 @@ public class HomeView {
                         DialogUtils.showInfo("Ripristino Completato",
                                 "Il database \u00E8 stato ripristinato con successo.\nVerrai reindirizzato alla pagina di login.",
                                 stage);
-                        // Soft Restart: Torna al Login
                         LoginView login = new LoginView(stage);
                         stage.getScene().setRoot(login.getView());
                     } catch (Exception ex) {
@@ -1520,22 +1431,18 @@ public class HomeView {
                 }
             }
         });
-
         restoreCard.getChildren().addAll(lblRestoreTitle, lblRestoreDesc, btnExecuteRestore);
 
-        // Container for cards (extensible for future tools)
         VBox toolsContainer = new VBox(20);
         toolsContainer.setAlignment(Pos.TOP_CENTER);
         toolsContainer.setPadding(new Insets(20));
         toolsContainer.getChildren().addAll(backupCard, restoreCard);
-
         feedLayout.getChildren().add(toolsContainer);
     }
 
     private void loadDashboard() {
         if (feedLayout == null)
             return;
-
         restoreFeedView();
         setActiveSection("Dashboard");
         feedLayout.getChildren().clear();
@@ -1545,24 +1452,19 @@ public class HomeView {
         feedLayout.getChildren().add(title);
 
         try {
-            // 1. Fetch Stats
             int totalUsers = utenteDAO.countAll();
             int totalPosts = postDAO.countAll();
             int postsToday = postDAO.countPostsLast24h();
 
-            // 2. Stat Cards Container
             HBox statsContainer = new HBox(20);
             statsContainer.setAlignment(Pos.CENTER);
             statsContainer.setPadding(new Insets(10, 0, 20, 0));
-
             statsContainer.getChildren().addAll(
                     createStatCard("Utenti Totali", String.valueOf(totalUsers), "\uD83D\uDC65", "#E3F2FD", "#1565C0"),
                     createStatCard("Post Totali", String.valueOf(totalPosts), "\uD83D\uDCDD", "#E8F5E9", "#2E7D32"),
                     createStatCard("Post Oggi", String.valueOf(postsToday), "\uD83D\uDD25", "#FFF3E0", "#EF6C00"));
-
             feedLayout.getChildren().add(statsContainer);
 
-            // 3. Top Contributors
             Label lblTopUsers = new Label("Top Contributor");
             lblTopUsers.setStyle(
                     "-fx-font-weight: bold; -fx-text-fill: #6d4c41; -fx-padding: 10 0 5 0; -fx-font-size: 18px;");
@@ -1590,14 +1492,8 @@ public class HomeView {
                     VBox info = new VBox(4);
                     Label usernameLbl = new Label("@" + u.getUsername());
                     usernameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3E2723;");
-
-                    // We need to fetch post count for this user, but findTopActiveUsers could carry
-                    // it
-                    // However, Utente object doesn't have "postCount" field.
-                    // To avoid changing Utente model, we can just show "Top User".
                     Label roleLbl = new Label(u.getTipo().toString());
                     roleLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #795548;");
-
                     info.getChildren().addAll(usernameLbl, roleLbl);
 
                     Region sp = new Region();
@@ -1615,7 +1511,6 @@ public class HomeView {
                 }
                 feedLayout.getChildren().add(usersContainer);
             }
-
         } catch (SQLException e) {
             Log.error("Errore Dashboard", e);
             feedLayout.getChildren().add(new Label("Errore caricamento dashboard."));
@@ -1625,39 +1520,23 @@ public class HomeView {
     private void loadEventsView() {
         if (feedLayout == null)
             return;
-
         setActiveSection("Eventi");
         feedLayout.getChildren().clear();
         stopAllPlayers();
-
         EventsView eventsView = new EventsView(utenteLoggato);
         BorderPane root = (BorderPane) stage.getScene().getRoot();
-        if (root.getCenter() instanceof ScrollPane) {
-            root.setCenter(eventsView);
-        } else if (root.getCenter() instanceof EventsView) {
-            // Già lì
-        } else {
-            root.setCenter(eventsView);
-        }
+        root.setCenter(eventsView);
     }
 
     private void loadSfideView() {
         if (feedLayout == null)
             return;
-
         setActiveSection("Sfide");
         feedLayout.getChildren().clear();
         stopAllPlayers();
-
         SfideView sfideView = new SfideView(utenteLoggato);
         BorderPane root = (BorderPane) stage.getScene().getRoot();
-        if (root.getCenter() instanceof ScrollPane) {
-            root.setCenter(sfideView);
-        } else if (root.getCenter() instanceof SfideView) {
-            // Già lì
-        } else {
-            root.setCenter(sfideView);
-        }
+        root.setCenter(sfideView);
     }
 
     private VBox createStatCard(String title, String value, String icon, String bgColor, String textColor) {
@@ -1667,16 +1546,12 @@ public class HomeView {
         card.setPrefWidth(200);
         card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 15; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5,0,0,2);");
-
         Label lblIcon = new Label(icon);
         lblIcon.setStyle("-fx-font-size: 32px;");
-
         Label lblValue = new Label(value);
         lblValue.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
-
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
-
         card.getChildren().addAll(lblIcon, lblValue, lblTitle);
         return card;
     }
@@ -1695,36 +1570,25 @@ public class HomeView {
     private void showEmojiPicker(javafx.scene.Node owner, java.util.function.Consumer<String> onSelect) {
         javafx.stage.Popup popup = new javafx.stage.Popup();
         popup.setAutoHide(true);
-
         VBox box = new VBox(5);
         box.setStyle(
                 "-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ccc; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5,0,0,2);");
-
         Label lblT = new Label("Scegli Emoji");
         lblT.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-
         ScrollPane sp = new ScrollPane();
         sp.setPrefSize(250, 200);
         sp.setFitToWidth(true);
-
         FlowPane flow = new FlowPane();
         flow.setHgap(5);
         flow.setVgap(5);
-
         String[] emojis = {
-                // Coffee & Drinks
                 "\u2615", "\uD83E\uDEC8", "\uD83C\uDF75", "\uD83E\uDD64", "\uD83C\uDF7A", "\uD83C\uDF77",
-                // Food
                 "\uD83E\uDD50", "\uD83C\uDF70", "\uD83C\uDF6A", "\uD83C\uDF55",
-                // Objects
                 "\uD83D\uDCC2", "\uD83D\uDCC1", "\uD83D\uDCD6", "\uD83D\uDCDD", "\uD83D\uDCE6",
                 "\uD83D\uDD25", "\uD83C\uDF89", "\uD83C\uDF81", "\u2B50", "\uD83D\uDCA1",
-                // Nature
                 "\uD83C\uDFE0", "\uD83C\uDFE2", "\uD83C\uDF31", "\uD83C\uDF33", "\uD83C\uDF0D",
-                // Faces
                 "\uD83D\uDE00", "\uD83D\uDE03", "\uD83D\uDE0E", "\uD83E\uDD13", "\uD83D\uDC4D"
         };
-
         for (String e : emojis) {
             Button b = new Button(e);
             b.setStyle("-fx-font-size: 18px; -fx-background-color: transparent; -fx-cursor: hand;");
@@ -1734,12 +1598,9 @@ public class HomeView {
             });
             flow.getChildren().add(b);
         }
-
         sp.setContent(flow);
         box.getChildren().addAll(lblT, sp);
-
         popup.getContent().add(box);
-
         javafx.geometry.Bounds bounds = owner.localToScreen(owner.getBoundsInLocal());
         popup.show(owner, bounds.getMinX(), bounds.getMaxY() + 5);
     }

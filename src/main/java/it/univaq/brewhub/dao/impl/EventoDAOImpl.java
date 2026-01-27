@@ -7,7 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementazione DAO per gli Eventi.
+ * <p>Gestisce la creazione, ricerca e partecipazione agli eventi, incluse le notifiche agli organizzatori.</p>
+ */
 public class EventoDAOImpl implements EventoDAO {
+
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
     @Override
     public void create(Evento evento) throws SQLException {
@@ -19,12 +25,11 @@ public class EventoDAOImpl implements EventoDAO {
             pstmt.setString(3, evento.getData());
             pstmt.setString(4, evento.getLuogo());
             pstmt.setString(5, evento.getOrganizzatore());
-
+            
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("Creating event failed, no rows affected.");
             }
-
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     evento.setId(generatedKeys.getInt(1));
@@ -42,7 +47,6 @@ public class EventoDAOImpl implements EventoDAO {
         try (Connection conn = DatabaseManager.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 Evento e = new Evento();
                 e.setId(rs.getInt("id"));
@@ -51,8 +55,7 @@ public class EventoDAOImpl implements EventoDAO {
                 e.setData(rs.getString("data"));
                 e.setLuogo(rs.getString("luogo"));
                 e.setOrganizzatore(rs.getString("organizzatore"));
-                e.setPartecipantiCount(getPartecipantiCount(e.getId())); // N+1 query problem, acceptable for small
-                                                                         // scale
+                e.setPartecipantiCount(getPartecipantiCount(e.getId())); 
                 eventi.add(e);
             }
         }
@@ -84,12 +87,50 @@ public class EventoDAOImpl implements EventoDAO {
 
     @Override
     public void addPartecipante(int eventoId, String username) throws SQLException {
+        boolean added = false;
         String sql = "INSERT OR IGNORE INTO partecipazioni (evento_id, utente_username) VALUES (?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, eventoId);
             pstmt.setString(2, username);
-            pstmt.executeUpdate();
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                added = true;
+            }
+        }
+        if (added) {
+            sendPartecipazioneNotification(eventoId, username);
+        }
+    }
+
+    /**
+     * Invia una notifica all'organizzatore quando un utente si iscrive.
+     */
+    private void sendPartecipazioneNotification(int eventoId, String username) {
+        String owner = null;
+        String nomeEvento = null;
+        String sql = "SELECT organizzatore, nome FROM eventi WHERE id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, eventoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    owner = rs.getString("organizzatore");
+                    nomeEvento = rs.getString("nome");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore fetch evento per notifica: " + e.getMessage());
+        }
+        if (owner != null && nomeEvento != null && !owner.equals(username)) {
+            try {
+                it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                u.setUsername(owner);
+                String msg = username + " si è iscritto al tuo evento \"" + nomeEvento + "\"";
+                notificaDAO.create(new it.univaq.brewhub.Notifica(u, msg));
+            } catch (SQLException e) {
+                System.err.println("Errore creazione notifica evento: " + e.getMessage());
+            }
         }
     }
 

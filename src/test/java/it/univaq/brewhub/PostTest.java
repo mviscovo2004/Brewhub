@@ -1,55 +1,29 @@
 package it.univaq.brewhub;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
-
 import it.univaq.brewhub.Post.TipoPost;
-import it.univaq.brewhub.dao.impl.PostDAOImpl;
-import it.univaq.brewhub.dao.impl.UtenteDAOImpl;
+import it.univaq.brewhub.Utente.TipoUtente;
 
 /**
- * Classe di test per la gestione dei Post (Post.java).
- * Verifica il corretto funzionamento dei costruttori, dei metodi getter/setter
- * e delle interazioni con il database (CRUD).
+ * Test unitari per la classe {@link Post}.
+ *
+ * Verifica i costruttori per i diversi tipi di post (TESTO, FOTO, VIDEO),
+ * i metodi getter/setter, le operazioni CRUD sul database e l'integrazione
+ * con {@link MediaManager} per la gestione dei file multimediali.
+ *
  */
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-
-public class PostTest {
-
-    private static final String TEST_DB_PATH = "brewhub_test_posts.db";
-
-    @BeforeAll
-    public static void setUp() throws SQLException {
-        java.io.File dbFile = new java.io.File(TEST_DB_PATH);
-        if (dbFile.exists())
-            dbFile.delete();
-        DatabaseManager.configureTestDatabase(TEST_DB_PATH);
-        DatabaseManager.init();
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        try {
-            System.gc();
-            Thread.sleep(100);
-            java.io.File dbFile = new java.io.File(TEST_DB_PATH);
-            if (dbFile.exists())
-                dbFile.delete();
-        } catch (Exception e) {
-        }
-    }
-
+public class PostTest extends BaseTest {
     /**
-     * Test del costruttore per post di tipo TESTO.
-     * Verifica che l'oggetto venga creato correttamente con tutti i parametri
-     * passati.
+     * Verifica il costruttore per post di tipo TESTO.
+     *
+     * Controlla che un post testuale venga creato correttamente
+     * senza campo media.
+     *
      */
     @Test
     public void testCostruttoreTesto() {
@@ -57,11 +31,8 @@ public class PostTest {
         String contenuto = "Contenuto test post";
         Utente u = new Utente();
         TipoPost tipo = TipoPost.TESTO;
-        String media = null; // Nessun media per post di testo
-
+        String media = null;
         Post p = new Post(titolo, contenuto, u, tipo, media);
-
-        // Asserzioni per verificare la corrispondenza dei campi
         assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
         assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
@@ -70,8 +41,11 @@ public class PostTest {
     }
 
     /**
-     * Test del costruttore per post di tipo FOTO.
-     * Verifica l'assegnazione corretta del percorso media.
+     * Verifica il costruttore per post di tipo FOTO.
+     *
+     * Controlla che un post con foto venga creato correttamente
+     * con il percorso del file immagine.
+     *
      */
     @Test
     public void testCostruttoreFoto() {
@@ -80,10 +54,7 @@ public class PostTest {
         Utente u = new Utente();
         TipoPost tipo = TipoPost.FOTO;
         String foto = "media/foto.jpg";
-
         Post p = new Post(titolo, contenuto, u, tipo, foto);
-
-        // Asserzioni standard
         assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
         assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
@@ -92,7 +63,11 @@ public class PostTest {
     }
 
     /**
-     * Test del costruttore per post di tipo VIDEO.
+     * Verifica il costruttore per post di tipo VIDEO.
+     *
+     * Controlla che un post con video venga creato correttamente
+     * con il percorso del file video.
+     *
      */
     @Test
     public void testCostruttoreVideo() {
@@ -101,9 +76,7 @@ public class PostTest {
         Utente u = new Utente();
         TipoPost tipo = TipoPost.VIDEO;
         String video = "media/video.mp4";
-
         Post p = new Post(titolo, contenuto, u, tipo, video);
-
         assertEquals(titolo, p.getTitolo(), "Il titolo del post non corrisponde");
         assertEquals(contenuto, p.getContenuto(), "Il contenuto del post non corrisponde");
         assertEquals(u, p.getAutore(), "L'autore del post non corrisponde");
@@ -112,138 +85,141 @@ public class PostTest {
     }
 
     /**
-     * Test completo di tutti i metodi Setter e Getter.
-     * Verifica che ogni proprietà possa essere impostata e letta correttamente.
+     * Verifica i metodi setter e getter della classe Post.
+     *
+     * Testa tutti i setter e getter inclusi quelli per liste di like,
+     * commenti e data di creazione.
+     *
      */
     @Test
     public void testSetterGetter() {
         Post p = new Post();
-
-        // Titolo
         p.setTitolo("Test post");
         assertEquals("Test post", p.getTitolo());
-
-        // Contenuto
         p.setContenuto("Contenuto test post");
         assertEquals("Contenuto test post", p.getContenuto());
-
-        // Autore
         Utente u = new Utente();
         p.setAutore(u);
         assertEquals(u, p.getAutore());
-
-        // Tipo
         p.setTipo(TipoPost.TESTO);
         assertEquals(TipoPost.TESTO, p.getTipo());
-
-        // Media
         p.setMedia("media/foto.jpg");
         assertEquals("media/foto.jpg", p.getMedia());
-
-        // Mi Piace (Lista)
         List<Utente> likes = new ArrayList<>();
         p.setMiPiace(likes);
         assertEquals(likes, p.getMiPiace());
-
-        // Commenti (Lista)
         List<Commento> comments = new ArrayList<>();
         p.setCommenti(comments);
         assertEquals(comments, p.getCommenti());
-
-        // Data Creazione
         LocalDateTime now = LocalDateTime.now();
         p.setDataCreazione(now);
         assertEquals(now, p.getDataCreazione());
     }
 
     /**
-     * Test di integrazione con il Database.
-     * Verifica il ciclo di vita di un Post:
-     * 1. Lettura stato iniziale
-     * 2. Salvataggio (INSERT)
-     * 3. Verifica presenza (SELECT)
-     * 4. Eliminazione (DELETE)
-     * 5. Verifica pulizia
+     * Verifica le operazioni CRUD sul database per i post.
+     *
+     * Testa creazione ed eliminazione di un post, verificando
+     * che il conteggio dei post sia corretto.
+     *
      * 
-     * @throws SQLException in caso di errori di connessione o query.
+     * @throws SQLException se si verifica un errore durante l'accesso al database
      */
     @Test
     public void testMetodiDB() throws SQLException {
-        PostDAOImpl postDAO = new PostDAOImpl();
-        UtenteDAOImpl utenteDAO = new UtenteDAOImpl();
-
-        // Setup autore fittizio per soddisfare i vincoli FK se presenti
-        Utente autore = new Utente("NomeTest", "CognomeTest", "testUserPost", "password",
-                Utente.TipoUtente.APPASSIONATO, null);
-        try {
-            utenteDAO.create(autore);
-        } catch (SQLException e) {
-            // Ignora se già esiste
-        }
-
-        // Creazione oggetto Post da testare
+        Utente autore = createTestUser("testUserPost", TipoUtente.APPASSIONATO);
         Post p = new Post();
         p.setAutore(autore);
         p.setTitolo("Titolo Test DB");
         p.setContenuto("Contenuto Test DB");
         p.setTipo(TipoPost.TESTO);
-        p.setDataCreazione(LocalDateTime.now()); // Data attuale
-
-        // 1. Setup preliminare: conta quanti post esistono
+        p.setDataCreazione(LocalDateTime.now());
         int initialSize = postDAO.findAll().size();
-
-        // 2. Azione: Salva il post nel database
         postDAO.create(p);
-
-        // 3. Verifica: Controlla che il numero totale di post sia aumentato di 1
         List<Post> post = postDAO.findAll();
         assertEquals(initialSize + 1, post.size(), "Il numero di post dovrebbe aumentare di 1 dopo il salvataggio");
-
-        // 4. Azione: Elimina il post appena creato (Cleanup)
         postDAO.delete(p.getId());
-
-        // 5. Verifica: Controlla che il numero totale sia tornato quello iniziale
         post = postDAO.findAll();
         assertEquals(initialSize, post.size(),
                 "Il numero di post dovrebbe tornare quello iniziale dopo l'eliminazione");
-
-        // Cleanup utente
         utenteDAO.delete(autore.getUsername());
-
     }
 
+    /**
+     * Verifica la copia e il recupero di file multimediali.
+     *
+     * Testa {@link MediaManager#copyMediaToFolder(java.io.File)} e
+     * {@link MediaManager#getMediaFile(String)} per assicurarsi che i file
+     * vengano copiati e recuperati correttamente.
+     *
+     * 
+     * @throws java.io.IOException se si verifica un errore I/O
+     */
     @Test
     public void testMediaManagerCopyAndRetrieve() throws java.io.IOException {
-        // Init Media Folder
         it.univaq.brewhub.MediaManager.initMediaFolder();
-
-        // Create a temp source file
         java.nio.file.Path tempPath = java.nio.file.Files.createTempFile("test_media", ".txt");
         java.nio.file.Files.write(tempPath, "test content".getBytes());
         java.io.File tempSourceFile = tempPath.toFile();
-
-        // Test Copy
         String copiedRelativePath = it.univaq.brewhub.MediaManager.copyMediaToFolder(tempSourceFile);
         assertNotNull(copiedRelativePath, "Il percorso copiato non deve essere null");
         assertTrue(copiedRelativePath.startsWith("/media/"), "Il percorso deve iniziare con /media/");
         assertTrue(copiedRelativePath.endsWith(".txt"), "L'estensione deve essere mantenuta");
-
-        // Test Get File
         java.io.File retrievedFile = it.univaq.brewhub.MediaManager.getMediaFile(copiedRelativePath);
         assertNotNull(retrievedFile, "Il file recuperato non deve essere null");
         assertTrue(retrievedFile.exists(), "Il file copiato deve esistere");
-
-        // Test Relative Path Calculation
         String calcPath = it.univaq.brewhub.MediaManager.getRelativePath(retrievedFile);
         assertEquals(copiedRelativePath, calcPath, "Il percorso relativo calcolato deve corrispondere");
-
-        // Retrieve non-existent
         assertNull(it.univaq.brewhub.MediaManager.getMediaFile("/media/non_existent_file_12345.xyz"));
-
-        // Cleanup
         if (tempSourceFile.exists())
             tempSourceFile.delete();
         if (retrievedFile.exists())
             retrievedFile.delete();
+    }
+
+    /**
+     * Verifica il conteggio totale dei post.
+     *
+     * Controlla che il metodo {@link it.univaq.brewhub.dao.PostDAO#countAll()}
+     * restituisca il numero corretto di post.
+     *
+     * 
+     * @throws SQLException se si verifica un errore durante l'accesso al database
+     */
+    @Test
+    public void testCountPosts() throws SQLException {
+        Utente u = createTestUser("test_admin_p", TipoUtente.CURIOSO);
+        int initialPosts = postDAO.countAll();
+        Post p1 = createTestPost("Title1", u);
+        Post p2 = createTestPost("Title2", u);
+        assertEquals(initialPosts + 2, postDAO.countAll());
+        postDAO.delete(p1.getId());
+        postDAO.delete(p2.getId());
+        utenteDAO.delete(u.getUsername());
+    }
+
+    /**
+     * Verifica il conteggio dei post creati nelle ultime 24 ore.
+     *
+     * Controlla che solo i post recenti vengano conteggiati,
+     * escludendo quelli più vecchi di 24 ore.
+     *
+     * 
+     * @throws SQLException se si verifica un errore durante l'accesso al database
+     */
+    @Test
+    public void testCountPostsLast24h() throws SQLException {
+        Utente u = createTestUser("test_admin_time", TipoUtente.CURIOSO);
+        int initial24h = postDAO.countPostsLast24h();
+        Post pNew = createTestPost("New", u);
+        assertTrue(pNew.getId() > 0);
+        Post pOld = new Post("Old", "Content", u, TipoPost.TESTO, null);
+        pOld.setDataCreazione(LocalDateTime.now().minusDays(2));
+        postDAO.create(pOld);
+        assertTrue(pOld.getId() > 0);
+        assertEquals(initial24h + 1, postDAO.countPostsLast24h(), "Should only count the new post");
+        postDAO.delete(pNew.getId());
+        postDAO.delete(pOld.getId());
+        utenteDAO.delete(u.getUsername());
     }
 }

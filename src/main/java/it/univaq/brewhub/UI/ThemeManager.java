@@ -3,70 +3,74 @@ package it.univaq.brewhub.UI;
 import javafx.scene.Scene;
 
 /**
- * Gestore del Tema UI per l'applicazione BrewHub.
- * Definisce i colori e gli stili "Coffee Theme" e fornisce metodi per
- * applicarli alle scene JavaFX.
+ * Gestore centralizzato del tema e degli stili grafici dell'applicazione.
+ *
+ * Definisce la palette colori (Coffee Theme) e fornisce metodi per applicare
+ * stili CSS coerenti ai componenti JavaFX.
+ *
  */
 public class ThemeManager {
 
-        /** Nome del file CSS risorsa per il tema (es. style.css). */
         private static final String CSS_RESOURCE = "style.css";
 
         /**
-         * Applica il tema predefinito (Caffè) alla scena specificata.
-         * Carica il foglio di stile CSS dalle risorse del classpath.
-         *
+         * Applica il foglio di stile CSS alla scena specificata.
+         * 
          * @param scene La scena JavaFX a cui applicare il tema.
          */
         public static void applyTheme(Scene scene) {
                 try {
-                        // Ottiene l'URL della risorsa CSS e la aggiunge agli stylesheets della scena
                         String cssResource = ThemeManager.class.getResource("/" + CSS_RESOURCE).toExternalForm();
                         scene.getStylesheets().add(cssResource);
                 } catch (Exception e) {
-                        // Log dell'errore se il file CSS non viene trovato o caricato
                         System.err.println("Errore nel caricamento del tema CSS: " + e.getMessage());
                 }
         }
 
         /**
-         * Restituisce una stringa di stile CSS base per il font dell'applicazione.
+         * Restituisce lo stile CSS base per il font dell'applicazione.
          * 
-         * @return Stringa stile CSS per il font-family.
+         * @return Stringa CSS per font-family.
          */
         public static String getCoffeeThemeColors() {
                 return "-fx-font-family: 'Segoe UI', 'Arial', sans-serif;";
         }
 
         /**
-         * Costanti per i colori della palette "Coffee Theme".
-         * Usati staticamente per definire stili o per riferimento.
+         * Palette colori definita come costanti statiche.
+         * I colori sono ispirati alle tonalità del caffè, dal marrone scuro al crema.
          */
         public static class Colors {
-                public static final String DARK_COFFEE = "#2C1810"; // Nero caffè
-                public static final String MEDIUM_COFFEE = "#5D4037"; // Marrone medio
-                public static final String LIGHT_COFFEE = "#8D6E63"; // Marrone chiaro
-                public static final String PALE_COFFEE = "#A1887F"; // Marrone pallido
-                public static final String CREAM = "#F5E6D3"; // Crema
-                public static final String WHITE_CREAM = "#FFF8F3"; // Bianco panna
-                public static final String COPPER = "#D4A574"; // Rame/Beige
-                public static final String GOLD = "#C9A876"; // Oro caffè
-                public static final String ACCENT_GREEN = "#6B8E23"; // Verde salvia
-                public static final String ACCENT_BROWN = "#A0522D"; // Marrone scuro accento
+                /** Marrone molto scuro, quasi nero (Espresso). Usato per testo principale. */
+                public static final String DARK_COFFEE = "#2C1810";
+                /** Marrone medio (Moka). Usato per header e sfondi scuri. */
+                public static final String MEDIUM_COFFEE = "#5D4037";
+                /** Marrone chiaro (Cappuccino). Usato per elementi secondari. */
+                public static final String LIGHT_COFFEE = "#8D6E63";
+                /** Beige scuro (Latte Macchiato). Usato per bordi o sfondi tenui. */
+                public static final String PALE_COFFEE = "#A1887F";
+                /** Crema chiaro. Sfondo principale dell'app. */
+                public static final String CREAM = "#F5E6D3";
+                /** Bianco panna. Sfondo delle card e aree di contenuto. */
+                public static final String WHITE_CREAM = "#FFF8F3";
+                /** Color Rame/Bronzo. Usato per accenti e focus. */
+                public static final String COPPER = "#D4A574";
+                /** Oro spento. Usato per elementi premium o badge. */
+                public static final String GOLD = "#C9A876";
+                /** Verde Oliva. Colore di accento positivo (Successo/Conferma). */
+                public static final String ACCENT_GREEN = "#6B8E23";
+                /** Ruggine/Marrone rossiccio. Colore di accento negativo (Errore/Elimina). */
+                public static final String ACCENT_BROWN = "#A0522D";
         }
 
         /**
-         * Definizione programmatica degli stili CSS per componenti UI specifici.
-         * Utile quando si vuole applicare stile inline dinamico in
-         * aggiunta/sostituzione al file .css.
+         * Generatori di stili CSS inline per componenti comuni.
+         * Utili quando lo stile tramite classe CSS non è sufficiente o per stili
+         * dinamici.
          */
         public static class Styles {
 
-                /**
-                 * Stile per bottoni primari (azione principale).
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per bottone primario. */
                 public static String buttonPrimary() {
                         return String.format(
                                         "-fx-padding: 10 30 10 30; " +
@@ -80,11 +84,7 @@ public class ThemeManager {
                                         Colors.MEDIUM_COFFEE, Colors.WHITE_CREAM);
                 }
 
-                /**
-                 * Stile per bottoni di successo (es. conferma, salva).
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per bottone di successo (es. Conferma). */
                 public static String buttonSuccess() {
                         return String.format(
                                         "-fx-padding: 10 30 10 30; " +
@@ -98,11 +98,7 @@ public class ThemeManager {
                                         Colors.ACCENT_GREEN, Colors.WHITE_CREAM);
                 }
 
-                /**
-                 * Stile per bottoni secondari (es. annulla, info secondarie).
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per bottone secondario (es. Annulla). */
                 public static String buttonSecondary() {
                         return String.format(
                                         "-fx-padding: 10 30 10 30; " +
@@ -116,11 +112,7 @@ public class ThemeManager {
                                         Colors.PALE_COFFEE, Colors.WHITE_CREAM);
                 }
 
-                /**
-                 * Stile per bottoni di pericolo (es. elimina, logout).
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per bottone di pericolo (es. Elimina). */
                 public static String buttonDanger() {
                         return String.format(
                                         "-fx-padding: 10 30 10 30; " +
@@ -134,11 +126,7 @@ public class ThemeManager {
                                         Colors.ACCENT_BROWN, Colors.WHITE_CREAM);
                 }
 
-                /**
-                 * Stile per campi di testo (TextField).
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile base per campi di testo. */
                 public static String textField() {
                         return String.format(
                                         "-fx-padding: 10; " +
@@ -151,11 +139,7 @@ public class ThemeManager {
                                         Colors.COPPER, Colors.WHITE_CREAM, Colors.DARK_COFFEE);
                 }
 
-                /**
-                 * Stile per l'header dell'applicazione.
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per header delle sezioni. */
                 public static String header() {
                         return String.format(
                                         "-fx-background-color: %s; " +
@@ -164,11 +148,7 @@ public class ThemeManager {
                                         Colors.MEDIUM_COFFEE);
                 }
 
-                /**
-                 * Stile generico per card/pannelli.
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per card (contenitori). */
                 public static String card() {
                         return String.format(
                                         "-fx-background-color: %s; " +
@@ -180,11 +160,7 @@ public class ThemeManager {
                                         Colors.WHITE_CREAM, Colors.COPPER);
                 }
 
-                /**
-                 * Stile per la sidebar di navigazione.
-                 * 
-                 * @return Stringa CSS.
-                 */
+                /** @return Stile per sidebar laterale. */
                 public static String sidebar() {
                         return String.format(
                                         "-fx-background-color: %s; " +

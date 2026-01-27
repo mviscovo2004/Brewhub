@@ -5,7 +5,6 @@ import it.univaq.brewhub.Post;
 import it.univaq.brewhub.Post.TipoPost;
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.dao.PostDAO;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,30 +15,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione dell'interfaccia PostDAO per le operazioni database relative
- * ai Post.
+ * Implementazione DAO per i Post.
+ * <p>Gestisce la persistenza dei post, le ricerche, i like e il recupero del feed.</p>
  */
 public class PostDAOImpl implements PostDAO {
 
-    /** DAO per gestione dei commenti associati ai post. */
     private CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
     private static final java.time.format.DateTimeFormatter DB_DATE_FORMATTER = java.time.format.DateTimeFormatter
             .ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
+
     @Override
     public void create(Post post) throws SQLException {
         String sql = "INSERT INTO post(autore_username, titolo, contenuto, tipo, data_creazione, media_uri, category_id) VALUES(?,?,?,?,?,?,?)";
-
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
             pstmt.setString(1, post.getAutore().getUsername());
             pstmt.setString(2, post.getTitolo());
             pstmt.setString(3, post.getContenuto());
             pstmt.setString(4, post.getTipo().name());
             pstmt.setString(5, post.getDataCreazione().format(DB_DATE_FORMATTER));
             pstmt.setString(6, post.getMedia() != null ? post.getMedia().replace('\\', '/') : null);
-
+            
             if (post.getCategoria() != null) {
                 pstmt.setInt(7, post.getCategoria().getId());
             } else {
@@ -72,32 +70,23 @@ public class PostDAOImpl implements PostDAO {
             try (Connection conn = DatabaseManager.getConnection()) {
                 boolean originalAutoCommit = conn.getAutoCommit();
                 conn.setAutoCommit(false);
-
                 try {
-                    // 1. Delete from saved_posts (Archive)
                     try (PreparedStatement ps = conn.prepareStatement(deleteSaved)) {
                         ps.setInt(1, id);
                         ps.executeUpdate();
                     }
-
-                    // 2. Delete likes
                     try (PreparedStatement ps = conn.prepareStatement(deleteLikes)) {
                         ps.setInt(1, id);
                         ps.executeUpdate();
                     }
-
-                    // 3. Delete comments
                     try (PreparedStatement ps = conn.prepareStatement(deleteComments)) {
                         ps.setInt(1, id);
                         ps.executeUpdate();
                     }
-
-                    // 4. Delete the post itself
                     try (PreparedStatement ps = conn.prepareStatement(deletePost)) {
                         ps.setInt(1, id);
                         ps.executeUpdate();
                     }
-
                     conn.commit();
                 } catch (SQLException e) {
                     conn.rollback();
@@ -131,25 +120,15 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, p, p);
     }
 
-    /**
-     * Esegue la query e mappa il result set in una lista di oggetti Post.
-     *
-     * @param sql    La query SQL da eseguire.
-     * @param params I parametri opzionali per la query.
-     * @return Una lista di oggetti Post.
-     * @throws SQLException Se si verifica un errore di accesso al database.
-     */
     private List<Post> executeQuery(String sql, Object... params) throws SQLException {
         List<Post> posts = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             if (params != null) {
                 for (int i = 0; i < params.length; i++) {
                     pstmt.setObject(i + 1, params[i]);
                 }
             }
-
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     posts.add(mapResultSetToPost(rs));
@@ -159,29 +138,23 @@ public class PostDAOImpl implements PostDAO {
         return posts;
     }
 
-    // --- Gestione Like ---
-
-    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
-
     @Override
     public void addLike(int postId, String username) throws SQLException {
         it.univaq.brewhub.Notifica notificationToSend = null;
-
         String sql = "INSERT OR IGNORE INTO likes (post_id, username) VALUES (?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, postId);
             pstmt.setString(2, username);
             int rows = pstmt.executeUpdate();
-
             if (rows > 0) {
-                // Recupera autore del post per notifica
+                // Notifica all'autore
                 try (PreparedStatement psSel = conn.prepareStatement("SELECT autore_username FROM post WHERE id = ?")) {
                     psSel.setInt(1, postId);
                     try (ResultSet rs = psSel.executeQuery()) {
                         if (rs.next()) {
                             String author = rs.getString("autore_username");
-                            if (!author.equals(username)) { // Non notificare se ti metti like da solo
+                            if (!author.equals(username)) { 
                                 Utente ricevente = new Utente();
                                 ricevente.setUsername(author);
                                 notificationToSend = new it.univaq.brewhub.Notifica(ricevente,
@@ -192,9 +165,6 @@ public class PostDAOImpl implements PostDAO {
                 }
             }
         }
-
-        // Invia notifica dopo aver chiuso la connessione precedente per evitare lock
-        // SQLite
         if (notificationToSend != null) {
             notificaDAO.create(notificationToSend);
         }
@@ -282,6 +252,7 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public List<Post> findPopular() throws SQLException {
+        // Popolarità basata sui Like
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome, COUNT(l.post_id) as like_count "
                 +
                 "FROM post p " +
@@ -308,6 +279,7 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public List<Post> findFeedForUser(String username) throws SQLException {
+        // Post degli utenti seguiti
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
                 "FROM post p " +
                 "JOIN utenti u ON p.autore_username = u.username " +
@@ -321,11 +293,10 @@ public class PostDAOImpl implements PostDAO {
     private Post mapResultSetToPost(ResultSet rs) throws SQLException {
         Post post = new Post();
         post.setId(rs.getInt("id"));
-
+        
         Utente autore = new Utente();
         autore.setUsername(rs.getString("autore_username"));
-
-        // Mappatura UserType da JOIN
+        
         try {
             String typeStr = rs.getString("user_type");
             if (typeStr != null) {
@@ -336,25 +307,22 @@ public class PostDAOImpl implements PostDAO {
         } catch (SQLException | IllegalArgumentException e) {
             autore.setTipo(Utente.TipoUtente.APPASSIONATO);
         }
-
-        // Mappatura Foto Profilo da JOIN
+        
         try {
             autore.setFotoProfilo(rs.getString("user_foto"));
         } catch (SQLException e) {
-            // Ignora se colonna mancante (ma non dovrebbe)
         }
-
         post.setAutore(autore);
-
+        
         post.setTitolo(rs.getString("titolo"));
         post.setContenuto(rs.getString("contenuto"));
-
+        
         try {
             post.setTipo(TipoPost.valueOf(rs.getString("tipo")));
         } catch (IllegalArgumentException e) {
             post.setTipo(TipoPost.TESTO);
         }
-
+        
         try {
             String dateStr = rs.getString("data_creazione");
             if (dateStr.contains("T")) {
@@ -365,9 +333,9 @@ public class PostDAOImpl implements PostDAO {
         } catch (Exception e) {
             post.setDataCreazione(LocalDateTime.now());
         }
+        
         post.setMedia(rs.getString("media_uri"));
-
-        // Mappa Categoria da JOIN
+        
         int catId = rs.getInt("category_id");
         if (!rs.wasNull() && catId > 0) {
             it.univaq.brewhub.Categoria c = new it.univaq.brewhub.Categoria();
@@ -379,10 +347,9 @@ public class PostDAOImpl implements PostDAO {
             }
             post.setCategoria(c);
         }
-
-        // Caricamento Commenti tramite DAO (rimane separato per ora)
+        
+        // Caricamento commenti
         post.setCommenti(commentoDAO.findByPost(post));
-
         return post;
     }
 
@@ -401,7 +368,7 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public int countPostsLast24h() throws SQLException {
-        // SQLite uses 'now', '-1 day' for date math
+        // Sintassi SQLite per tempo
         String sql = "SELECT COUNT(*) FROM post WHERE data_creazione >= datetime('now', '-1 day', 'localtime')";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);

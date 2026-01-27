@@ -1,3 +1,17 @@
+/**
+ * Modulo principale dell'applicazione BrewHub.
+ *
+ * BrewHub è un social network dedicato agli appassionati di caffè,
+ * che permette di condividere post, recensioni, partecipare a eventi
+ * e interagire con torrefattori e altri utenti.
+ *
+ * 
+ * Dipendenze principali:
+ *
+ * - JavaFX - Framework per l'interfaccia grafica
+ * - SQLite (via JDBC) - Database locale
+ * - jBCrypt - Hashing delle password
+ */
 @SuppressWarnings("module") module it.univaq.brewhub {
     requires transitive javafx.controls;
     requires transitive java.sql;

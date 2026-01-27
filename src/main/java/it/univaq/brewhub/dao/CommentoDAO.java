@@ -4,37 +4,37 @@ import it.univaq.brewhub.Commento;
 import java.util.List;
 import java.sql.SQLException;
 
+/**
+ * Interfaccia DAO per la gestione dei Commenti.
+ */
 public interface CommentoDAO {
+
     /**
      * Crea un nuovo commento.
-     *
-     * @param commento Il commento da creare.
-     * @throws SQLException Se si verifica un errore di accesso al database.
+     * @param commento Il commento da persistere.
+     * @throws SQLException Errore SQL.
      */
     void create(Commento commento) throws SQLException;
 
     /**
      * Trova tutti i commenti associati a un post specifico.
-     *
      * @param postId L'ID del post.
-     * @return Una lista di commenti per il post.
-     * @throws SQLException Se si verifica un errore di accesso al database.
+     * @return Lista di commenti.
+     * @throws SQLException Errore SQL.
      */
     List<Commento> findByPostId(int postId) throws SQLException;
 
     /**
-     * Elimina un commento tramite il suo ID.
-     *
-     * @param id L'ID del commento da eliminare.
-     * @throws SQLException Se si verifica un errore di accesso al database.
+     * Elimina un commento per ID.
+     * @param id L'ID del commento.
+     * @throws SQLException Errore SQL.
      */
     void delete(int id) throws SQLException;
 
     /**
-     * Aggiorna il contenuto di un commento esistente.
-     *
-     * @param commento Il commento con il contenuto aggiornato.
-     * @throws SQLException Se si verifica un errore di accesso al database.
+     * Aggiorna il contenuto di un commento.
+     * @param commento Il commento con i dati aggiornati.
+     * @throws SQLException Errore SQL.
      */
     void update(Commento commento) throws SQLException;
 }

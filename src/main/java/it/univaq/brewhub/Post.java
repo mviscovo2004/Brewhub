@@ -5,39 +5,73 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Rappresenta un Post pubblicato sulla piattaforma BrewHub.
- * POJO puro: la persistenza è delegata a PostDAO.
+ * Rappresenta un Post creato da un utente nel social network.
+ *
+ * Un post è l'elemento fondamentale di condivisione in BrewHub.
+ * Può contenere testo, foto o video e funge da aggregatore per interazioni
+ * sociali
+ * come "Mi Piace" e commenti.
+ *
+ * Ogni post è associato a un {@link Utente} autore e opzionalmente a una
+ * {@link Categoria} tematica.
+ *
  */
 public class Post {
 
-    /** Identificativo univoco del post. */
+    /** Identificativo univoco del post nel database (Primary Key). */
     private int id;
-    /** Autore del post. */
+
+    /** L'autore che ha creato il post. */
     private Utente autore;
-    /** Titolo del post. */
+
+    /** Titolo del post, obbligatorio per la pubblicazione. */
     private String titolo;
-    /** Contenuto testuale del post. */
+
+    /** Contenuto testuale o descrizione del post. */
     private String contenuto;
-    /** Tipo di contenuto del post (Testo, Foto, Video). */
+
+    /**
+     * Tipologia del post (Testo, Foto, Video) che determina come viene renderizzato
+     * nella UI.
+     */
     private TipoPost tipo;
-    /** Data e ora di creazione del post. */
+
+    /**
+     * Data e ora di creazione del post. Di default impostata al momento
+     * dell'istanziazione.
+     */
     private LocalDateTime dataCreazione = LocalDateTime.now();
-    /** Percorso/URI del media associato (se presente). */
+
+    /**
+     * Percorso (locale o URI) del file media associato.
+     * È null se il tipo di post è {@link TipoPost#TESTO}.
+     */
     private String media = null;
-    /** Categoria del post (opzionale). */
+
+    /** Categoria di appartenenza del post (es. "Torrefattori", "Miscele"). */
     private Categoria categoria;
 
-    /** Lista degli utenti che hanno messo "mi piace". */
+    /**
+     * Lista degli utenti che hanno messo "Mi Piace".
+     * Viene popolata pigramente (Lazy Loading) dal DAO solo quando necessario.
+     */
     private List<Utente> miPiace = new ArrayList<>();
-    /** Lista dei commenti associati al post. */
+
+    /**
+     * Lista dei commenti associati al post.
+     * Solitamente caricati insieme al post per la visualizzazione nel feed.
+     */
     private List<Commento> commenti = new ArrayList<>();
 
     /**
-     * Enumerazione dei tipi di post disponibili.
+     * Enumerazione per i tipi di post supportati dal sistema.
      */
     public enum TipoPost {
+        /** Post contenente solo titolo e descrizione testuale. */
         TESTO("Testo"),
+        /** Post contenente un'immagine allegata. */
         FOTO("Foto"),
+        /** Post contenente un video allegato. */
         VIDEO("Video");
 
         private final String label;
@@ -53,13 +87,13 @@ public class Post {
     }
 
     /**
-     * Costruisce un nuovo Post con i dettagli specificati.
-     *
+     * Costruttore completo per creare un nuovo post.
+     * 
      * @param titolo    Il titolo del post.
-     * @param contenuto Il contenuto del post.
-     * @param autore    L'autore del post.
-     * @param tipo      Il tipo del post.
-     * @param media     L'URI del media (se presente).
+     * @param contenuto Il contenuto o descrizione.
+     * @param autore    L'utente autore.
+     * @param tipo      Il tipo di post.
+     * @param media     Il percorso del media (può essere null per i post di testo).
      */
     public Post(String titolo, String contenuto, Utente autore, TipoPost tipo, String media) {
         this.titolo = titolo;
@@ -71,15 +105,76 @@ public class Post {
     }
 
     /**
-     * Costruttore di default.
+     * Costruttore vuoto (Bean).
      */
     public Post() {
     }
 
     /**
-     * Restituisce l'ID univoco del post.
-     *
-     * @return L'ID del post.
+     * Restituisce un nuovo Builder per creare istanze di Post in modo fluente.
+     * 
+     * @return Un'istanza di {@link Builder}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Pattern Builder per la classe Post.
+     */
+    public static class Builder {
+        private String titolo;
+        private String contenuto;
+        private Utente autore;
+        private TipoPost tipo = TipoPost.TESTO;
+        private String media;
+        private Categoria categoria;
+
+        public Builder withTitolo(String titolo) {
+            this.titolo = titolo;
+            return this;
+        }
+
+        public Builder withContenuto(String contenuto) {
+            this.contenuto = contenuto;
+            return this;
+        }
+
+        public Builder withAutore(Utente autore) {
+            this.autore = autore;
+            return this;
+        }
+
+        public Builder withTipo(TipoPost tipo) {
+            this.tipo = tipo;
+            return this;
+        }
+
+        public Builder withMedia(String media) {
+            this.media = media;
+            return this;
+        }
+
+        public Builder withCategoria(Categoria categoria) {
+            this.categoria = categoria;
+            return this;
+        }
+
+        public Post build() {
+            Post p = new Post(titolo, contenuto, autore, tipo, media);
+            if (categoria != null) {
+                p.setCategoria(categoria);
+            }
+            return p;
+        }
+    }
+
+    // --- GETTER ---
+
+    /**
+     * Restituisce l'ID del post.
+     * 
+     * @return L'identificativo intero.
      */
     public int getId() {
         return id;
@@ -87,8 +182,8 @@ public class Post {
 
     /**
      * Restituisce l'autore del post.
-     *
-     * @return L'autore.
+     * 
+     * @return L'oggetto {@link Utente} autore.
      */
     public Utente getAutore() {
         return autore;
@@ -96,7 +191,7 @@ public class Post {
 
     /**
      * Restituisce il titolo del post.
-     *
+     * 
      * @return Il titolo.
      */
     public String getTitolo() {
@@ -105,52 +200,53 @@ public class Post {
 
     /**
      * Restituisce il contenuto del post.
-     *
-     * @return Il contenuto.
+     * 
+     * @return Il testo del contenuto.
      */
     public String getContenuto() {
         return contenuto;
     }
 
     /**
-     * Restituisce il tipo del post.
-     *
-     * @return Il tipo del post.
+     * Restituisce il tipo di post.
+     * 
+     * @return Il {@link TipoPost}.
      */
     public TipoPost getTipo() {
         return tipo;
     }
 
     /**
-     * Restituisce l'URI del media associato al post.
-     *
-     * @return L'URI del media.
+     * Restituisce il percorso del media allegato.
+     * 
+     * @return L'URI del media o null se non presente.
      */
     public String getMedia() {
         return media;
     }
 
+    /**
+     * Restituisce la categoria del post.
+     * 
+     * @return L'oggetto {@link Categoria} o null se non assegnata.
+     */
     public Categoria getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(Categoria categoria) {
-        this.categoria = categoria;
-    }
-
     /**
-     * Restituisce la lista degli utenti che hanno messo "mi piace".
-     *
-     * @return La lista dei "mi piace".
+     * Restituisce la lista di utenti che hanno messo like.
+     * 
+     * @return Lista di {@link Utente}.
      */
     public List<Utente> getMiPiace() {
         return miPiace;
     }
 
     /**
-     * Restituisce un singolo utente che ha messo "mi piace" dato l'indice.
-     *
-     * @param i L'indice.
+     * Restituisce un singolo utente che ha messo like in base all'indice.
+     * 
+     * @param i L'indice nella lista dei like.
      * @return L'utente.
      */
     public Utente getMiPiaceSingolo(int i) {
@@ -158,37 +254,39 @@ public class Post {
     }
 
     /**
-     * Restituisce la data di creazione del post.
-     *
-     * @return La data di creazione.
+     * Restituisce la data e ora di creazione.
+     * 
+     * @return {@link LocalDateTime} di creazione.
      */
     public LocalDateTime getDataCreazione() {
         return dataCreazione;
     }
 
     /**
-     * Restituisce la lista dei commenti sul post.
-     *
-     * @return La lista dei commenti.
+     * Restituisce la lista dei commenti.
+     * 
+     * @return Lista di {@link Commento}.
      */
     public List<Commento> getCommenti() {
         return commenti;
     }
 
     /**
-     * Restituisce un singolo commento dato l'indice.
-     *
-     * @param i L'indice.
-     * @return Il commento.
+     * Restituisce un singolo commento in base all'indice.
+     * 
+     * @param i L'indice nella lista dei commenti.
+     * @return Il {@link Commento}.
      */
     public Commento getCommentoSingolo(int i) {
         return commenti.get(i);
     }
 
+    // --- SETTER ---
+
     /**
-     * Imposta l'ID univoco del post.
-     *
-     * @param id L'ID del post.
+     * Imposta l'ID del post.
+     * 
+     * @param id Il nuovo ID.
      */
     public void setId(int id) {
         this.id = id;
@@ -196,8 +294,8 @@ public class Post {
 
     /**
      * Imposta l'autore del post.
-     *
-     * @param autore L'autore.
+     * 
+     * @param autore Il nuovo autore.
      */
     public void setAutore(Utente autore) {
         this.autore = autore;
@@ -205,8 +303,8 @@ public class Post {
 
     /**
      * Imposta il titolo del post.
-     *
-     * @param titolo Il titolo.
+     * 
+     * @param titolo Il nuovo titolo.
      */
     public void setTitolo(String titolo) {
         this.titolo = titolo;
@@ -214,73 +312,82 @@ public class Post {
 
     /**
      * Imposta il contenuto del post.
-     *
-     * @param contenuto Il contenuto.
+     * 
+     * @param contenuto Il nuovo contenuto.
      */
     public void setContenuto(String contenuto) {
         this.contenuto = contenuto;
     }
 
     /**
-     * Imposta il tipo del post.
-     *
-     * @param tipo Il tipo del post.
+     * Imposta il tipo di post.
+     * 
+     * @param tipo Il nuovo tipo.
      */
     public void setTipo(TipoPost tipo) {
         this.tipo = tipo;
     }
 
     /**
-     * Imposta la data di creazione del post.
-     *
-     * @param dataCreazione La data di creazione.
+     * Imposta la data di creazione.
+     * 
+     * @param dataCreazione La nuova data.
      */
     public void setDataCreazione(LocalDateTime dataCreazione) {
         this.dataCreazione = dataCreazione;
     }
 
     /**
-     * Imposta l'URI del media associato al post.
-     *
-     * @param media L'URI del media.
+     * Imposta il media allegato.
+     * 
+     * @param media Il percorso del nuovo media.
      */
     public void setMedia(String media) {
         this.media = media;
     }
 
     /**
-     * Imposta la lista degli utenti che hanno messo "mi piace".
-     *
-     * @param miPiace La lista dei "mi piace".
+     * Imposta la categoria del post.
+     * 
+     * @param categoria La nuova categoria.
+     */
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
+    }
+
+    /**
+     * Imposta la lista dei like.
+     * 
+     * @param miPiace La nuova lista di utenti.
      */
     public void setMiPiace(List<Utente> miPiace) {
         this.miPiace = miPiace;
     }
 
     /**
-     * Imposta un singolo utente nella lista dei "mi piace" all'indice specificato.
-     *
-     * @param i      L'indice.
-     * @param utente L'utente.
+     * Aggiorna un singolo like nella lista.
+     * 
+     * @param i      L'indice da aggiornare.
+     * @param utente L'utente da inserire.
      */
     public void setMiPiaceSingolo(int i, Utente utente) {
         miPiace.set(i, utente);
     }
 
     /**
-     * Imposta la lista dei commenti sul post.
-     *
-     * @param commenti La lista dei commenti.
+     * Imposta la lista dei commenti.
+     * 
+     * @param commenti La nuova lista di commenti.
      */
     public void setCommenti(List<Commento> commenti) {
         this.commenti = commenti;
     }
 
     /**
-     * Imposta un singolo commento nella lista all'indice specificato.
-     *
-     * @param i        L'indice.
-     * @param commento Il commento.
+     * Aggiorna un singolo commento nella lista.
+     * 
+     * @param i        L'indice da aggiornare.
+     * @param commento Il nuovo commento.
      */
     public void setCommentoSingolo(int i, Commento commento) {
         commenti.set(i, commento);

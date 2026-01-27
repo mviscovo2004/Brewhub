@@ -3,50 +3,56 @@ package it.univaq.brewhub.dao;
 import it.univaq.brewhub.Messaggio;
 import java.util.List;
 
+/**
+ * Interfaccia DAO per la gestione dei Messaggi (Chat privata e di gruppo).
+ */
 public interface MessaggioDAO {
 
     /**
-     * Crea un nuovo messaggio.
-     * 
+     * Invia un nuovo messaggio.
      * @param messaggio Il messaggio da salvare.
      */
     void create(Messaggio messaggio);
 
     /**
-     * Recupera la conversazione tra due utenti, ordinata per data.
-     * 
-     * @param user1 Username del primo utente.
-     * @param user2 Username del secondo utente.
-     * @return Lista di messaggi scambiati tra i due utenti.
+     * Recupera la cronologia messaggi tra due utenti.
+     * @param user1 Primo utente.
+     * @param user2 Secondo utente.
+     * @return Lista dei messaggi scambiati.
      */
     List<Messaggio> getConversazione(String user1, String user2);
 
+    /**
+     * Recupera i messaggi di un gruppo.
+     * @param idGruppo ID del gruppo.
+     * @return Lista dei messaggi.
+     */
     List<Messaggio> getMessaggiGruppo(int idGruppo);
 
     /**
-     * Ritorna una lista di username con cui l'utente ha una conversazione attiva.
-     * (Potrebbe ritornare oggetti più complessi in futuro per mostrare l'ultimo
-     * messaggio).
-     * 
-     * @param user Username dell'utente loggato.
-     * @return Lista di username unici.
+     * Ottiene la lista di utenti con cui l'utente corrente ha una conversazione attiva.
+     * @param user L'utente corrente.
+     * @return Lista di username.
      */
     List<String> getUtentiConversazioni(String user);
 
     /**
      * Segna un messaggio come letto.
-     * 
      * @param id ID del messaggio.
      */
     void segnaComeLetto(int id);
 
     /**
      * Conta i messaggi non letti per un utente.
-     * 
-     * @param receiver Username del ricevente.
+     * @param receiver Username del destinatario.
      * @return Numero di messaggi non letti.
      */
     int contaNonLetti(String receiver);
 
+    /**
+     * Elimina l'intera conversazione tra due utenti.
+     * @param user1 Primo utente.
+     * @param user2 Secondo utente.
+     */
     void deleteConversazione(String user1, String user2);
 }

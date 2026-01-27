@@ -3,35 +3,38 @@ package it.univaq.brewhub;
 import java.time.LocalDateTime;
 
 /**
- * Classe che rappresenta un Commento a un Post.
- * POJO puro: persistenza delegata a CommentoDAO.
+ * Rappresenta un commento lasciato da un utente su un post.
  */
 public class Commento {
 
-	// Attributi
 	/** Identificativo univoco del commento. */
-	private int id; // ID database
-	/** Utente autore del commento. */
+	private int id; 
+
+	/** L'autore del commento. */
 	private Utente utente;
-	/** Post a cui si riferisce il commento. */
+
+	/** Il post a cui il commento si riferisce. */
 	private Post post;
-	/** Contenuto testuale del commento. */
+
+	/** Il testo del commento. */
 	private String contenuto;
-	/** Data e ora di creazione del commento. */
+
+	/** Data e ora di creazione. */
 	private LocalDateTime dataCreazione = LocalDateTime.now();
 
-	// Costruttore vuoto
+	/**
+	 * Costruttore vuoto.
+	 */
 	public Commento() {
 	}
 
-	// Costruttore completo
 	/**
-	 * Costruisce un nuovo Commento con i dettagli specificati.
-	 *
-	 * @param utente        L'utente che ha creato il commento.
-	 * @param post          Il post commentato.
-	 * @param contenuto     Il contenuto del commento.
-	 * @param dataCreazione La data di creazione (se null, usa quella attuale).
+	 * Costruttore completo.
+	 * 
+	 * @param utente        L'autore.
+	 * @param post          Il post target.
+	 * @param contenuto     Il testo del commento.
+	 * @param dataCreazione La data di creazione (opzionale, se null usa now()).
 	 */
 	public Commento(Utente utente, Post post, String contenuto, LocalDateTime dataCreazione) {
 		this.contenuto = contenuto;
@@ -42,21 +45,17 @@ public class Commento {
 		}
 	}
 
-	// --- GETTER & SETTER ---
-
 	/**
-	 * Restituisce l'ID univoco del commento.
-	 *
-	 * @return L'ID del commento.
+	 * Restituisce l'ID del commento.
+	 * @return L'identificativo.
 	 */
 	public int getId() {
 		return id;
 	}
 
 	/**
-	 * Imposta l'ID univoco del commento.
-	 *
-	 * @param id L'ID del commento.
+	 * Imposta l'ID del commento.
+	 * @param id Il nuovo ID.
 	 */
 	public void setId(int id) {
 		this.id = id;
@@ -64,8 +63,7 @@ public class Commento {
 
 	/**
 	 * Restituisce il contenuto del commento.
-	 *
-	 * @return Il contenuto.
+	 * @return Il testo.
 	 */
 	public String getContenuto() {
 		return contenuto;
@@ -73,62 +71,55 @@ public class Commento {
 
 	/**
 	 * Imposta il contenuto del commento.
-	 *
-	 * @param contenuto Il contenuto.
+	 * @param contenuto Il nuovo testo.
 	 */
 	public void setContenuto(String contenuto) {
 		this.contenuto = contenuto;
 	}
 
 	/**
-	 * Restituisce la data di creazione del commento.
-	 *
-	 * @return La data di creazione.
+	 * Restituisce la data di creazione.
+	 * @return {@link LocalDateTime} di creazione.
 	 */
 	public LocalDateTime getDataCreazione() {
 		return dataCreazione;
 	}
 
 	/**
-	 * Imposta la data di creazione del commento.
-	 *
-	 * @param dataCreazione La data di creazione.
+	 * Imposta la data di creazione.
+	 * @param dataCreazione La nuova data.
 	 */
 	public void setDataCreazione(LocalDateTime dataCreazione) {
 		this.dataCreazione = dataCreazione;
 	}
 
 	/**
-	 * Restituisce il post associato al commento.
-	 *
-	 * @return Il post.
+	 * Restituisce il post associato.
+	 * @return L'oggetto {@link Post}.
 	 */
 	public Post getPost() {
 		return post;
 	}
 
 	/**
-	 * Imposta il post associato al commento.
-	 *
-	 * @param post Il post.
+	 * Imposta il post associato.
+	 * @param post Il nuovo post.
 	 */
 	public void setPost(Post post) {
 		this.post = post;
 	}
 
 	/**
-	 * Restituisce l'utente che ha creato il commento.
-	 *
-	 * @return L'utente.
+	 * Restituisce l'autore del commento.
+	 * @return L'oggetto {@link Utente}.
 	 */
 	public Utente getUtente() {
 		return utente;
 	}
 
 	/**
-	 * Imposta l'utente che ha creato il commento.
-	 *
-	 * @param utente L'utente.
+	 * Imposta l'autore del commento.
+	 * @param utente Il nuovo autore.
 	 */
 	public void setUtente(Utente utente) {
 		this.utente = utente;

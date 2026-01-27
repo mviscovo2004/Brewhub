@@ -25,19 +25,20 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- * Gestisce l'interfaccia grafica per la registrazione di nuovi utenti.
- * Permette l'inserimento di dati anagrafici, credenziali e foto profilo.
+ * Gestisce l'interfaccia grafica per la Registrazione di nuovi utenti.
+ *
+ * Supporta la registrazione di utenti standard e di Torrefattori (con campi
+ * aggiuntivi).
+ * Gestisce la validazione dei campi e il caricamento della foto profilo.
+ *
  */
 public class RegisterView {
 
-    /** Riferimento allo stage principale dell'applicazione. */
     private final Stage stage;
-
-    /** Percorso dell'immagine del profilo selezionata (se presente). */
     private String immagine = null;
 
     /**
-     * Costruttore della vista di registrazione.
+     * Costruttore.
      * 
      * @param stage Lo stage principale.
      */
@@ -46,46 +47,38 @@ public class RegisterView {
     }
 
     /**
-     * Crea e restituisce il layout principale della schermata di registrazione.
-     * Configura il form di input e la logica di validazione e salvataggio.
-     *
-     * @return Parent Il nodo radice della vista.
+     * Costruisce la vista di registrazione.
+     * 
+     * @return Il nodo root della vista.
      */
     public Parent getView() {
-        // Configurazione form properties
         stage.setResizable(false);
         stage.setTitle("Brewhub - Registrazione");
         stage.setWidth(1000);
         stage.setHeight(800);
 
-        // --- LAYOUT ---
         StackPane root = new StackPane();
         root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         root.getStyleClass().add("login-root");
 
-        // Card centrale di Registrazione
         VBox formBox = new VBox(8);
         formBox.setAlignment(Pos.CENTER);
-        formBox.setMaxWidth(650); // Aumentato per layout orizzontale
-        formBox.setMaxHeight(600); // Imposto altezza massima per ridurre spazi
+        formBox.setMaxWidth(650);
+        formBox.setMaxHeight(600);
         formBox.getStyleClass().add("form-box");
 
-        // Titolo
         Label lblTitolo = new Label("Crea un account");
         lblTitolo.getStyleClass().add("title-label");
 
-        // Sottotitolo
         Label lblSottotitolo = new Label("Registrati per iniziare");
         lblSottotitolo.getStyleClass().add("subtitle-label");
 
-        // Messaggio Errore
         Label lblErrore = new Label();
         lblErrore.setVisible(false);
         lblErrore.getStyleClass().add("error-label");
         lblErrore.setWrapText(true);
         lblErrore.setId("lblErrore");
 
-        // Campi Dati Anagrafici
         HBox persona = new HBox(10);
         persona.setAlignment(Pos.CENTER);
 
@@ -103,29 +96,24 @@ public class RegisterView {
 
         persona.getChildren().addAll(fldNome, fldCognome);
 
-        // Credenziali (Username | Password)
         HBox credenziali = new HBox(10);
         credenziali.setAlignment(Pos.CENTER);
 
-        // Campo Username
         TextField fldUsername = new TextField();
         fldUsername.setPromptText("Username");
         fldUsername.getStyleClass().add("text-field");
         fldUsername.setPrefWidth(315);
         fldUsername.setId("fldUsername");
 
-        // Campo Password
         PasswordFieldWithToggler fldPassword = new PasswordFieldWithToggler("Password (min 8 car.)");
         fldPassword.setId("fldPasswordContainer");
         fldPassword.setPrefWidth(315);
 
         credenziali.getChildren().addAll(fldUsername, fldPassword);
 
-        // Tipo Utente e Foto (Affiancati)
         HBox tipoFotoBox = new HBox(10);
         tipoFotoBox.setAlignment(Pos.CENTER);
 
-        // ChoiceBox Tipo Utente
         ChoiceBox<TipoUtente> cbxTipo = new ChoiceBox<>();
         cbxTipo.getStyleClass().add("choice-box");
         cbxTipo.setPrefWidth(315);
@@ -135,7 +123,6 @@ public class RegisterView {
         cbxTipo.getItems().remove(TipoUtente.OSPITE);
         cbxTipo.setValue(TipoUtente.CURIOSO);
 
-        // Sezione Foto
         HBox fotoBox = new HBox(15);
         fotoBox.setAlignment(Pos.CENTER_LEFT);
         fotoBox.setPrefWidth(315);
@@ -170,7 +157,7 @@ public class RegisterView {
 
         bottoni.getChildren().addAll(btnRegistrati, btnAccedi, linkOspite);
 
-        // Assemblaggio Card
+        // Assemblaggio Card Base
         formBox.getChildren().addAll(
                 lblTitolo, lblSottotitolo, lblErrore,
                 persona, credenziali, tipoFotoBox);
@@ -338,6 +325,13 @@ public class RegisterView {
         return root;
     }
 
+    /**
+     * Apre il selettore file per l'immagine del profilo.
+     * Metodo protected per permettere l'override nei test.
+     * 
+     * @param stage Lo stage principale per la modale.
+     * @return Il file selezionato o null.
+     */
     protected File openFileChooser(Stage stage) {
         FileChooser fileFoto = new FileChooser();
         fileFoto.getExtensionFilters()

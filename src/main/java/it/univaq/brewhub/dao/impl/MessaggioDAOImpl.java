@@ -7,7 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementazione DAO per i Messaggi.
+ * <p>Gestisce sia messaggi privati (1-to-1) che di gruppo, incluse le notifiche.</p>
+ */
 public class MessaggioDAOImpl implements MessaggioDAO {
+
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
     @Override
     public void create(Messaggio messaggio) {
@@ -15,17 +21,17 @@ public class MessaggioDAOImpl implements MessaggioDAO {
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, messaggio.getSender());
-
+            
             if (messaggio.getReceiver() != null) {
                 pstmt.setString(2, messaggio.getReceiver());
             } else {
                 pstmt.setNull(2, java.sql.Types.VARCHAR);
             }
-
+            
             pstmt.setString(3, messaggio.getContenuto());
             pstmt.setString(4, messaggio.getTimestamp());
             pstmt.setBoolean(5, messaggio.isLetto());
-
+            
             if (messaggio.getIdGruppo() != null) {
                 pstmt.setInt(6, messaggio.getIdGruppo());
             } else {
@@ -39,8 +45,23 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                         messaggio.setId(generatedKeys.getInt(1));
                     }
                 }
-            }
 
+                // Invia notifica se è un messaggio privato e il mittente non è il destinatario (es. auto-invio)
+                if (messaggio.getReceiver() != null && !messaggio.getSender().equals(messaggio.getReceiver())) {
+                    it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                    u.setUsername(messaggio.getReceiver());
+                    String snippet = messaggio.getContenuto();
+                    if (snippet.length() > 20)
+                        snippet = snippet.substring(0, 20) + "...";
+                    String notifMsg = "Nuovo messaggio da " + messaggio.getSender() + ": " + snippet;
+                    it.univaq.brewhub.Notifica n = new it.univaq.brewhub.Notifica(u, notifMsg);
+                    try {
+                        notificaDAO.create(n);
+                    } catch (SQLException ex) {
+                        System.err.println("Errore creazione notifica messaggio: " + ex.getMessage());
+                    }
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -49,7 +70,6 @@ public class MessaggioDAOImpl implements MessaggioDAO {
     @Override
     public List<Messaggio> getConversazione(String user1, String user2) {
         List<Messaggio> chat = new ArrayList<>();
-        // Query specific for private messages (id_gruppo IS NULL)
         String sql = "SELECT * FROM messaggi WHERE id_gruppo IS NULL AND ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)) ORDER BY timestamp ASC, id ASC";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -71,7 +91,7 @@ public class MessaggioDAOImpl implements MessaggioDAO {
     @Override
     public List<String> getUtentiConversazioni(String user) {
         List<String> utenti = new ArrayList<>();
-        // Find users from private messages only
+        // Unione di chi ha inviato messaggi all'utente e di chi ne ha ricevuti dall'utente
         String sql = "SELECT DISTINCT other_user FROM (" +
                 "  SELECT receiver as other_user FROM messaggi WHERE sender = ? AND id_gruppo IS NULL " +
                 "  UNION " +
@@ -106,9 +126,6 @@ public class MessaggioDAOImpl implements MessaggioDAO {
 
     @Override
     public int contaNonLetti(String receiver) {
-        // Count unread for user (ignoring groups for now in general count, or
-        // including?
-        // Usually notifications are separate. Let's keep it simple.)
         String sql = "SELECT COUNT(*) FROM messaggi WHERE receiver = ? AND letto = 0";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

@@ -4,7 +4,6 @@ import it.univaq.brewhub.DatabaseManager;
 import it.univaq.brewhub.Notifica;
 import it.univaq.brewhub.Utente;
 import it.univaq.brewhub.dao.NotificaDAO;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +12,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementazione DAO per le Notifiche.
+ */
 public class NotificaDAOImpl implements NotificaDAO {
 
     @Override
@@ -20,12 +22,10 @@ public class NotificaDAOImpl implements NotificaDAO {
         String sql = "INSERT INTO notifiche(utente_username, messaggio, letto, data_creazione) VALUES(?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-
             pstmt.setString(1, notifica.getUtente().getUsername());
             pstmt.setString(2, notifica.getMessaggio());
             pstmt.setBoolean(3, false);
             pstmt.setString(4, notifica.getDataCreazione().toString());
-
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -40,26 +40,20 @@ public class NotificaDAOImpl implements NotificaDAO {
     @Override
     public List<Notifica> findByUser(String username) throws SQLException {
         List<Notifica> result = new ArrayList<>();
-        String sql = "SELECT * FROM notifiche WHERE utente_username = ? ORDER BY data_creazione DESC"; // Più recenti
-                                                                                                       // prima
-
+        String sql = "SELECT * FROM notifiche WHERE utente_username = ? ORDER BY data_creazione DESC"; 
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Notifica n = new Notifica();
                     n.setId(rs.getInt("id"));
-
                     Utente u = new Utente();
                     u.setUsername(rs.getString("utente_username"));
                     n.setUtente(u);
-
                     n.setMessaggio(rs.getString("messaggio"));
                     n.setLetto(rs.getBoolean("letto"));
                     n.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
-
                     result.add(n);
                 }
             }
@@ -109,5 +103,29 @@ public class NotificaDAOImpl implements NotificaDAO {
             pstmt.setString(1, username);
             pstmt.executeUpdate();
         }
+    }
+
+    @Override
+    public List<Notifica> findAllUnread(String username) throws SQLException {
+        List<Notifica> result = new ArrayList<>();
+        String sql = "SELECT * FROM notifiche WHERE utente_username = ? AND letto = 0 ORDER BY data_creazione DESC"; 
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Notifica n = new Notifica();
+                    n.setId(rs.getInt("id"));
+                    Utente u = new Utente();
+                    u.setUsername(rs.getString("utente_username"));
+                    n.setUtente(u);
+                    n.setMessaggio(rs.getString("messaggio"));
+                    n.setLetto(rs.getBoolean("letto"));
+                    n.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
+                    result.add(n);
+                }
+            }
+        }
+        return result;
     }
 }

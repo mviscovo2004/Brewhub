@@ -34,7 +34,7 @@
 .login-root {
     -fx-background-color: linear-gradient(to bottom right, #3E2723, #5D4037, #8D6E63);
     -fx-background-image: url("https://www.transparenttextures.com/patterns/mocha-grunge.png");
-    /* Optional texture if valid, otherwise just gradient */
+    /* Texture opzionale se valida, altrimenti solo gradiente */
 }
 
 /* ============================================
@@ -67,7 +67,6 @@
 }
 
 /* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
-/* Etichette delle sezioni (es. FEEDS, COMMUNITY) */
 .sidebar-section-label {
     -fx-text-fill: #5D4037;
     -fx-font-size: 11px;
@@ -77,8 +76,7 @@
     -fx-opacity: 0.8;
 }
 
-/* Bottoni di navigazione (Home, Popular, ecc.) */
-/* Bottoni di navigazione (Home, Popular, ecc.) */
+/* Bottoni di navigazione (Home, Popolari, ecc.) */
 .nav-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #3E2723;
@@ -294,7 +292,7 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 20, 0, 0, 5);
 }
 
-/* Custom Login Buttons */
+/* Pulsanti Login Personalizzati */
 .login-btn-primary {
     -fx-background-color: linear-gradient(to right, #5D4037, #3E2723);
     -fx-text-fill: white;
@@ -332,7 +330,7 @@
 
 .login-btn-secondary:hover {
     -fx-background-color: #FFF8E1;
-    /* Light cream hover */
+    /* Hover crema chiaro */
     -fx-border-color: #5D4037;
     -fx-text-fill: #3E2723;
 }
@@ -427,9 +425,9 @@
 
 .like-button-active {
     -fx-background-color: #FFF8E1;
-    /* Slight highlight */
+    /* Evidenziazione leggera */
     -fx-text-fill: #D32F2F;
-    /* Red heart color */
+    /* Colore cuore rosso */
     -fx-border-color: #FFCDD2;
 }
 
@@ -439,7 +437,7 @@
     -fx-font-size: 12;
     -fx-background-color: transparent;
     -fx-text-fill: #5D4037;
-    /* Default dark brown */
+    /* Marrone scuro default */
     -fx-border-color: #D7CCC8;
     -fx-border-radius: 20;
     -fx-background-radius: 20;
@@ -466,14 +464,14 @@
     -fx-padding: 10 0 0 0;
     -fx-border-color: #EFEBE9;
     -fx-border-width: 1 0 0 0;
-    /* Top separator only */
+    /* Separatore superiore */
 }
 
 .comment-row {
     -fx-padding: 8 0;
     -fx-border-color: rgba(141, 110, 99, 0.1);
     -fx-border-width: 0 0 1 0;
-    /* Bottom separator for items */
+    /* Separatore inferiore per elementi */
 }
 
 .comment-author {
@@ -505,7 +503,7 @@
 .comment-send-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #5D4037;
-    /* Coffee Accent */
+    /* Accento Caffè */
     -fx-font-weight: bold;
     -fx-font-size: 13px;
     -fx-cursor: hand;
@@ -518,23 +516,23 @@
     -fx-background-radius: 5;
 }
 
-/* Comment Action Buttons (Edit/Delete) - Icon Only Style */
+/* Pulsanti Azione Commento (Modifica/Elimina) - Stile solo Icona */
 .comment-action-btn {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-cursor: hand;
     -fx-padding: 0;
     -fx-min-width: 30px;
-    /* Increased to prevent clipping */
+    /* Aumentato per prevenire clipping */
     -fx-min-height: 30px;
     -fx-pref-width: 30px;
     -fx-pref-height: 30px;
     -fx-alignment: center;
     -fx-font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
     -fx-font-size: 16px;
-    /* Larger icon */
+    /* Icona più grande */
     -fx-opacity: 1;
-    /* Always visible to avoid confusion */
+    /* Sempre visibile per evitare confusione */
 }
 
 .comment-action-btn:hover {
@@ -553,12 +551,12 @@
 
 .comment-delete-btn {
     -fx-text-fill: #A1887F;
-    /* Muted default */
+    /* Default smorzato */
 }
 
 .comment-delete-btn:hover {
     -fx-text-fill: #D32F2F;
-    /* Red only on hover */
+    /* Rosso solo al passaggio del mouse */
 }
 
 .comment-field {
@@ -577,7 +575,7 @@
 }
 
 /* ============================================
-   SEPARATOR
+   SEPARATORE
    ============================================ */
 
 .separator {
@@ -645,10 +643,10 @@
 }
 
 /* ============================================
-   GLOBAL SCROLLBAR STYLES
+   STILI GLOBALI SCROLLBAR
    ============================================ */
 
-/* The main scrollbar track */
+/* Traccia principale scrollbar */
 .scroll-bar:vertical {
     -fx-background-color: transparent;
     -fx-pref-width: 10px;
@@ -659,29 +657,29 @@
     -fx-pref-height: 10px;
 }
 
-/* The thumb (draggable part) */
+/* Il cursore (parte trascinabile) */
 .scroll-bar .thumb {
     -fx-background-color: #D7CCC8;
-    /* Light coffee */
+    /* Caffè chiaro */
     -fx-background-radius: 5px;
     -fx-background-insets: 2px;
 }
 
 .scroll-bar .thumb:hover {
     -fx-background-color: #8D6E63;
-    /* Darker coffee */
+    /* Caffè più scuro */
 }
 
 .scroll-bar .thumb:pressed {
     -fx-background-color: #5D4037;
 }
 
-/* The track (behind thumb) */
+/* La traccia (dietro il cursore) */
 .scroll-bar .track {
     -fx-background-color: transparent;
 }
 
-/* Hide increment/decrement buttons for cleaner look */
+/* Nascondi pulsanti incremento/decremento per un look più pulito */
 .scroll-bar .increment-button,
 .scroll-bar .decrement-button {
     -fx-padding: 0;
@@ -695,13 +693,13 @@
     -fx-padding: 0;
 }
 
-/* Specific fix for transparency in scroll panes */
+/* Fix specifico per trasparenza negli scroll pane */
 .scroll-pane>.viewport {
     -fx-background-color: transparent;
 }
 
 /* ============================================
-   BACKGROUND COLORS (Re-added)
+   COLORI SFONDO (Riaggiunti)
    ============================================ */
 
 .sidebar {
@@ -728,10 +726,10 @@
 }
 
 /* ============================================
-   HEADER COMPONENTS STYLING
+   STILI COMPONENTI HEADER
    ============================================ */
 
-/* Search Field */
+/* Campo di Ricerca */
 .text-field {
     -fx-background-color: #FFFBF5;
     -fx-background-radius: 20;
@@ -747,7 +745,7 @@
     -fx-effect: dropshadow(gaussian, rgba(212, 165, 116, 0.4), 5, 0, 0, 0);
 }
 
-/* Header Action Buttons (Generic) */
+/* Pulsanti Azione Header (Generici) */
 .header-action-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #FFF8F3;
@@ -768,11 +766,11 @@
     -fx-background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Specific: Notification Button */
+/* Specifico: Pulsante Notifiche */
 .notification-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #FFD54F;
-    /* Amber for notifications */
+    /* Ambra per notifiche */
     -fx-font-size: 16px;
     -fx-padding: 6 12;
     -fx-cursor: hand;
@@ -790,16 +788,16 @@
 
 .notification-btn.has-notifications {
     -fx-text-fill: #FFAB91;
-    /* Reddish orange when active */
+    /* Arancione rossastro quando attivo */
     -fx-border-color: #FFAB91;
     -fx-effect: dropshadow(gaussian, rgba(255, 171, 145, 0.4), 5, 0, 0, 0);
 }
 
-/* Specific: Logout Button */
+/* Specifico: Pulsante Logout */
 .logout-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #EF9A9A;
-    /* Soft Red */
+    /* Rosso Tenue */
     -fx-font-weight: bold;
     -fx-font-size: 14px;
     -fx-cursor: hand;
@@ -815,13 +813,13 @@
     -fx-border-color: #EF5350;
 }
 
-/* Specific: Profile "Pill" Button */
+/* Specifico: Pulsante Profilo "Pillola" */
 .header-profile-btn {
     -fx-background-color: rgba(255, 255, 255, 0.15);
     -fx-text-fill: #FFF8F3;
     -fx-font-weight: bold;
     -fx-background-radius: 50;
-    /* Pill */
+    /* Pillola */
     -fx-border-radius: 50;
     -fx-border-color: rgba(255, 255, 255, 0.2);
     -fx-border-width: 1;
@@ -879,18 +877,18 @@
 
 .notification-box:hover {
     -fx-background-color: #F5E6D3;
-    /* Cream hover */
+    /* Hover crema */
 }
 
 .notification-box.unread {
     -fx-background-color: #FFF8E1;
-    /* Light yellow/orange tint */
+    /* Tinta giallo chiaro/arancione */
     -fx-border-color: #D4A574;
-    /* Accent border */
+    /* Bordo accento */
     -fx-border-width: 0 0 0 3;
-    /* Left border indicator */
+    /* Indicatore bordo sinistro */
     -fx-padding: 10 10 10 7;
-    /* Adjust padding for border */
+    /* Aggiusta padding per bordo */
 }
 
 .notification-date {
@@ -972,7 +970,7 @@
 }
 
 /* ============================================
-   VIDEO PLAYER STYLES
+   STILI VIDEO PLAYER
    ============================================ */
 
 .video-player-container {
@@ -1044,7 +1042,7 @@
 }
 
 /* ============================================
-   POST ACTIONS
+   AZIONI POST
    ============================================ */
 .post-delete-btn {
     -fx-background-color: transparent;
@@ -1065,7 +1063,7 @@
 }
 
 /* ============================================
-   MODAL / DIALOG STYLES
+   STILI MODALI / DIALOG
    ============================================ */
 
 .modal-root {
@@ -1157,12 +1155,12 @@
     -fx-border-width: 0;
     -fx-border-color: transparent;
     -fx-padding: 5 0;
-    /* Add vertical spacing around the separator itself */
+    /* Aggiungi spaziatura verticale attorno al separatore stesso */
 }
 
 .comments-separator .line {
     -fx-background-color: #D7CCC8;
-    /* Use a color visible on white but subtle */
+    /* Usa un colore visibile su bianco ma sottile */
     -fx-border-color: transparent;
     -fx-pref-height: 1px;
 }
@@ -1174,7 +1172,7 @@
 }
 
 /* ============================================
-   PROFILE VIEW STYLES
+   STILI VISTA PROFILO
    ============================================ */
 
 
@@ -1240,7 +1238,7 @@
 }
 
 /* ============================================
-   NOTIFICATIONS IMPROVEMENTS
+   MIGLIORAMENTI NOTIFICHE
    ============================================ */
 
 .notification-box {
@@ -1256,7 +1254,7 @@
 
 .notification-box.unread {
     -fx-background-color: #FFF8E1;
-    /* Light yellow background for unread */
+    /* Sfondo giallo chiaro per non letti */
 }
 
 .notification-date {
@@ -1288,9 +1286,9 @@
 
 .notification-clear-all-btn {
     -fx-background-color: #FFEBEE;
-    /* Light Red/Pink background */
+    /* Sfondo Rosso/Rosa Chiaro */
     -fx-text-fill: #D32F2F;
-    /* Red text */
+    /* Testo Rosso */
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-cursor: hand;
@@ -1304,9 +1302,9 @@
 
 .notification-clear-all-btn:hover {
     -fx-background-color: #D32F2F;
-    /* Solid Red on hover */
+    /* Rosso Solido al passaggio */
     -fx-text-fill: #FFFFFF;
-    /* White text */
+    /* Testo Bianco */
     -fx-border-color: #B71C1C;
     -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.3), 5, 0, 0, 2);
 }
@@ -1314,18 +1312,18 @@
 
 .notification-separator .line {
     -fx-border-color: #E0E0E0;
-    /* Very subtle grey */
+    /* Grigio molto sottile */
     -fx-border-width: 1;
     -fx-border-style: solid;
 }
 
 .notification-separator {
     -fx-padding: 4 10;
-    /* Minimized vertical padding */
+    /* Padding verticale minimizzato */
     -fx-background-color: transparent;
 }
 
-/* Remove default blue selection/hover from CustomMenuItem */
+/* Rimuovi selezione/hover blu di default da CustomMenuItem */
 .notification-menu-item:hover,
 .notification-menu-item:focused,
 .notification-menu-item:showing {
@@ -1334,29 +1332,29 @@
     -fx-background-insets: 0;
 }
 
-/* Ensure label inside doesn't pick up color */
+/* Assicurati che l'etichetta interna non prenda colore */
 .notification-menu-item .label {
     -fx-text-fill: #3E2723;
-    /* Keep text color stable */
+    /* Mantieni colore testo stabile */
 }
 
-/* Verified Badge */
+/* Badge Verificato */
 .verified-badge {
     -fx-text-fill: #1E88E5;
-    /* Blue */
+    /* Blu */
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
 .verified-badge-large {
     -fx-text-fill: #1E88E5;
-    /* Blue */
+    /* Blu */
     -fx-font-size: 24px;
     -fx-font-weight: bold;
 }
 
 /* ============================================
-   CHAT STYLES
+   STILI CHAT
    ============================================ */
 
 .chat-sidebar {
@@ -1392,7 +1390,7 @@
 .chat-area {
     -fx-background-color: #FFFBF5;
     -fx-background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
-    /* Subtle pattern */
+    /* Pattern sottile */
     -fx-background-repeat: repeat;
 }
 
@@ -1404,7 +1402,7 @@
 
 .chat-bubble-sent {
     -fx-background-color: #D7CCC8;
-    /* Coffee Light */
+    /* Caffè Chiaro */
     -fx-background-radius: 15 15 0 15;
     -fx-text-fill: #3E2723;
 }
@@ -1443,30 +1441,30 @@
 }
 
 /* ============================================
-   VERIFICATION BADGE
+   SIGILLO DI VERIFICA
    ============================================ */
 .verification-seal {
     -fx-fill: #D4A574;
-    /* Coffee Gold Accent */
+    /* Accento Oro Caffè */
     -fx-stroke: transparent;
 }
 
 .verification-check {
     -fx-fill: #FFF8F3;
-    /* White Cream */
+    /* Bianco Crema */
     -fx-stroke: transparent;
 }
 
 /* ============================================
-   GLOBAL CONTEXT MENU & MENU ITEMS
+   MENU CONTESTUALE GLOBALE & VOCI MENU
    ============================================ */
 .context-menu {
     -fx-background-color: #FFFBF5;
-    /* Cream background */
+    /* Sfondo crema */
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-border-color: #D4A574;
-    /* Accent border */
+    /* Bordo accento */
     -fx-border-width: 1;
     -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.2), 10, 0, 0, 3);
     -fx-padding: 5;
@@ -1479,19 +1477,523 @@
 
 .menu-item:focused {
     -fx-background-color: #FFF8E1;
-    /* Lighter cream/yellow hover */
+    /* Crema/giallo più chiaro al passaggio */
     -fx-background-radius: 4;
 }
 
 .menu-item .label {
     -fx-text-fill: #3E2723;
-    /* Dark coffee text */
+    /* Testo caffè scuro */
     -fx-font-size: 13px;
     -fx-font-weight: normal;
 }
 
 .menu-item:focused .label {
     -fx-text-fill: #5D4037;
-    /* Medium coffee text on hover */
+    /* Testo caffè medio al passaggio */
     -fx-font-weight: bold;
+}
+
+/* ============================================
+   RECENSIONI (REVIEWS) - DESIGN PREMIUM
+   ============================================ */
+
+.review-section {
+    -fx-background-color: linear-gradient(to bottom, #FFF8E1, #FFFBF5);
+    -fx-border-color: #FFB74D;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 0;
+    /* Rimuovi padding per far combaciare l'header */
+    -fx-effect: dropshadow(gaussian, rgba(141, 110, 99, 0.15), 5, 0, 0, 2);
+    -fx-margin: 15 0 0 0;
+}
+
+.review-header-box {
+    -fx-background-color: rgba(255, 152, 0, 0.15);
+    /* Header arancione chiaro */
+    -fx-background-radius: 12 12 0 0;
+    -fx-padding: 12 15;
+    -fx-border-color: rgba(255, 152, 0, 0.3);
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+}
+
+.review-title-label {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E65100;
+    -fx-font-size: 14px;
+}
+
+.review-avg-badge {
+    -fx-background-color: #E65100;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15;
+    -fx-padding: 3 10;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0, 0, 1);
+}
+
+.review-btn {
+    -fx-background-color: #FF9800;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+    -fx-padding: 6 18;
+    -fx-border-color: #F57C00;
+    -fx-border-radius: 20;
+}
+
+.review-btn:hover {
+    -fx-background-color: #FB8C00;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 3, 0, 0, 1);
+    -fx-translate-y: -1;
+}
+
+.review-list-container {
+    -fx-padding: 15;
+    -fx-spacing: 12;
+    -fx-background-color: transparent;
+}
+
+.review-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0, 0, 1);
+    -fx-border-color: #FFE0B2;
+    -fx-border-width: 1;
+}
+
+.review-avatar {
+    -fx-background-color: #8D6E63;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 50%;
+    /* Cerchio */
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-alignment: center;
+}
+
+.review-user-name {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 14px;
+    -fx-text-fill: #3E2723;
+}
+
+.review-stars {
+    -fx-text-fill: #FF9800;
+    -fx-font-size: 12px;
+}
+
+.review-date {
+    -fx-text-fill: #A1887F;
+    -fx-font-size: 11px;
+}
+
+.review-body {
+    -fx-padding: 5 0 0 42;
+    /* Indent to align with text next to avatar */
+    -fx-text-fill: #5D4037;
+    -fx-font-size: 13px;
+}
+
+/* Stili Finestra Dialogo Recensione */
+.review-dialog-root {
+    -fx-background-color: linear-gradient(to bottom, #FFF8E1, #FFF3E0);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 10, 0, 0, 5);
+}
+
+.review-label {
+    -fx-font-family: 'Segoe UI', sans-serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5D4037;
+    -fx-font-size: 14px;
+}
+
+.review-combo {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #D7CCC8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 4 8 4 8;
+    -fx-font-size: 14px;
+    -fx-text-fill: #3E2723;
+}
+
+.review-combo .list-cell {
+    -fx-text-fill: #3E2723;
+}
+
+.review-combo:hover {
+    -fx-border-color: #A1887F;
+}
+
+.review-textarea {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #D7CCC8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-family: 'Segoe UI', sans-serif;
+    -fx-font-size: 14px;
+    -fx-padding: 8;
+    -fx-text-fill: #3E2723;
+}
+
+.review-textarea:focused {
+    -fx-border-color: #6D4C41;
+    -fx-background-color: #FAFAFA;
+}
+
+.review-textarea .content {
+    -fx-background-color: transparent;
+}
+
+/* Colori basati sul Punteggio (Dinamici) */
+.bg-score-0,
+.bg-score-1 {
+    -fx-background-color: #D32F2F;
+}
+
+/* Rosso */
+.bg-score-2 {
+    -fx-background-color: #F57C00;
+}
+
+/* Arancione */
+.bg-score-3 {
+    -fx-background-color: #FFB300;
+}
+
+/* Ambra */
+.bg-score-4 {
+    -fx-background-color: #7CB342;
+}
+
+/* Verde Chiaro */
+.bg-score-5 {
+    -fx-background-color: #2E7D32;
+}
+
+/* Verde */
+
+.text-score-0,
+.text-score-1 {
+    -fx-text-fill: #D32F2F;
+}
+
+.text-score-2 {
+    -fx-text-fill: #F57C00;
+}
+
+.text-score-3 {
+    -fx-text-fill: #FFB300;
+}
+
+.text-score-4 {
+    -fx-text-fill: #7CB342;
+}
+
+.text-score-5 {
+    -fx-text-fill: #2E7D32;
+}
+
+/* Indicatore Bordo Recensione */
+.card-score-0,
+.card-score-1 {
+    -fx-border-color: #D32F2F;
+    -fx-border-width: 0 0 0 3;
+}
+
+.card-score-2 {
+    -fx-border-color: #F57C00;
+    -fx-border-width: 0 0 0 3;
+}
+
+.card-score-3 {
+    -fx-border-color: #FFB300;
+    -fx-border-width: 0 0 0 3;
+}
+
+.card-score-4 {
+    -fx-border-color: #7CB342;
+    -fx-border-width: 0 0 0 3;
+}
+
+.card-score-5 {
+    -fx-border-color: #2E7D32;
+    -fx-border-width: 0 0 0 3;
+}
+
+/* Sfondi e Bordi Header Dinamici (Bordi più forti) */
+.header-score-0,
+.header-score-1 {
+    -fx-background-color: rgba(211, 47, 47, 0.15);
+    -fx-border-color: #D32F2F;
+}
+
+.header-score-0 .review-title-label,
+.header-score-1 .review-title-label {
+    -fx-text-fill: #D32F2F;
+}
+
+.header-score-2 {
+    -fx-background-color: rgba(245, 124, 0, 0.15);
+    -fx-border-color: #F57C00;
+}
+
+.header-score-2 .review-title-label {
+    -fx-text-fill: #F57C00;
+}
+
+.header-score-3 {
+    -fx-background-color: rgba(255, 179, 0, 0.15);
+    -fx-border-color: #FFB300;
+}
+
+.header-score-3 .review-title-label {
+    -fx-text-fill: #FFB300;
+}
+
+.header-score-4 {
+    -fx-background-color: rgba(124, 179, 66, 0.15);
+    -fx-border-color: #7CB342;
+}
+
+.header-score-4 .review-title-label {
+    -fx-text-fill: #7CB342;
+}
+
+.header-score-5 {
+    -fx-background-color: rgba(46, 125, 50, 0.15);
+    -fx-border-color: #2E7D32;
+}
+
+.header-score-5 .review-title-label {
+    -fx-text-fill: #2E7D32;
+}
+
+/* Bordi Sezione Dinamici */
+.section-score-0,
+.section-score-1 {
+    -fx-border-color: #D32F2F;
+}
+
+.section-score-2 {
+    -fx-border-color: #F57C00;
+}
+
+.section-score-3 {
+    -fx-border-color: #FFB300;
+}
+
+.section-score-4 {
+    -fx-border-color: #7CB342;
+}
+
+.section-score-5 {
+    -fx-border-color: #2E7D32;
+}
+
+/* Pulsanti Dinamici */
+.btn-score-0,
+.btn-score-1 {
+    -fx-background-color: #D32F2F;
+    -fx-border-color: #B71C1C;
+}
+
+.btn-score-0:hover,
+.btn-score-1:hover {
+    -fx-background-color: #B71C1C;
+}
+
+.btn-score-2 {
+    -fx-background-color: #F57C00;
+    -fx-border-color: #E65100;
+}
+
+.btn-score-2:hover {
+    -fx-background-color: #E65100;
+}
+
+.btn-score-3 {
+    -fx-background-color: #FFB300;
+    -fx-border-color: #FF8F00;
+}
+
+.btn-score-3:hover {
+    -fx-background-color: #FF8F00;
+}
+
+.btn-score-4 {
+    -fx-background-color: #7CB342;
+    -fx-border-color: #558B2F;
+}
+
+.btn-score-4:hover {
+    -fx-background-color: #558B2F;
+}
+
+.btn-score-5 {
+    -fx-background-color: #2E7D32;
+    -fx-border-color: #1B5E20;
+}
+
+.btn-score-5:hover {
+    -fx-background-color: #1B5E20;
+}
+
+/* Valutazione a Stelle Interattiva */
+.star-icon {
+    -fx-font-size: 24px;
+    -fx-cursor: hand;
+    -fx-text-fill: #BDBDBD;
+    /* Grigio 400 default */
+    -fx-padding: 0 2px;
+}
+
+.star-icon:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0, 0, 1);
+}
+
+/* Assicura che i colori delle stelle sovrascrivano il grigio default */
+.star-icon.text-score-0,
+.star-icon.text-score-1 {
+    -fx-text-fill: #D32F2F;
+}
+
+.star-icon.text-score-2 {
+    -fx-text-fill: #F57C00;
+}
+
+.star-icon.text-score-3 {
+    -fx-text-fill: #FFB300;
+}
+
+.star-icon.text-score-4 {
+    -fx-text-fill: #7CB342;
+}
+
+.star-icon.text-score-5 {
+    -fx-text-fill: #2E7D32;
+}
+
+/* Colori Badge Dinamici */
+.badge-score-0,
+.badge-score-1 {
+    -fx-background-color: #D32F2F;
+}
+
+.badge-score-2 {
+    -fx-background-color: #F57C00;
+}
+
+.badge-score-3 {
+    -fx-background-color: #FFB300;
+}
+
+.badge-score-4 {
+    -fx-background-color: #7CB342;
+}
+
+.badge-score-5 {
+    -fx-background-color: #2E7D32;
+}
+
+/* ============================================
+   STILE TITLED PANE (Per Recensioni)
+   ============================================ */
+
+.titled-pane {
+    -fx-text-fill: #5D4037;
+    -fx-skin: "javafx.scene.control.skin.TitledPaneSkin";
+    -fx-background-color: transparent;
+}
+
+.titled-pane>.title {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 10 0;
+}
+
+.titled-pane:focused>.title {
+    -fx-color: transparent;
+}
+
+.titled-pane>.title>.arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.titled-pane>.title>.arrow-button .arrow {
+    -fx-background-color: #8D6E63;
+    -fx-background-insets: 0;
+    -fx-padding: 3px;
+    /* Dimensione freccia */
+}
+
+.titled-pane>.title:hover>.arrow-button .arrow {
+    -fx-background-color: #5D4037;
+}
+
+.titled-pane>.content {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0 0 0 10;
+}
+
+/* ============================================
+   STILI TITLED PANE RECENSIONI
+   ============================================ */
+.review-titled-pane {
+    -fx-text-fill: #5D4037;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+}
+
+/* L'area del titolo (header) del TitledPane */
+.review-titled-pane>.title {
+    -fx-background-color: transparent;
+    /* Aspetto più pulito */
+    -fx-border-color: transparent;
+    -fx-padding: 5 0 5 10;
+    -fx-cursor: hand;
+}
+
+.review-titled-pane>.title:hover {
+    -fx-background-color: rgba(141, 110, 99, 0.05);
+    /* Hover molto sottile */
+    -fx-background-radius: 5;
+}
+
+/* Stile regione freccia */
+.review-titled-pane>.title>.arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 5 0 0;
+}
+
+.review-titled-pane>.title>.arrow-button .arrow {
+    -fx-background-color: #8D6E63;
+    /* Freccia caffè chiaro */
+    -fx-padding: 3;
+    /* Leggermente più piccola/nitida */
+}
+
+/* Quando espanso, l'area contenuto freccia */
+.review-titled-pane>.content {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10 0 0 0;
 }

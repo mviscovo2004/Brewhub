@@ -3,25 +3,31 @@ package it.univaq.brewhub.business;
 import it.univaq.brewhub.Utente;
 
 /**
- * Singleton per gestire la sessione dell'utente corrente.
- * Sostituisce il passaggio manuale dell'oggetto Utente tra le viste.
+ * Gestisce la sessione utente corrente all'interno dell'applicazione.
+ * <p>
+ * Implementa il pattern Singleton per garantire un unico punto di accesso globale
+ * alle informazioni sull'utente attualmente loggato.
+ * </p>
  */
 public class SessionManager {
 
-    /** Istanza singleton della classe. */
+    /** L'unica istanza condivisa di SessionManager. */
     private static SessionManager instance;
-    /** Oggetto utente attualmente loggato (null se nessun utente è loggato). */
+
+    /** L'utente attualmente autenticato nel sistema. */
     private Utente currentUser;
 
-    /** Costruttore privato per pattern Singleton. */
+    /**
+     * Costruttore privato per impedire l'istanziazione esterna (Pattern Singleton).
+     */
     private SessionManager() {
     }
 
     /**
-     * Restituisce l'istanza unica di SessionManager.
-     * Crea l'istanza se non esiste (lazy initialization).
-     *
-     * @return L'istanza singleton.
+     * Restituisce l'istanza unica del SessionManager.
+     * <p>Se l'istanza non esiste, viene creata in modo thread-safe (synchronized).</p>
+     * 
+     * @return L'istanza di SessionManager.
      */
     public static synchronized SessionManager getInstance() {
         if (instance == null) {
@@ -31,16 +37,16 @@ public class SessionManager {
     }
 
     /**
-     * Effettua il login di un utente salvandolo nella sessione.
-     *
-     * @param utente L'utente da loggare.
+     * Effettua il login impostando l'utente corrente nella sessione.
+     * 
+     * @param utente L'utente che ha effettuato l'accesso.
      */
     public void login(Utente utente) {
         this.currentUser = utente;
     }
 
     /**
-     * Effettua il logout dell'utente corrente rimuovendolo dalla sessione.
+     * Effettua il logout rimuovendo l'utente corrente dalla sessione.
      */
     public void logout() {
         this.currentUser = null;
@@ -48,17 +54,17 @@ public class SessionManager {
 
     /**
      * Restituisce l'utente attualmente loggato.
-     *
-     * @return L'utente loggato, oppure null se nessuno è loggato.
+     * 
+     * @return L'oggetto {@link Utente} corrente, oppure null se nessuno è loggato.
      */
     public Utente getCurrentUser() {
         return currentUser;
     }
 
     /**
-     * Verifica se un utente è attualmente loggato.
-     *
-     * @return True se c'è un utente loggato, false altrimenti.
+     * Verifica se c'è un utente loggato.
+     * 
+     * @return true se un utente è loggato, false altrimenti.
      */
     public boolean isLoggedIn() {
         return currentUser != null;

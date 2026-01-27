@@ -1,5 +1,4 @@
 package it.univaq.brewhub.UI.components;
-
 import it.univaq.brewhub.Commento;
 import it.univaq.brewhub.Post;
 import it.univaq.brewhub.Post.TipoPost;
@@ -30,59 +29,47 @@ import java.time.format.DateTimeFormatter;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import java.util.List;
-
 public class PostCard extends VBox {
-
     private final Post post;
     private final Utente utenteLoggato;
     private final Runnable onRefreshNeeded;
     private final Runnable onSaveAction;
-
-    // DAOs
     private final PostDAOImpl postDAO = new PostDAOImpl();
     private final UtenteDAOImpl utenteDAO = new UtenteDAOImpl();
     private final CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
-
+    private final it.univaq.brewhub.dao.impl.RecensioneDAOImpl recensioneDAO = new it.univaq.brewhub.dao.impl.RecensioneDAOImpl();
     private MediaPlayer mediaPlayer;
-
     public PostCard(Post post, Utente utenteLoggato, Runnable onRefreshNeeded) {
         this(post, utenteLoggato, onRefreshNeeded, null);
     }
-
     public PostCard(Post post, Utente utenteLoggato, Runnable onRefreshNeeded, Runnable onSaveAction) {
         this.post = post;
         this.utenteLoggato = utenteLoggato;
         this.onRefreshNeeded = onRefreshNeeded;
         this.onSaveAction = onSaveAction;
-
         initUI();
     }
-
     private void initUI() {
         this.setSpacing(10);
         this.setMaxWidth(700);
         this.getStyleClass().add("post-card");
-
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
-
         StackPane avatarContainer = new StackPane();
         Circle avatar = new Circle(20);
         boolean imageLoaded = false;
-
         try {
             String foto = post.getAutore().getFotoProfilo();
             if (foto != null && !foto.isBlank()) {
                 File f = MediaManager.getMediaFile(foto);
                 if (f != null && f.exists()) {
-                    Image img = new Image(f.toURI().toString(), true); // Async loading
+                    Image img = new Image(f.toURI().toString(), true); 
                     avatar.setFill(new javafx.scene.paint.ImagePattern(img));
                     imageLoaded = true;
                 }
             }
         } catch (Exception e) {
         }
-
         if (!imageLoaded) {
             String username = post.getAutore().getUsername();
             int hash = username.hashCode();
@@ -93,7 +80,6 @@ public class PostCard extends VBox {
                     Math.abs(b) % 255);
             avatar.setFill(color);
             avatar.setOpacity(0.7);
-
             String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
             Label initialLbl = new Label(initial);
             initialLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
@@ -101,62 +87,47 @@ public class PostCard extends VBox {
         } else {
             avatarContainer.getChildren().add(avatar);
         }
-
         String displayAuthor = post.getAutore().getUsername();
         if (displayAuthor.startsWith("deleted_")) {
             displayAuthor = "Utente eliminato";
         }
         Label authorLbl = new Label(displayAuthor);
         authorLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #3E2723;");
-
-        // Navigation Logic
         if (!displayAuthor.equals("Utente eliminato")) {
             authorLbl.setCursor(javafx.scene.Cursor.HAND);
             avatarContainer.setCursor(javafx.scene.Cursor.HAND);
-
             javafx.event.EventHandler<javafx.scene.input.MouseEvent> navHandler = e -> {
                 if (this.getScene() != null && this.getScene().getWindow() instanceof javafx.stage.Stage) {
                     javafx.stage.Stage s = (javafx.stage.Stage) this.getScene().getWindow();
-                    this.dispose(); // Stop video if playing
+                    this.dispose(); 
                     it.univaq.brewhub.UI.UserProfileView profileView = new it.univaq.brewhub.UI.UserProfileView(s,
                             utenteLoggato, post.getAutore());
                     s.getScene().setRoot(profileView.getView());
                 }
             };
-
             authorLbl.setOnMouseClicked(navHandler);
             avatarContainer.setOnMouseClicked(navHandler);
         }
-
-        // Verified Badge Logic
         HBox authorBox = new HBox(5, authorLbl);
         authorBox.setAlignment(Pos.CENTER_LEFT);
-
         if (post.getAutore().getTipo() == Utente.TipoUtente.TORREFATTORE) {
             VerificationBadge badge = new VerificationBadge(16);
             authorBox.getChildren().add(badge);
         }
-
-        // BADGE TIPO UTENTE
         Label userTypeBadge = null;
         if (post.getAutore() != null && post.getAutore().getTipo() != null) {
             userTypeBadge = new Label(post.getAutore().getTipo().toString());
             userTypeBadge.getStyleClass().addAll("badge", "badge-user-type");
         }
-
-        // BADGE CATEGORIA (Opzionale)
         Label categoryBadge = null;
         if (post.getCategoria() != null) {
             categoryBadge = new Label(post.getCategoria().getNome());
             categoryBadge.getStyleClass().addAll("badge", "badge-category");
         }
-
         Label dateLbl = new Label(post.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         dateLbl.setStyle("-fx-font-size: 10px; -fx-opacity: 0.6;");
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
         Button btnDelete = null;
         if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())
                 || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
@@ -176,29 +147,21 @@ public class PostCard extends VBox {
                 }
             });
         }
-
         header.getChildren().addAll(avatarContainer, authorBox);
-
         if (userTypeBadge != null) {
             header.getChildren().add(userTypeBadge);
         }
-
         if (categoryBadge != null) {
             header.getChildren().add(categoryBadge);
         }
-
         header.getChildren().add(dateLbl);
         header.getChildren().add(spacer);
-
         if (btnDelete != null) {
             header.getChildren().add(btnDelete);
         }
-
         Label titleLbl = new Label(post.getTitolo());
         titleLbl.getStyleClass().add("post-title");
-
         this.getChildren().addAll(header, titleLbl);
-
         if (post.getTipo() == TipoPost.FOTO && post.getMedia() != null) {
             ImageView iv = new ImageView();
             caricaFoto(iv, post.getMedia());
@@ -210,16 +173,13 @@ public class PostCard extends VBox {
             mv.setFitWidth(600);
             mv.setPreserveRatio(true);
             caricaVideo(mv, post.getMedia());
-
             MediaPlayer mp = mv.getMediaPlayer();
             // Store locally for dispose
             this.mediaPlayer = mp;
-
             if (mp != null) {
                 Button btnPlay = new Button("\u25B6");
                 btnPlay.getStyleClass().add("video-button");
                 btnPlay.setStyle("-fx-font-size: 16px;");
-
                 btnPlay.setOnAction(e -> {
                     if (mp.getStatus() == MediaPlayer.Status.PLAYING) {
                         mp.pause();
@@ -229,43 +189,35 @@ public class PostCard extends VBox {
                         btnPlay.setText("\u23F8");
                     }
                 });
-
                 mp.setOnEndOfMedia(() -> {
                     mp.stop();
                     btnPlay.setText("\u25B6");
                 });
-
                 Slider timeSlider = new Slider();
                 timeSlider.getStyleClass().add("video-slider");
                 HBox.setHgrow(timeSlider, Priority.ALWAYS);
-
                 mp.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
                     if (!timeSlider.isValueChanging()) {
                         timeSlider.setValue(newTime.toSeconds());
                     }
                 });
-
                 mp.setOnReady(() -> {
                     timeSlider.setMax(mp.getTotalDuration().toSeconds());
                 });
-
                 timeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
                     if (timeSlider.isValueChanging()) {
                         mp.seek(Duration.seconds(newVal.doubleValue()));
                     }
                 });
-
                 timeSlider.setOnMouseClicked(e -> {
                     mp.seek(Duration.seconds(timeSlider.getValue()));
                 });
-
                 Label lblVol = new Label("\uD83D\uDD0A");
                 lblVol.setStyle("-fx-text-fill: white;");
                 Slider volSlider = new Slider(0, 1, 0.5);
                 volSlider.getStyleClass().add("video-slider");
                 volSlider.setPrefWidth(80);
                 mp.volumeProperty().bind(volSlider.valueProperty());
-
                 // Controls (Overlay style matching UserProfileView)
                 HBox controls = new HBox(10, btnPlay, timeSlider, lblVol, volSlider);
                 controls.getStyleClass().add("video-controls-overlay");
@@ -273,12 +225,10 @@ public class PostCard extends VBox {
                 controls.setPadding(new Insets(10));
                 controls.setMaxHeight(Region.USE_PREF_SIZE);
                 StackPane.setAlignment(controls, Pos.BOTTOM_CENTER);
-
                 // Container video
                 StackPane mediaContainer = new StackPane();
                 mediaContainer.getStyleClass().add("video-player-container");
                 mediaContainer.getChildren().addAll(mv, controls);
-
                 this.getChildren().add(mediaContainer);
             } else {
                 StackPane mediaContainer = new StackPane(mv);
@@ -286,22 +236,21 @@ public class PostCard extends VBox {
                 this.getChildren().add(mediaContainer);
             }
         }
-
         if (post.getContenuto() != null) {
             Label content = new Label(post.getContenuto());
             content.setWrapText(true);
             content.getStyleClass().add("post-content");
             this.getChildren().add(content);
         }
-
+        if (post.getCategoria() != null && "Miscele".equalsIgnoreCase(post.getCategoria().getNome())) {
+            createReviewSection();
+        }
         createActionsBar();
         createCommentsSection();
     }
-
     private void createActionsBar() {
         HBox actions = new HBox(15);
         actions.setAlignment(Pos.CENTER_LEFT);
-
         boolean isLiked = false;
         int likes = 0;
         try {
@@ -310,12 +259,10 @@ public class PostCard extends VBox {
         } catch (SQLException e) {
             Log.error("Errore refresh feed", e);
         }
-
         Button btnLike = new Button((isLiked ? "\u2764 " : "\u2661 ") + likes);
         btnLike.getStyleClass().add("like-button");
         if (isLiked)
             btnLike.getStyleClass().add("like-button-active");
-
         btnLike.setOnAction(e -> {
             if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE)
                 return;
@@ -329,29 +276,24 @@ public class PostCard extends VBox {
                     if (!btnLike.getStyleClass().contains("like-button-active"))
                         btnLike.getStyleClass().add("like-button-active");
                 }
-
                 int newCount = postDAO.getLikesCount(post.getId());
                 btnLike.setText((!liked ? "\u2764 " : "\u2661 ") + newCount);
             } catch (SQLException ex) {
                 Log.error("Errore gestione like", ex);
             }
         });
-
         actions.getChildren().add(btnLike);
-
         // --- SAVE BUTTON ---
         boolean isSaved = false;
         try {
             isSaved = utenteDAO.isArchived(utenteLoggato.getUsername(), post.getId());
         } catch (SQLException e) {
         }
-
         Button btnSave = new Button(isSaved ? "\u2B50 Salvato" : "\u2606 Salva");
         btnSave.getStyleClass().add("save-button");
         if (isSaved) {
             btnSave.getStyleClass().add("save-button-saved");
         }
-
         btnSave.setOnAction(e -> {
             if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE)
                 return;
@@ -375,18 +317,15 @@ public class PostCard extends VBox {
                 onSaveAction.run();
             }
         });
-
         // --- SHARE BUTTON ---
-        Button btnShare = new Button("\u27A1 Condividi");
+        Button btnShare = new Button("\uD83D\uDCE4 Condividi");
         btnShare.getStyleClass().add("share-button");
         btnShare.setOnAction(e -> showShareDialog());
-
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
             actions.getChildren().addAll(btnSave, btnShare);
         }
         this.getChildren().add(actions);
     }
-
     private void showShareDialog() {
         Stage stage = new Stage();
         stage.setTitle("Condividi Post");
@@ -394,33 +333,27 @@ public class PostCard extends VBox {
         if (this.getScene() != null && this.getScene().getWindow() != null) {
             stage.initOwner(this.getScene().getWindow());
         }
-
         BorderPane root = new BorderPane();
         root.getStyleClass().add("modal-root");
         root.setPrefWidth(400);
-
         // Header
         Label titleLbl = new Label("Condividi Post");
         titleLbl.getStyleClass().add("modal-title");
         titleLbl.setAlignment(Pos.CENTER);
         titleLbl.setMaxWidth(Double.MAX_VALUE);
         root.setTop(titleLbl);
-
         // Content
         VBox content = new VBox(15);
         content.setPadding(new Insets(20, 0, 20, 0));
         content.setAlignment(Pos.CENTER_LEFT);
-
         Label lblDest = new Label("Invia questo post a:");
         lblDest.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037;");
-
         ComboBox<String> userCombo = new ComboBox<>();
         userCombo.setEditable(true);
         userCombo.setPromptText("Cerca utente o seleziona...");
         userCombo.setMaxWidth(Double.MAX_VALUE);
         userCombo.getStyleClass().add("choice-box");
         // Style the editor of combobox if needed, but usually inherits
-
         try {
             // Load users from recent conversations
             List<String> recent = new it.univaq.brewhub.dao.impl.MessaggioDAOImpl()
@@ -428,19 +361,15 @@ public class PostCard extends VBox {
             userCombo.getItems().setAll(recent);
         } catch (Exception e) {
         }
-
         content.getChildren().addAll(lblDest, userCombo);
         root.setCenter(content);
-
         // Actions
         HBox actions = new HBox(15);
         actions.getStyleClass().add("dialog-actions");
         actions.setAlignment(Pos.CENTER_RIGHT);
-
         Button btnCancel = new Button("Annulla");
         btnCancel.getStyleClass().add("button-secondary");
         btnCancel.setOnAction(e -> stage.close());
-
         Button btnSend = new Button("Invia");
         btnSend.getStyleClass().add("button-primary");
         btnSend.setOnAction(e -> {
@@ -454,9 +383,7 @@ public class PostCard extends VBox {
                     m.setContenuto("[POST:::" + post.getId() + "]");
                     m.setTimestamp(java.time.LocalDateTime.now().toString());
                     m.setLetto(false);
-
                     new it.univaq.brewhub.dao.impl.MessaggioDAOImpl().create(m);
-
                     stage.close();
                     DialogUtils.showInfo("Condiviso", "Post inviato a " + receiver, this.getScene().getWindow());
                 } catch (Exception ex) {
@@ -467,35 +394,26 @@ public class PostCard extends VBox {
                 DialogUtils.showWarning("Attenzione", "Seleziona un destinatario.", stage);
             }
         });
-
         actions.getChildren().addAll(btnCancel, btnSend);
         root.setBottom(actions);
-
         Scene scene = new Scene(root);
         try {
             scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         } catch (Exception ex) {
         }
-
         stage.setScene(scene);
         stage.showAndWait();
     }
-
     private void createCommentsSection() {
         VBox commentsBox = new VBox(10);
         commentsBox.getStyleClass().add("comments-box");
-
         // Header Commenti
         Label lblComm = new Label("Commenti");
         lblComm.getStyleClass().add("comments-header");
-
         Separator sep = new Separator();
         sep.getStyleClass().add("comments-separator");
-
         commentsBox.getChildren().addAll(lblComm, sep);
-
         VBox list = new VBox(10);
-
         if (post.getCommenti().isEmpty()) {
             Label noComm = new Label("Nessun commento.");
             noComm.getStyleClass().add("no-comments-label");
@@ -505,10 +423,8 @@ public class PostCard extends VBox {
                 list.getChildren().add(createCommentRow(c, list));
             }
         }
-
         HBox inputComm = new HBox(8);
         inputComm.setAlignment(Pos.CENTER_LEFT);
-
         TextArea tf = new TextArea();
         tf.setPromptText("Scrivi un commento...");
         tf.setWrapText(true);
@@ -516,24 +432,20 @@ public class PostCard extends VBox {
         tf.setPrefHeight(36);
         tf.getStyleClass().add("comment-field");
         HBox.setHgrow(tf, Priority.ALWAYS);
-
         Button btnSend = new Button("Pubblica");
         btnSend.getStyleClass().addAll("button", "comment-send-btn");
         // Remove text if icon is enough, or keep "Invia". Let's use icon for
         // compactness as planned.
-
         Runnable sendAction = () -> {
             if (!tf.getText().isBlank()) {
                 try {
                     Commento c = new Commento(utenteLoggato, post, tf.getText(), LocalDateTime.now());
                     commentoDAO.create(c);
-
                     if (!list.getChildren().isEmpty() &&
                             list.getChildren().get(0) instanceof Label &&
                             list.getChildren().get(0).getStyleClass().contains("no-comments-label")) {
                         list.getChildren().clear();
                     }
-
                     list.getChildren().add(createCommentRow(c, list));
                     tf.clear();
                 } catch (SQLException ex) {
@@ -541,9 +453,7 @@ public class PostCard extends VBox {
                 }
             }
         };
-
         btnSend.setOnAction(e -> sendAction.run());
-
         tf.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 if (event.isShiftDown()) {
@@ -555,7 +465,6 @@ public class PostCard extends VBox {
                 }
             }
         });
-
         commentsBox.getChildren().add(list);
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
             inputComm.getChildren().addAll(tf, btnSend);
@@ -563,37 +472,28 @@ public class PostCard extends VBox {
         }
         this.getChildren().add(commentsBox);
     }
-
     private HBox createCommentRow(Commento c, VBox parentList) {
         HBox commentRow = new HBox(10);
         commentRow.setAlignment(Pos.CENTER_LEFT);
         commentRow.getStyleClass().add("comment-row");
-
         String commentAuthor = c.getUtente().getUsername();
         if (commentAuthor.startsWith("deleted_")) {
             commentAuthor = "Utente eliminato";
         }
-
         // Use TextFlow for rich text (Bold Author + Normal Content)
         javafx.scene.text.Text authorText = new javafx.scene.text.Text(commentAuthor + ": ");
         authorText.getStyleClass().add("comment-author");
-
         javafx.scene.text.Text contentText = new javafx.scene.text.Text(c.getContenuto());
         contentText.getStyleClass().add("comment-text");
-
         javafx.scene.text.TextFlow flow = new javafx.scene.text.TextFlow(authorText, contentText);
         // HBox.setHgrow(flow, Priority.ALWAYS); // TextFlow doesn't grow same as Label?
         // Wrap content
-
         Region spacerCommenti = new Region();
         HBox.setHgrow(spacerCommenti, Priority.ALWAYS);
-
         commentRow.getChildren().addAll(flow, spacerCommenti);
-
         HBox actionButtons = new HBox(5);
         actionButtons.setAlignment(Pos.CENTER_RIGHT);
         actionButtons.setOpacity(0); // Hidden by default
-
         // EDIT (Solo autori)
         if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())) {
             Button btnEdit = new Button("\u270E");
@@ -604,7 +504,6 @@ public class PostCard extends VBox {
             });
             actionButtons.getChildren().add(btnEdit);
         }
-
         // DELETE (Autori o Admin)
         if (c.getUtente().getUsername().equals(utenteLoggato.getUsername())
                 || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
@@ -626,10 +525,8 @@ public class PostCard extends VBox {
             });
             actionButtons.getChildren().add(btnDel);
         }
-
         if (!actionButtons.getChildren().isEmpty()) {
             commentRow.getChildren().add(actionButtons);
-
             // Hover effects
             commentRow.setOnMouseEntered(e -> {
                 actionButtons.setOpacity(1);
@@ -640,10 +537,8 @@ public class PostCard extends VBox {
                 commentRow.setStyle("-fx-background-color: transparent;");
             });
         }
-
         return commentRow;
     }
-
     private void caricaFoto(ImageView view, String path) {
         try {
             if (path != null && !path.isEmpty()) {
@@ -663,9 +558,7 @@ public class PostCard extends VBox {
             Log.error("Errore in caricaFoto: " + path, e);
         }
     }
-
     private MediaView mediaView;
-
     private void caricaVideo(MediaView view, String path) {
         this.mediaView = view;
         try {
@@ -674,12 +567,9 @@ public class PostCard extends VBox {
                 if (file != null && file.exists()) {
                     try {
                         Media media = new Media(file.toURI().toString());
-
                         media.setOnError(() -> handleMediaError(view, media.getError()));
-
                         MediaPlayer mp = new MediaPlayer(media);
                         mp.setOnError(() -> handleMediaError(view, mp.getError()));
-
                         view.setMediaPlayer(mp);
                     } catch (Exception e) {
                         handleMediaError(view, e);
@@ -694,11 +584,9 @@ public class PostCard extends VBox {
             handleMediaError(view, e);
         }
     }
-
     private void handleMediaError(MediaView view, Throwable t) {
         if (isDisposed)
             return;
-
         String msg = "Impossibile riprodurre video";
         if (t != null) {
             // Ignore trivial errors if playing?
@@ -712,32 +600,25 @@ public class PostCard extends VBox {
         }
         showErrorPlaceholder(view, msg);
     }
-
     private void showErrorPlaceholder(MediaView view, String msg) {
         javafx.application.Platform.runLater(() -> {
             if (view.getParent() instanceof javafx.scene.layout.Pane) {
                 javafx.scene.layout.Pane parent = (javafx.scene.layout.Pane) view.getParent();
                 parent.getChildren().clear();
-
                 VBox errorBox = new VBox(5);
                 errorBox.setAlignment(Pos.CENTER);
                 errorBox.setPadding(new Insets(20));
                 errorBox.setStyle("-fx-background-color: #FFEBEE; -fx-border-color: #FFCDD2; -fx-border-radius: 5;");
-
                 Label icon = new Label("\u26A0");
                 icon.setStyle("-fx-font-size: 24px;");
-
                 Label lbl = new Label(msg);
                 lbl.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
-
                 errorBox.getChildren().addAll(icon, lbl);
                 parent.getChildren().add(errorBox);
             }
         });
     }
-
     // showAlert method removed
-
     private void showEditCommentDialog(Commento c, javafx.scene.text.Text contentText) {
         Stage dialogStage = new Stage();
         dialogStage.setTitle("Modifica Commento");
@@ -746,43 +627,33 @@ public class PostCard extends VBox {
         if (this.getScene() != null && this.getScene().getWindow() != null) {
             dialogStage.initOwner(this.getScene().getWindow());
         }
-
         BorderPane root = new BorderPane();
         root.getStyleClass().add("modal-root");
         root.setPrefWidth(400);
-
         // Header
         Label titleLbl = new Label("Modifica Commento");
         titleLbl.getStyleClass().add("modal-title");
         titleLbl.setAlignment(Pos.CENTER);
         titleLbl.setMaxWidth(Double.MAX_VALUE);
         root.setTop(titleLbl);
-
         // Content
         VBox contentBox = new VBox(15);
         contentBox.setPadding(new Insets(20, 0, 20, 0));
-
         TextArea area = new TextArea(c.getContenuto());
         area.setWrapText(true);
         area.setPrefRowCount(4);
         area.getStyleClass().add("text-area");
-
         contentBox.getChildren().add(area);
         root.setCenter(contentBox);
-
         // Actions
         HBox actions = new HBox(15);
         actions.getStyleClass().add("dialog-actions");
         actions.setAlignment(Pos.CENTER_RIGHT);
-
         Button btnCancel = new Button("Annulla");
         btnCancel.getStyleClass().add("button-secondary");
-
         Button btnSave = new Button("Salva");
         btnSave.getStyleClass().add("button-primary");
-
         btnCancel.setOnAction(e -> dialogStage.close());
-
         btnSave.setOnAction(e -> {
             String newText = area.getText().trim();
             if (!newText.isBlank() && !newText.equals(c.getContenuto())) {
@@ -799,23 +670,236 @@ public class PostCard extends VBox {
                 dialogStage.close();
             }
         });
-
         actions.getChildren().addAll(btnCancel, btnSave);
         root.setBottom(actions);
-
         Scene scene = new Scene(root);
         try {
             scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         } catch (Exception ex) {
             Log.error("Errore caricamento CSS dialog", ex);
         }
-
         dialogStage.setScene(scene);
         dialogStage.showAndWait();
     }
-
+    private void createReviewSection() {
+        VBox reviewBox = new VBox(0); // Spacing handled by padding
+        reviewBox.getStyleClass().add("review-section");
+        // Header (Stats + Action)
+        HBox headerBox = new HBox(15);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        headerBox.getStyleClass().add("review-header-box");
+        double avg = 0.0;
+        try {
+            avg = recensioneDAO.getAverageRating(post.getId());
+        } catch (SQLException e) {
+            Log.error("Errore media recensioni", e);
+        }
+        VBox titleBox = new VBox(2);
+        Label lblTitle = new Label("Recensioni Miscela");
+        lblTitle.getStyleClass().add("review-title-label");
+        Label lblAvg = new Label(String.format("%.1f \u2B50", avg));
+        lblAvg.getStyleClass().add("review-avg-badge");
+        // Dynamic coloring for Header and Badge
+        int roundedScore = (int) Math.round(avg);
+        if (roundedScore < 0)
+            roundedScore = 0;
+        if (roundedScore > 5)
+            roundedScore = 5;
+        headerBox.getStyleClass().add("header-score-" + roundedScore);
+        lblAvg.getStyleClass().add("badge-score-" + roundedScore);
+        // Also color the section border
+        reviewBox.getStyleClass().add("section-score-" + roundedScore);
+        HBox titleRow = new HBox(10);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+        titleRow.getChildren().addAll(lblTitle, lblAvg);
+        titleBox.getChildren().add(titleRow);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button btnReview = new Button("Lascia Recensione");
+        btnReview.getStyleClass().add("review-btn");
+        // Apply dynamic button color
+        btnReview.getStyleClass().add("btn-score-" + roundedScore);
+        // Check availability
+        boolean canReview = false;
+        try {
+            if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE &&
+                    !post.getAutore().getUsername().equals(utenteLoggato.getUsername()) &&
+                    !recensioneDAO.hasUserReviewed(post.getId(), utenteLoggato.getUsername())) {
+                canReview = true;
+            }
+        } catch (SQLException e) {
+        }
+        if (!canReview) {
+            btnReview.setDisable(true);
+            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
+                btnReview.setTooltip(new Tooltip("Accedi per recensire"));
+            } else if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())) {
+                btnReview.setTooltip(new Tooltip("Non puoi recensire la tua miscela"));
+            } else {
+                btnReview.setText("Grazie!");
+            }
+        }
+        btnReview.setOnAction(e -> showAddReviewDialog());
+        headerBox.getChildren().addAll(titleBox, spacer, btnReview);
+        reviewBox.getChildren().add(headerBox);
+        // Reviews List in TitledPane
+        int count = getReviewsCount();
+        TitledPane pane = new TitledPane("Visualizza " + count + " Recensioni", createReviewList());
+        pane.setExpanded(false);
+        pane.setExpanded(false);
+        pane.getStyleClass().add("review-titled-pane");
+        reviewBox.getChildren().add(pane);
+        this.getChildren().add(reviewBox);
+    }
+    private int getReviewsCount() {
+        try {
+            return recensioneDAO.findByPost(post.getId()).size();
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+    private VBox createReviewList() {
+        VBox list = new VBox();
+        list.getStyleClass().add("review-list-container");
+        try {
+            List<it.univaq.brewhub.model.Recensione> reviews = recensioneDAO.findByPost(post.getId());
+            if (reviews.isEmpty()) {
+                Label emptyLbl = new Label("Nessuna recensione ancora. Sii il primo!");
+                emptyLbl.setStyle("-fx-font-style: italic; -fx-text-fill: #8D6E63; -fx-padding: 10;");
+                list.getChildren().add(emptyLbl);
+            } else {
+                for (it.univaq.brewhub.model.Recensione r : reviews) {
+                    VBox item = new VBox(5);
+                    item.getStyleClass().add("review-card");
+                    HBox rHeader = new HBox(10);
+                    rHeader.setAlignment(Pos.CENTER_LEFT);
+                    // Avatar (Circle with Initials)
+                    Label avatar = new Label(r.getAutore().getUsername().substring(0, 1).toUpperCase());
+                    avatar.getStyleClass().add("review-avatar");
+                    avatar.getStyleClass().add("bg-score-" + r.getVoto()); // Dynamic BG
+                    VBox metaBox = new VBox(2);
+                    Label rUser = new Label(r.getAutore().getUsername());
+                    rUser.getStyleClass().add("review-user-name");
+                    String stars = "\u2B50".repeat(r.getVoto());
+                    Label rVote = new Label(stars);
+                    rVote.getStyleClass().add("review-stars");
+                    rVote.getStyleClass().add("text-score-" + r.getVoto()); // Dynamic Text Color
+                    metaBox.getChildren().addAll(rUser, rVote);
+                    Region sp = new Region();
+                    HBox.setHgrow(sp, Priority.ALWAYS);
+                    Label rDate = new Label(r.getDataCreazione());
+                    rDate.getStyleClass().add("review-date");
+                    rHeader.getChildren().addAll(avatar, metaBox, sp, rDate);
+                    Label rText = new Label(r.getTesto());
+                    rText.setWrapText(true);
+                    rText.getStyleClass().add("review-body");
+                    item.getChildren().addAll(rHeader, rText);
+                    // Add border indicator class to the card itself
+                    item.getStyleClass().add("card-score-" + r.getVoto());
+                    list.getChildren().add(item);
+                }
+            }
+        } catch (SQLException e) {
+            list.getChildren().add(new Label("Errore caricamento recensioni."));
+        }
+        return list;
+    }
+    private void showAddReviewDialog() {
+        Stage dialog = new Stage();
+        dialog.setTitle("Scrivi Recensione");
+        dialog.initOwner(this.getScene().getWindow());
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(20));
+        root.setPrefWidth(350);
+        root.setStyle("-fx-background-color: #FFF8E1;");
+        Label lbl = new Label("Voto:");
+        lbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037;");
+        // Interactive Star Rating
+        HBox starsBox = new HBox(5);
+        starsBox.setAlignment(Pos.CENTER_LEFT);
+        final int[] currentVote = { 5 }; // Default 5
+        Label[] stars = new Label[5];
+        for (int i = 0; i < 5; i++) {
+            final int starVal = i + 1;
+            Label star = new Label("\u2B50");
+            star.getStyleClass().add("star-icon");
+            star.getStyleClass().add("text-score-5"); // Initial color (green for 5)
+            // Hover: Preview
+            star.setOnMouseEntered(e -> {
+                for (int j = 0; j < 5; j++) {
+                    Label s = stars[j];
+                    s.getStyleClass().removeAll("text-score-0", "text-score-1", "text-score-2", "text-score-3",
+                            "text-score-4", "text-score-5");
+                    if (j < starVal) {
+                        s.getStyleClass().add("text-score-" + starVal); // Color based on previewed value
+                        s.setText("\u2B50"); // Filled star (unicode star is always filled, color changes)
+                        s.setOpacity(1.0);
+                    } else {
+                        s.getStyleClass().add("text-score-0"); // Gray/Red for unselected
+                        s.setOpacity(0.3);
+                    }
+                }
+            });
+            // Click: Select
+            star.setOnMouseClicked(e -> {
+                currentVote[0] = starVal;
+            });
+            stars[i] = star;
+            starsBox.getChildren().add(star);
+        }
+        // Mouse Exit: Revert to selected
+        starsBox.setOnMouseExited(e -> {
+            int vote = currentVote[0];
+            for (int j = 0; j < 5; j++) {
+                Label s = stars[j];
+                s.getStyleClass().removeAll("text-score-0", "text-score-1", "text-score-2", "text-score-3",
+                        "text-score-4", "text-score-5");
+                if (j < vote) {
+                    s.getStyleClass().add("text-score-" + vote);
+                    s.setOpacity(1.0);
+                } else {
+                    s.getStyleClass().add("text-score-0");
+                    s.setOpacity(0.3);
+                }
+            }
+        });
+        TextArea txt = new TextArea();
+        txt.setPromptText("Scrivi la tua opinione...");
+        txt.setPrefRowCount(4);
+        txt.getStyleClass().add("text-area");
+        Button btnConfirm = new Button("Invia Recensione");
+        btnConfirm.getStyleClass().add("review-btn");
+        btnConfirm.setMaxWidth(Double.MAX_VALUE);
+        btnConfirm.setOnAction(e -> {
+            if (txt.getText().isBlank()) {
+                DialogUtils.showError("Manca il testo", "Scrivi qualcosina!", dialog);
+                return;
+            }
+            try {
+                // Ensure date is formatted nicely
+                String dateStr = java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                it.univaq.brewhub.model.Recensione r = new it.univaq.brewhub.model.Recensione(
+                        post, utenteLoggato, currentVote[0], txt.getText(),
+                        dateStr);
+                recensioneDAO.create(r);
+                dialog.close();
+                if (onRefreshNeeded != null)
+                    onRefreshNeeded.run(); // Refresh to show new rating/review
+            } catch (SQLException ex) {
+                DialogUtils.showError("Errore", "Impossibile salvare recensione.", dialog);
+            }
+        });
+        root.getChildren().addAll(lbl, starsBox, new Label("Commento:"), txt, btnConfirm);
+        Scene scene = new Scene(root);
+        try {
+            scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception ex) {
+        }
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
     private boolean isDisposed = false;
-
     public void dispose() {
         isDisposed = true;
         if (mediaPlayer != null) {
@@ -826,12 +910,10 @@ public class PostCard extends VBox {
                 }
                 mediaPlayer.dispose();
             } catch (Exception e) {
-                // Ignore
             }
         }
         mediaPlayer = null;
         mediaView = null;
-        // Force GC to help release native file locks/GStreamer handles
         System.gc();
     }
 }

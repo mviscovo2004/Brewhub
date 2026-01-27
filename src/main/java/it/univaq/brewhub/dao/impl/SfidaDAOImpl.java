@@ -7,7 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementazione DAO per le Sfide.
+ * <p>Gestisce la creazione di contest, l'adesione dei partecipanti e le relative notifiche.</p>
+ */
 public class SfidaDAOImpl implements SfidaDAO {
+
+    private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
     @Override
     public void create(Sfida sfida) throws SQLException {
@@ -19,12 +25,10 @@ public class SfidaDAOImpl implements SfidaDAO {
             pstmt.setString(3, sfida.getPremio());
             pstmt.setString(4, sfida.getScadenza());
             pstmt.setString(5, sfida.getCreatore());
-
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("Creating challenge failed, no rows affected.");
             }
-
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     sfida.setId(generatedKeys.getInt(1));
@@ -42,7 +46,6 @@ public class SfidaDAOImpl implements SfidaDAO {
         try (Connection conn = DatabaseManager.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 Sfida s = new Sfida();
                 s.setId(rs.getInt("id"));
@@ -83,18 +86,47 @@ public class SfidaDAOImpl implements SfidaDAO {
 
     @Override
     public void addPartecipante(int sfidaId, String username) throws SQLException {
+        boolean added = false;
         String sql = "INSERT OR IGNORE INTO partecipazioni_sfide (sfida_id, utente_username) VALUES (?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sfidaId);
             pstmt.setString(2, username);
-            pstmt.executeUpdate();
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                added = true;
+            }
+        }
+        if (added) {
+            sendPartecipazioneNotification(sfidaId, username);
+        }
+    }
 
-            // Aggiorna contatore denormalizzato (opzionale se lo calcoliamo sempre
-            // real-time,
-            // ma abbiamo un campo partecipanti_count, teniamolo allineato o usiamolo solo
-            // per cache.
-            // Nel EventoDAO lo ricalcolava ogni volta. Qui faccio uguale per coerenza.)
+    private void sendPartecipazioneNotification(int sfidaId, String username) {
+        String owner = null;
+        String title = null;
+        String sql = "SELECT creatore, titolo FROM sfide WHERE id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, sfidaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    owner = rs.getString("creatore");
+                    title = rs.getString("titolo");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore fetch sfida per notifica: " + e.getMessage());
+        }
+        if (owner != null && title != null && !owner.equals(username)) {
+            try {
+                it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                u.setUsername(owner);
+                String msg = username + " ha accettato la tua sfida \"" + title + "\"";
+                notificaDAO.create(new it.univaq.brewhub.Notifica(u, msg));
+            } catch (SQLException e) {
+                System.err.println("Errore creazione notifica sfida: " + e.getMessage());
+            }
         }
     }
 
