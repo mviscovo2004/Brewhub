@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Commento;
+import it.univaq.brewhub.model.Commento;
 import java.util.List;
 import java.sql.SQLException;
 

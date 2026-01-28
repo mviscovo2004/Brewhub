@@ -5,9 +5,9 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import it.univaq.brewhub.BaseTest;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Utente;
-import it.univaq.brewhub.Utente.TipoUtente;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.model.Utente.TipoUtente;
 import java.util.List;
 
 /**

@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Evento;
+import it.univaq.brewhub.model.Evento;
 import java.sql.SQLException;
 import java.util.List;
 

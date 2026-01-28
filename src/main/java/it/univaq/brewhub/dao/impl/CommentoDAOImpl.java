@@ -1,9 +1,9 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.Commento;
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.model.Commento;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.dao.CommentoDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +32,7 @@ public class CommentoDAOImpl implements CommentoDAO {
         }
 
         String sql = "INSERT INTO commenti(post_id, username, contenuto, data_creazione) VALUES(?, ?, ?, ?)";
-        it.univaq.brewhub.Notifica notificationToSend = null;
+        it.univaq.brewhub.model.Notifica notificationToSend = null;
 
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -71,7 +71,7 @@ public class CommentoDAOImpl implements CommentoDAO {
                                 snippet = snippet.substring(0, 20) + "...";
                             String msg = commento.getUtente().getUsername() + " ha commentato il tuo post \"" + title
                                     + "\": " + snippet;
-                            notificationToSend = new it.univaq.brewhub.Notifica(ricevente, msg);
+                            notificationToSend = new it.univaq.brewhub.model.Notifica(ricevente, msg);
                         }
                     }
                 }

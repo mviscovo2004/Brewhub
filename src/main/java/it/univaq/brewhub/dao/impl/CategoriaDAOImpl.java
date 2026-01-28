@@ -1,7 +1,7 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.Categoria;
-import it.univaq.brewhub.DatabaseManager;
+import it.univaq.brewhub.model.Categoria;
+import it.univaq.brewhub.utility.DatabaseManager;
 import it.univaq.brewhub.dao.CategoriaDAO;
 import java.sql.*;
 import java.util.ArrayList;

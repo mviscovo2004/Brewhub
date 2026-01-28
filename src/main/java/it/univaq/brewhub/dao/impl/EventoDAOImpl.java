@@ -1,7 +1,7 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Evento;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Evento;
 import it.univaq.brewhub.dao.EventoDAO;
 import java.sql.*;
 import java.util.ArrayList;
@@ -124,10 +124,10 @@ public class EventoDAOImpl implements EventoDAO {
         }
         if (owner != null && nomeEvento != null && !owner.equals(username)) {
             try {
-                it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
                 u.setUsername(owner);
                 String msg = username + " si è iscritto al tuo evento \"" + nomeEvento + "\"";
-                notificaDAO.create(new it.univaq.brewhub.Notifica(u, msg));
+                notificaDAO.create(new it.univaq.brewhub.model.Notifica(u, msg));
             } catch (SQLException e) {
                 System.err.println("Errore creazione notifica evento: " + e.getMessage());
             }

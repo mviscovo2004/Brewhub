@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Messaggio;
+import it.univaq.brewhub.model.Messaggio;
 import java.util.List;
 
 /**

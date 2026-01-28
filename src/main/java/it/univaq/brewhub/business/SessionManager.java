@@ -1,6 +1,6 @@
 package it.univaq.brewhub.business;
 
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.model.Utente;
 
 /**
  * Gestisce la sessione utente corrente all'interno dell'applicazione.

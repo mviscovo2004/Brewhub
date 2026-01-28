@@ -2,9 +2,9 @@ package it.univaq.brewhub.dao.impl;
 
 import it.univaq.brewhub.dao.RecensioneDAO;
 import it.univaq.brewhub.model.Recensione;
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Utente;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,24 +55,24 @@ public class RecensioneDAOImpl implements RecensioneDAO {
 
     private void sendRecensioneNotification(Recensione r) {
         try {
-            it.univaq.brewhub.Post p = r.getPost();
+            it.univaq.brewhub.model.Post p = r.getPost();
             // Recupera il post completo se necessario per avere l'autore
             if (p != null) {
                 String authorUsername = null;
                 if (p.getAutore() != null) {
                     authorUsername = p.getAutore().getUsername();
                 } else {
-                    it.univaq.brewhub.Post fullPost = postDAO.findById(p.getId());
+                    it.univaq.brewhub.model.Post fullPost = postDAO.findById(p.getId());
                     if (fullPost != null && fullPost.getAutore() != null) {
                         authorUsername = fullPost.getAutore().getUsername();
                     }
                 }
 
                 if (authorUsername != null && !authorUsername.equals(r.getAutore().getUsername())) {
-                    it.univaq.brewhub.Utente dest = new it.univaq.brewhub.Utente();
+                    it.univaq.brewhub.model.Utente dest = new it.univaq.brewhub.model.Utente();
                     dest.setUsername(authorUsername);
                     String msg = r.getAutore().getUsername() + " ha recensito il tuo post \"" + p.getTitolo() + "\"";
-                    notificaDAO.create(new it.univaq.brewhub.Notifica(dest, msg));
+                    notificaDAO.create(new it.univaq.brewhub.model.Notifica(dest, msg));
                 }
             }
         } catch (Exception e) {

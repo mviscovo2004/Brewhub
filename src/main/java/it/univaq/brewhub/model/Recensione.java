@@ -1,8 +1,5 @@
 package it.univaq.brewhub.model;
 
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Utente;
-
 /**
  * Rappresenta una recensione lasciata su un post.
  */
@@ -11,7 +8,7 @@ public class Recensione {
     private int id;
     private Post post;
     private Utente autore;
-    private int voto; 
+    private int voto;
     private String testo;
     private String dataCreazione;
 
@@ -40,6 +37,7 @@ public class Recensione {
 
     /**
      * Restituisce l'ID della recensione.
+     * 
      * @return L'identificativo.
      */
     public int getId() {
@@ -48,6 +46,7 @@ public class Recensione {
 
     /**
      * Imposta l'ID della recensione.
+     * 
      * @param id Il nuovo ID.
      */
     public void setId(int id) {
@@ -56,6 +55,7 @@ public class Recensione {
 
     /**
      * Restituisce il post recensito.
+     * 
      * @return L'oggetto {@link Post}.
      */
     public Post getPost() {
@@ -64,6 +64,7 @@ public class Recensione {
 
     /**
      * Imposta il post recensito.
+     * 
      * @param post Il nuovo post.
      */
     public void setPost(Post post) {
@@ -72,6 +73,7 @@ public class Recensione {
 
     /**
      * Restituisce l'autore della recensione.
+     * 
      * @return L'oggetto {@link Utente}.
      */
     public Utente getAutore() {
@@ -80,6 +82,7 @@ public class Recensione {
 
     /**
      * Imposta l'autore della recensione.
+     * 
      * @param autore Il nuovo autore.
      */
     public void setAutore(Utente autore) {
@@ -88,6 +91,7 @@ public class Recensione {
 
     /**
      * Restituisce il voto assegnato.
+     * 
      * @return Il voto (intero).
      */
     public int getVoto() {
@@ -96,6 +100,7 @@ public class Recensione {
 
     /**
      * Imposta il voto.
+     * 
      * @param voto Il nuovo voto.
      */
     public void setVoto(int voto) {
@@ -104,6 +109,7 @@ public class Recensione {
 
     /**
      * Restituisce il testo della recensione.
+     * 
      * @return Il commento.
      */
     public String getTesto() {
@@ -112,6 +118,7 @@ public class Recensione {
 
     /**
      * Imposta il testo della recensione.
+     * 
      * @param testo Il nuovo commento.
      */
     public void setTesto(String testo) {
@@ -120,6 +127,7 @@ public class Recensione {
 
     /**
      * Restituisce la data di creazione.
+     * 
      * @return La data come stringa.
      */
     public String getDataCreazione() {
@@ -128,6 +136,7 @@ public class Recensione {
 
     /**
      * Imposta la data di creazione.
+     * 
      * @param dataCreazione La nuova data.
      */
     public void setDataCreazione(String dataCreazione) {

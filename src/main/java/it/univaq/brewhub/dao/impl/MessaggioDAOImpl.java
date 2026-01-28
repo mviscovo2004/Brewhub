@@ -1,7 +1,7 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Messaggio;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Messaggio;
 import it.univaq.brewhub.dao.MessaggioDAO;
 import java.sql.*;
 import java.util.ArrayList;
@@ -48,13 +48,13 @@ public class MessaggioDAOImpl implements MessaggioDAO {
 
                 // Invia notifica se è un messaggio privato e il mittente non è il destinatario (es. auto-invio)
                 if (messaggio.getReceiver() != null && !messaggio.getSender().equals(messaggio.getReceiver())) {
-                    it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                    it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
                     u.setUsername(messaggio.getReceiver());
                     String snippet = messaggio.getContenuto();
                     if (snippet.length() > 20)
                         snippet = snippet.substring(0, 20) + "...";
                     String notifMsg = "Nuovo messaggio da " + messaggio.getSender() + ": " + snippet;
-                    it.univaq.brewhub.Notifica n = new it.univaq.brewhub.Notifica(u, notifMsg);
+                    it.univaq.brewhub.model.Notifica n = new it.univaq.brewhub.model.Notifica(u, notifMsg);
                     try {
                         notificaDAO.create(n);
                     } catch (SQLException ex) {

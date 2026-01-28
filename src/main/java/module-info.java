@@ -21,16 +21,16 @@
     requires javafx.base;
 
     opens it.univaq.brewhub;
-    opens it.univaq.brewhub.UI;
-    opens it.univaq.brewhub.UI.components;
+    opens it.univaq.brewhub.view;
+    opens it.univaq.brewhub.view.components;
     opens it.univaq.brewhub.business;
     opens it.univaq.brewhub.dao;
     opens it.univaq.brewhub.dao.impl;
     opens it.univaq.brewhub.utility;
 
     exports it.univaq.brewhub;
-    exports it.univaq.brewhub.UI;
-    exports it.univaq.brewhub.UI.components;
+    exports it.univaq.brewhub.view;
+    exports it.univaq.brewhub.view.components;
     exports it.univaq.brewhub.business;
     exports it.univaq.brewhub.dao;
     exports it.univaq.brewhub.dao.impl;

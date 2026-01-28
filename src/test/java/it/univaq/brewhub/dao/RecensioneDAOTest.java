@@ -1,27 +1,32 @@
 package it.univaq.brewhub.dao;
+
 import it.univaq.brewhub.BaseTest;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.model.Recensione;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test unitari per la classe {@link it.univaq.brewhub.dao.impl.RecensioneDAOImpl}.
+ * Test unitari per la classe
+ * {@link it.univaq.brewhub.dao.impl.RecensioneDAOImpl}.
  * <p>
- * Verifica le operazioni CRUD e le funzionalità specifiche come il calcolo della media
+ * Verifica le operazioni CRUD e le funzionalità specifiche come il calcolo
+ * della media
  * e la verifica delle recensioni utente.
  * </p>
  */
 public class RecensioneDAOTest extends BaseTest {
 
     /**
-     * Verifica la creazione di una recensione e il suo recupero tramite l'ID del post.
+     * Verifica la creazione di una recensione e il suo recupero tramite l'ID del
+     * post.
      * 
-     * @throws SQLException se si verifica un errore durante l'interazione con il database.
+     * @throws SQLException se si verifica un errore durante l'interazione con il
+     *                      database.
      */
     @Test
     public void testCreateAndFind() throws SQLException {
@@ -42,7 +47,8 @@ public class RecensioneDAOTest extends BaseTest {
     /**
      * Verifica il calcolo corretto della media dei voti per un post.
      * 
-     * @throws SQLException se si verifica un errore durante l'interazione con il database.
+     * @throws SQLException se si verifica un errore durante l'interazione con il
+     *                      database.
      */
     @Test
     public void testAverageRating() throws SQLException {
@@ -65,7 +71,8 @@ public class RecensioneDAOTest extends BaseTest {
     /**
      * Verifica se un utente ha già recensito un determinato post.
      * 
-     * @throws SQLException se si verifica un errore durante l'interazione con il database.
+     * @throws SQLException se si verifica un errore durante l'interazione con il
+     *                      database.
      */
     @Test
     public void testHasUserReviewed() throws SQLException {

@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.model.Utente;
 import java.sql.SQLException;
 
 /**
@@ -142,7 +142,7 @@ public interface UtenteDAO {
      * @return Lista post archiviati.
      * @throws SQLException Errore SQL.
      */
-    java.util.List<it.univaq.brewhub.Post> getArchive(String username) throws SQLException;
+    java.util.List<it.univaq.brewhub.model.Post> getArchive(String username) throws SQLException;
 
     /**
      * Cerca utenti (match parziale).

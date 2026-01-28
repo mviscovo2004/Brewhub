@@ -1,8 +1,8 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Notifica;
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Notifica;
+import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.dao.NotificaDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

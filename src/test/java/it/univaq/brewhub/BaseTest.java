@@ -2,10 +2,12 @@ package it.univaq.brewhub;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import it.univaq.brewhub.Utente.TipoUtente;
+import it.univaq.brewhub.model.Utente.TipoUtente;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.UUID;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.*;
 
 /**
  * Classe base per tutti i test di integrazione che richiedono un database.

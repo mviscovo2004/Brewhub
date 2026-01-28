@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Gruppo;
+import it.univaq.brewhub.model.Gruppo;
 import java.util.List;
 
 /**

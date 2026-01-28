@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Torrefattore;
+import it.univaq.brewhub.model.Torrefattore;
 import java.sql.SQLException;
 
 /**

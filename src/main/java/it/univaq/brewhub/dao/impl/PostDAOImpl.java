@@ -1,9 +1,9 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Post;
-import it.univaq.brewhub.Post.TipoPost;
-import it.univaq.brewhub.Utente;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Post.TipoPost;
+import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.dao.PostDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -140,7 +140,7 @@ public class PostDAOImpl implements PostDAO {
 
     @Override
     public void addLike(int postId, String username) throws SQLException {
-        it.univaq.brewhub.Notifica notificationToSend = null;
+        it.univaq.brewhub.model.Notifica notificationToSend = null;
         String sql = "INSERT OR IGNORE INTO likes (post_id, username) VALUES (?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -157,7 +157,7 @@ public class PostDAOImpl implements PostDAO {
                             if (!author.equals(username)) { 
                                 Utente ricevente = new Utente();
                                 ricevente.setUsername(author);
-                                notificationToSend = new it.univaq.brewhub.Notifica(ricevente,
+                                notificationToSend = new it.univaq.brewhub.model.Notifica(ricevente,
                                         username + " ha messo mi piace al tuo post.");
                             }
                         }
@@ -338,7 +338,7 @@ public class PostDAOImpl implements PostDAO {
         
         int catId = rs.getInt("category_id");
         if (!rs.wasNull() && catId > 0) {
-            it.univaq.brewhub.Categoria c = new it.univaq.brewhub.Categoria();
+            it.univaq.brewhub.model.Categoria c = new it.univaq.brewhub.model.Categoria();
             c.setId(catId);
             try {
                 c.setNome(rs.getString("cat_nome"));

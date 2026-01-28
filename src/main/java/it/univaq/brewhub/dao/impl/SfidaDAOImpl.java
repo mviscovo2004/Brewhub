@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
+import it.univaq.brewhub.utility.DatabaseManager;
 import it.univaq.brewhub.model.Sfida;
 import it.univaq.brewhub.dao.SfidaDAO;
 import java.sql.*;
@@ -120,10 +120,10 @@ public class SfidaDAOImpl implements SfidaDAO {
         }
         if (owner != null && title != null && !owner.equals(username)) {
             try {
-                it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+                it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
                 u.setUsername(owner);
                 String msg = username + " ha accettato la tua sfida \"" + title + "\"";
-                notificaDAO.create(new it.univaq.brewhub.Notifica(u, msg));
+                notificaDAO.create(new it.univaq.brewhub.model.Notifica(u, msg));
             } catch (SQLException e) {
                 System.err.println("Errore creazione notifica sfida: " + e.getMessage());
             }

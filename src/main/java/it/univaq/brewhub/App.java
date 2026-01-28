@@ -1,7 +1,8 @@
 package it.univaq.brewhub;
 
-import it.univaq.brewhub.UI.LoginView;
-import it.univaq.brewhub.UI.ThemeManager;
+import it.univaq.brewhub.view.LoginView;
+import it.univaq.brewhub.view.ThemeManager;
+import it.univaq.brewhub.utility.DatabaseManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,7 +18,9 @@ public class App extends Application {
 
     /**
      * Metodo di avvio dell'applicazione JavaFX.
-     * <p>Configura lo stage primario, applica il tema e mostra la vista di login.</p>
+     * <p>
+     * Configura lo stage primario, applica il tema e mostra la vista di login.
+     * </p>
      * 
      * @param stage Lo stage (finestra) principale fornito dal sistema.
      */
@@ -27,9 +30,9 @@ public class App extends Application {
             LoginView login = new LoginView(stage);
             Scene scene = new Scene(login.getView());
             ThemeManager.applyTheme(scene);
-            
+
             stage.setScene(scene);
-            stage.setTitle("BrewHub"); 
+            stage.setTitle("BrewHub");
             stage.show();
         } catch (Throwable t) {
             // Gestione errori critici all'avvio per evitare crash silenziosi
@@ -40,14 +43,16 @@ public class App extends Application {
 
     /**
      * Punto di ingresso standard (main).
-     * <p>Inizializza il database e lancia il runtime JavaFX.</p>
+     * <p>
+     * Inizializza il database e lancia il runtime JavaFX.
+     * </p>
      * 
      * @param args Argomenti da riga di comando (non utilizzati).
      */
     public static void main(String[] args) {
         // Inizializza il database (creazione tabelle, migrazioni)
         DatabaseManager.init();
-        
+
         // Avvia l'interfaccia grafica
         launch();
     }

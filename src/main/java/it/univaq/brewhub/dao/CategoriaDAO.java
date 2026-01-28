@@ -1,6 +1,6 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.Categoria;
+import it.univaq.brewhub.model.Categoria;
 import java.sql.SQLException;
 import java.util.List;
 

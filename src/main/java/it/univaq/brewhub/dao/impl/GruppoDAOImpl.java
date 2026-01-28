@@ -1,7 +1,7 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Gruppo;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Gruppo;
 import it.univaq.brewhub.dao.GruppoDAO;
 import java.sql.*;
 import java.util.ArrayList;
@@ -81,10 +81,10 @@ public class GruppoDAOImpl implements GruppoDAO {
 
     private void sendGroupNotification(String username, String groupName) {
         try {
-            it.univaq.brewhub.Utente u = new it.univaq.brewhub.Utente();
+            it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
             u.setUsername(username);
             String msg = "Sei stato aggiunto al gruppo \"" + groupName + "\"";
-            notificaDAO.create(new it.univaq.brewhub.Notifica(u, msg));
+            notificaDAO.create(new it.univaq.brewhub.model.Notifica(u, msg));
         } catch (SQLException e) {
             System.err.println("Errore notifica gruppo: " + e.getMessage());
         }

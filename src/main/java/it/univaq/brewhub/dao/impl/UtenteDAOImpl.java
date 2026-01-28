@@ -1,8 +1,8 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Utente;
-import it.univaq.brewhub.Utente.TipoUtente;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.model.Utente.TipoUtente;
 import it.univaq.brewhub.dao.UtenteDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -261,7 +261,7 @@ public class UtenteDAOImpl implements UtenteDAO {
         if (follower.equals(followed))
             return;
 
-        it.univaq.brewhub.Notifica notificationToSend = null;
+        it.univaq.brewhub.model.Notifica notificationToSend = null;
         String sql = "INSERT OR IGNORE INTO followers(follower_username, followed_username) VALUES(?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -273,7 +273,7 @@ public class UtenteDAOImpl implements UtenteDAO {
                 // Prepara notifica
                 Utente ricevente = new Utente();
                 ricevente.setUsername(followed);
-                notificationToSend = new it.univaq.brewhub.Notifica(ricevente,
+                notificationToSend = new it.univaq.brewhub.model.Notifica(ricevente,
                         follower + " ha iniziato a seguirti.");
             }
         }
@@ -451,7 +451,7 @@ public class UtenteDAOImpl implements UtenteDAO {
      * Recupera l'intero archivio dei post salvati.
      */
     @Override
-    public java.util.List<it.univaq.brewhub.Post> getArchive(String username) throws SQLException {
+    public java.util.List<it.univaq.brewhub.model.Post> getArchive(String username) throws SQLException {
         java.util.List<Integer> ids = new java.util.ArrayList<>();
         String sql = "SELECT post_id FROM saved_posts WHERE username = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -463,10 +463,10 @@ public class UtenteDAOImpl implements UtenteDAO {
             }
         }
 
-        java.util.List<it.univaq.brewhub.Post> posts = new java.util.ArrayList<>();
+        java.util.List<it.univaq.brewhub.model.Post> posts = new java.util.ArrayList<>();
         it.univaq.brewhub.dao.PostDAO postDAO = new it.univaq.brewhub.dao.impl.PostDAOImpl();
         for (int id : ids) {
-            it.univaq.brewhub.Post p = postDAO.findById(id);
+            it.univaq.brewhub.model.Post p = postDAO.findById(id);
             if (p != null)
                 posts.add(p);
         }

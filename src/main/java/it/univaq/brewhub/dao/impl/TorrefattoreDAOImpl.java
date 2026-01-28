@@ -1,8 +1,8 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.DatabaseManager;
-import it.univaq.brewhub.Torrefattore;
-import it.univaq.brewhub.Utente.TipoUtente;
+import it.univaq.brewhub.utility.DatabaseManager;
+import it.univaq.brewhub.model.Torrefattore;
+import it.univaq.brewhub.model.Utente.TipoUtente;
 import it.univaq.brewhub.dao.TorrefattoreDAO;
 import it.univaq.brewhub.dao.UtenteDAO;
 import java.sql.Connection;
