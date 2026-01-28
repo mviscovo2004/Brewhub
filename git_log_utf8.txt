@@ -1,0 +1,38 @@
+﻿*-.   8e7e765 WIP on dependabot/maven/maven-291dbb1389: 1f480ff Bump org.openjfx:javafx-media in the maven group across 1 directory
+|\ \  
+| | * a8cf078 untracked files on dependabot/maven/maven-291dbb1389: 1f480ff Bump org.openjfx:javafx-media in the maven group across 1 directory
+| * d3b8dad index on dependabot/maven/maven-291dbb1389: 1f480ff Bump org.openjfx:javafx-media in the maven group across 1 directory
+|/  
+* 1f480ff Bump org.openjfx:javafx-media in the maven group across 1 directory
+| * a8cb43d Release 1.0
+|/  
+| * 56f4a12 Release 1.0
+| * 2dc3f86 Release 1.0
+| * fbb38c8 Aggiunto jacoco per verifica copertura test
+| * 6bd5251 Refactor, ottimizzazione e documentazione main
+| * 355fd6c Refactor dei metodi DAO (Data Access Layer) e delle classi main
+| * b16cf82 Aggiunta di README.md
+| * df75d0b Aggiunte nuove classi di test Refactor e ottimizzazione di test Documentazione javadoc per tutto il codice
+| * fe8580b implementazione sfide e condivisione
+| * c8930d6 Implementazione sistema di eventi
+| * d605b12 Nuovi classi di test
+| * bbf43ce Implementazione chat tra utenti singoli e gruppi di utenti
+| * 3902baa Risoluzione errore CI
+| * fce2af0 Configurazione actions
+| * ce4ff8f Actions per gestione librerie, continuous delivery, controllo sulla sicurezza (codeql) e continuous integration
+| * 0f4414f Gestione del database con backup e ripristino
+| * b97c0ef Implementazione pagine per amministrazione e miglioramento UI
+| * 449ecdb UI per visualizzazione profilo
+| * 69bcbcc Refactor del codice e commenti seguendo javadoc
+| * e9bca4d feat: Aggiunta implementazione iniziale dell'applicazione Brewhub con UI, modelli e test.
+| * 82ed92e Prime classi di test
+| * abba3ce Prime classi di test
+| * 8f2ca12 Sistemazione salvataggio media e caricamento per i post
+| *   d70c1c5 Merge branch 'review' of https://github.com/mviscovo2004/Brewhub into review
+| |\  
+| | * 0546609 Secondo sprint: Pagine di login, dashboard e gestione file json
+| | * a8c4ba9 Primo push
+| * 08bcab3 Commento dei vari codici
+|/  
+* 6ed0561 pagina di personalizzazione del profilo utente.Aggiunta la classe ProfileView per gestire la visualizzazione e la modifica delle informazioni dell'utente.
+* ddac2f8 Implementazione db e sistemazione ui
