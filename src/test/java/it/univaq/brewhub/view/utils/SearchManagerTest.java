@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(ApplicationExtension.class)
 class SearchManagerTest extends BaseUITest {
@@ -71,38 +72,33 @@ class SearchManagerTest extends BaseUITest {
     }
 
     @Test
-    void testSearch_Users() {
+    void testSearch_Users(org.testfx.api.FxRobot robot) throws Exception {
         // Create another user to find
         createTestUser("TrovamiUser", TipoUtente.APPASSIONATO);
 
         javafx.application.Platform.runLater(() -> searchManager.performSearch("Trovami"));
 
-        WaitForAsyncUtils.waitForFxEvents();
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (Exception ex) {
-        }
-        WaitForAsyncUtils.waitForFxEvents();
+        // Wait for async results
+        org.testfx.util.WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> {
+            return robot.lookup(n -> n instanceof javafx.scene.control.Label
+                    && ((javafx.scene.control.Label) n).getText().contains("@TrovamiUser")).tryQuery().isPresent();
+        });
 
-        verifyThat("@TrovamiUser", isVisible());
         verifyThat("👥 Utenti (1)", isVisible());
     }
 
     @Test
-    void testSearch_Events() {
+    void testSearch_Events(org.testfx.api.FxRobot robot) throws Exception {
         // Create event
         Evento e = createTestEvento("Evento Super Bello", "testuser_search");
 
         javafx.application.Platform.runLater(() -> searchManager.performSearch("Super Bello"));
 
-        WaitForAsyncUtils.waitForFxEvents();
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (Exception ex) {
-        }
-        WaitForAsyncUtils.waitForFxEvents();
+        // Wait for async results
+        org.testfx.util.WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> {
+            return robot.lookup("Evento Super Bello").tryQuery().isPresent();
+        });
 
-        verifyThat("Evento Super Bello", isVisible());
         verifyThat("📅 Eventi (1)", isVisible());
     }
 

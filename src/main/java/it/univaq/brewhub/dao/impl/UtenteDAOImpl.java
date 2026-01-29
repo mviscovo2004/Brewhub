@@ -132,9 +132,6 @@ public class UtenteDAOImpl implements UtenteDAO {
         String deleteFollowed = "DELETE FROM followers WHERE followed_username = ?";
         String deleteSaved = "DELETE FROM saved_posts WHERE username = ?";
 
-        String updatePosts = "UPDATE post SET autore_username = ? WHERE autore_username = ?";
-        String updateComments = "UPDATE commenti SET username = ? WHERE username = ?";
-
         String anonymizeUser = "UPDATE utenti SET username = ?, nome = ?, cognome = ?, password_hash = ?, foto_uri = NULL WHERE username = ?";
 
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -162,19 +159,8 @@ public class UtenteDAOImpl implements UtenteDAO {
 
                 String newUsername = "deleted_" + java.util.UUID.randomUUID().toString().substring(0, 8);
 
-                // 2. Anonimizzazione contenuti
-                try (PreparedStatement ps = conn.prepareStatement(updatePosts)) {
-                    ps.setString(1, newUsername);
-                    ps.setString(2, username);
-                    ps.executeUpdate();
-                }
-                try (PreparedStatement ps = conn.prepareStatement(updateComments)) {
-                    ps.setString(1, newUsername);
-                    ps.setString(2, username);
-                    ps.executeUpdate();
-                }
-
-                // 3. Anonimizzazione utente
+                // 2. Anonimizzazione utente (e cascata automatica su post, commenti, ecc. via
+                // ON UPDATE CASCADE)
                 try (PreparedStatement ps = conn.prepareStatement(anonymizeUser)) {
                     // Generiamo un hash valido casuale per impedire login ma evitare errori di
                     // formato

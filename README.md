@@ -21,8 +21,9 @@
 ### 💬 Comunicazione & Community
 *   **Chat System**: Messaggistica privata e **Chat di Gruppo**.
 *   **Condivisione**: Inoltro rapido dei post nelle conversazioni.
-*   **Eventi**: I Torrefattori possono organizzare edere eventi (degustazioni, corsi) con gestione delle partecipazioni.
-*   **Sfide (Contest)**: Competizioni tematiche attive/concluse per ingaggiare la community.
+*   **Eventi**: I Torrefattori possono organizzare eventi (degustazioni, corsi) con gestione delle partecipazioni e pulsanti interattivi.
+*   **Sfide (Contest)**: Competizioni tematiche con sistema di partecipazione immediata.
+*   **Notifiche Smart**: Sistema di notifiche raggruppate per Like, Commenti e Sistema.
 
 ### 🎨 Design
 *   **Coffee Theme**: Interfaccia grafica curata (JavaFX + CSS) con palette colori ispirata al mondo del caffè.
@@ -36,6 +37,7 @@ Il progetto è basato su **Java 11** e utilizza le seguenti tecnologie:
 *   **SQLite**: Database relazionale embedded (nessuna configurazione server richiesta).
 *   **JDBC**: Per l'interazione diretta ed efficiente con il database.
 *   **jBCrypt**: Per la sicurezza delle password.
+*   **HikariCP**: Connection pool per ottiminizzare le performance del database.
 *   **Maven**: Build automation e dependency management.
 *   **JUnit 5 & TestFX**: Suite di testing unitario e di interfaccia.
 
@@ -76,10 +78,11 @@ mvn test
 ## 📂 Struttura del Progetto
 
 *   `src/main/java`:
-    *   `it.univaq.brewhub.UI`: Logica di visualizzazione (Viste, Componenti Custom).
+    *   `it.univaq.brewhub.view`: Logica di visualizzazione (Viste, Componenti Custom).
     *   `it.univaq.brewhub.business`: Logica di dominio.
     *   `it.univaq.brewhub.dao`: Data Access Object (Interfacce e Implementazioni).
     *   `it.univaq.brewhub.model`: Classi del modello dati.
+    *   `it.univaq.brewhub.utility`: Classi di utilità e manager.
 *   `src/test/java`: Test cases JUnit.
 *   `src/main/resources`: Foglio di stile css
 

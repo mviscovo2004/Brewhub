@@ -15,7 +15,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public class DatabaseManager {
 
-    private static String connectionUrl = "jdbc:sqlite:brewhub.db";
+    private static String connectionUrl = "jdbc:sqlite:brewhub.db?foreign_keys=on";
     private static HikariDataSource dataSource;
 
     /**
@@ -25,7 +25,7 @@ public class DatabaseManager {
      * @param dbPath Il percorso del file database di test.
      */
     public static void configureTestDatabase(String dbPath) {
-        connectionUrl = "jdbc:sqlite:" + dbPath;
+        connectionUrl = "jdbc:sqlite:" + dbPath + "?foreign_keys=on";
         shutdown();
     }
 
@@ -106,7 +106,7 @@ public class DatabaseManager {
                     "media_uri TEXT, " +
                     "autore_username TEXT NOT NULL, " +
                     "data_creazione TEXT NOT NULL, " +
-                    "FOREIGN KEY(autore_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(autore_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlPost);
 
@@ -118,7 +118,7 @@ public class DatabaseManager {
                     "contenuto TEXT NOT NULL, " +
                     "data_creazione TEXT NOT NULL, " +
                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE SET NULL" +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE SET NULL ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlCommenti);
 
@@ -128,7 +128,7 @@ public class DatabaseManager {
                     "username TEXT NOT NULL, " +
                     "PRIMARY KEY (post_id, username), " +
                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlLikes);
 
@@ -137,8 +137,8 @@ public class DatabaseManager {
                     "follower_username TEXT NOT NULL, " +
                     "followed_username TEXT NOT NULL, " +
                     "PRIMARY KEY (follower_username, followed_username), " +
-                    "FOREIGN KEY(follower_username) REFERENCES utenti(username) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(followed_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(follower_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                    "FOREIGN KEY(followed_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlFollowers);
 
@@ -147,7 +147,7 @@ public class DatabaseManager {
                     "username TEXT NOT NULL, " +
                     "post_id INTEGER NOT NULL, " +
                     "PRIMARY KEY (username, post_id), " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE" +
                     ")";
             stmt.execute(sqlSaved);
@@ -159,7 +159,7 @@ public class DatabaseManager {
                     "messaggio TEXT NOT NULL, " +
                     "letto BOOLEAN DEFAULT 0, " +
                     "data_creazione TEXT NOT NULL, " +
-                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlNotifiche);
 
@@ -203,7 +203,7 @@ public class DatabaseManager {
                     "partita_iva TEXT, " +
                     "indirizzo TEXT, " +
                     "descrizione TEXT, " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlTorrefattori);
 
@@ -216,8 +216,8 @@ public class DatabaseManager {
                     "contenuto TEXT NOT NULL, " +
                     "timestamp TEXT NOT NULL, " +
                     "letto BOOLEAN DEFAULT 0, " +
-                    "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                    "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                    "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
                     "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE" +
                     ")";
             stmt.execute(sqlMessaggi);
@@ -227,7 +227,7 @@ public class DatabaseManager {
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "nome TEXT NOT NULL, " +
                     "creatore TEXT NOT NULL, " +
-                    "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE SET NULL" +
+                    "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE SET NULL ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlGruppi);
 
@@ -237,7 +237,7 @@ public class DatabaseManager {
                     "username TEXT NOT NULL, " +
                     "PRIMARY KEY (id_gruppo, username), " +
                     "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlMembriGruppo);
 
@@ -255,7 +255,7 @@ public class DatabaseManager {
                     "data TEXT NOT NULL, " +
                     "luogo TEXT NOT NULL, " +
                     "organizzatore TEXT NOT NULL, " +
-                    "FOREIGN KEY(organizzatore) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(organizzatore) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlEventi);
 
@@ -265,7 +265,7 @@ public class DatabaseManager {
                     "utente_username TEXT NOT NULL, " +
                     "PRIMARY KEY (evento_id, utente_username), " +
                     "FOREIGN KEY(evento_id) REFERENCES eventi(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlPartecipazioni);
 
@@ -278,7 +278,7 @@ public class DatabaseManager {
                     "scadenza TEXT NOT NULL, " +
                     "creatore TEXT NOT NULL, " +
                     "partecipanti_count INTEGER DEFAULT 0, " +
-                    "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(creatore) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlSfide);
 
@@ -288,7 +288,7 @@ public class DatabaseManager {
                     "utente_username TEXT NOT NULL, " +
                     "PRIMARY KEY (sfida_id, utente_username), " +
                     "FOREIGN KEY(sfida_id) REFERENCES sfide(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(utente_username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlPartecipazioniSfide);
 
@@ -302,7 +302,7 @@ public class DatabaseManager {
                     "data_creazione TEXT NOT NULL, " +
                     "UNIQUE(post_id, username), " +
                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
-                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             stmt.execute(sqlRecensioni);
 
@@ -354,7 +354,8 @@ public class DatabaseManager {
                                     "contenuto TEXT NOT NULL, " +
                                     "data_creazione TEXT NOT NULL, " +
                                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
-                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE SET NULL" +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE SET NULL ON UPDATE CASCADE"
+                                    +
                                     ")";
                         } else if ("likes".equals(tableName)) {
                             createSql = "CREATE TABLE " + tableName + " (" +
@@ -362,14 +363,16 @@ public class DatabaseManager {
                                     "username TEXT NOT NULL, " +
                                     "PRIMARY KEY (post_id, username), " +
                                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
-                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE"
+                                    +
                                     ")";
                         } else if ("saved_posts".equals(tableName)) {
                             createSql = "CREATE TABLE " + tableName + " (" +
                                     "username TEXT NOT NULL, " +
                                     "post_id INTEGER NOT NULL, " +
                                     "PRIMARY KEY (username, post_id), " +
-                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, "
+                                    +
                                     "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE" +
                                     ")";
                         }
@@ -428,8 +431,8 @@ public class DatabaseManager {
                             "contenuto TEXT NOT NULL, " +
                             "timestamp TEXT NOT NULL, " +
                             "letto BOOLEAN DEFAULT 0, " +
-                            "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE, " +
-                            "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                            "FOREIGN KEY(sender) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(receiver) REFERENCES utenti(username) ON DELETE CASCADE ON UPDATE CASCADE, " +
                             "FOREIGN KEY(id_gruppo) REFERENCES gruppi(id) ON DELETE CASCADE" +
                             ")";
                     stmt.execute(sqlMessaggi);
