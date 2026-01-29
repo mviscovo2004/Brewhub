@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
@@ -23,10 +22,8 @@ import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
 /**
  * Test per la vista delle sfide {@link SfideView}.
- *
- * Verifica la struttura dell'interfaccia, il contenuto della lista sfide
- * e la visibilità del pulsante di creazione per i torrefattori.
- *
+ * Verifica la struttura dell'interfaccia, il contenuto della lista sfide e la
+ * visibilità del pulsante di creazione per i torrefattori.
  */
 @ExtendWith(ApplicationExtension.class)
 class SfideViewTest extends BaseUITest {
@@ -35,6 +32,12 @@ class SfideViewTest extends BaseUITest {
     private final String TEST_USERNAME = "sfidaUserTest";
     private final String CHALLENGE_TITLE = "Latte Art Contest";
 
+    /**
+     * Inizializza la vista delle sfide prima di ogni test.
+     * Crea un utente torrefattore e una sfida di test se necessario.
+     * 
+     * @param stage stage JavaFX per il test.
+     */
     @Start
     private void start(Stage stage) {
         ensureDatabaseReady();
@@ -48,6 +51,7 @@ class SfideViewTest extends BaseUITest {
                     TEST_USERNAME);
             sfidaDAO.create(s);
         } catch (SQLException e) {
+            // Ignora se la sfida o l'utente esistono già
         }
 
         SfideView view = new SfideView(testUser);
@@ -57,6 +61,13 @@ class SfideViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Verifica la struttura dell'interfaccia.
+     * Controlla la presenza del titolo della sezione e delle categorie "Sfide
+     * Attive" e "Sfide Concluse".
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testInterfaceStructure(FxRobot robot) {
         boolean titleExists = robot.lookup(".section-title").queryAll().stream()
@@ -72,11 +83,22 @@ class SfideViewTest extends BaseUITest {
         assertTrue(closedExists, "Sezione 'Sfide Concluse' non trovata");
     }
 
+    /**
+     * Verifica il contenuto della lista delle sfide.
+     * Controlla che le sfide create siano visibili nella lista.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testChallengeListContent(FxRobot robot) {
         verifyThat(CHALLENGE_TITLE, isVisible());
     }
 
+    /**
+     * Verifica la visibilità del pulsante di creazione per gli utenti Torrefattori.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testCreateButtonVisibleForTorrefattore(FxRobot robot) {
         verifyThat("+ Crea Sfida", isVisible());

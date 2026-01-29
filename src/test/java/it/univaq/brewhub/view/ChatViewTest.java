@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import it.univaq.brewhub.model.Utente;
@@ -16,27 +15,20 @@ import org.testfx.framework.junit5.Start;
 
 /**
  * Test per la vista della chat {@link ChatView}.
- *
  * Verifica la corretta visualizzazione degli elementi UI della chat,
  * inclusa la sidebar dei messaggi e il placeholder iniziale.
- *
  */
 @ExtendWith(ApplicationExtension.class)
 class ChatViewTest extends BaseUITest {
-    /** Username utilizzato per i test. */
-    private final String TEST_USER = "chatViewTestUser";
 
-    /** Utente di test per la chat. */
+    private final String TEST_USER = "chatViewTestUser";
     private Utente testUtente;
 
     /**
      * Inizializza la vista della chat prima di ogni test.
-     *
-     * Crea un utente di test e inizializza la {@link ChatView}.
-     *
      * 
-     * @param stage Stage JavaFX per il test
-     * @throws Exception se si verifica un errore durante l'inizializzazione
+     * @param stage stage JavaFX per il test.
+     * @throws Exception se si verifica un errore durante l'inizializzazione.
      */
     @Start
     private void start(Stage stage) throws Exception {
@@ -55,6 +47,11 @@ class ChatViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Verifica che la sidebar e il placeholder siano visibili.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testSidebarAndPlaceholderVisible(FxRobot robot) {
         verifyThat("Messaggi", isVisible());

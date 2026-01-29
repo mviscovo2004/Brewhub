@@ -1,7 +1,6 @@
 package it.univaq.brewhub.view.utils;
 
 import it.univaq.brewhub.model.Evento;
-
 import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.model.Utente.TipoUtente;
 import it.univaq.brewhub.view.BaseUITest;
@@ -21,8 +20,11 @@ import java.util.concurrent.TimeUnit;
 
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test per la classe {@link SearchManager}.
+ * Verifica le funzionalità di ricerca per utenti ed eventi.
+ */
 @ExtendWith(ApplicationExtension.class)
 class SearchManagerTest extends BaseUITest {
 
@@ -32,6 +34,12 @@ class SearchManagerTest extends BaseUITest {
     private Utente testUser;
     private Stage stage;
 
+    /**
+     * Inizializza l'interfaccia grafica per i test.
+     * Configura il SearchManager e i componenti UI necessari.
+     * 
+     * @param stage lo stage primario.
+     */
     @Start
     private void start(Stage stage) {
         this.stage = stage;
@@ -40,10 +48,8 @@ class SearchManagerTest extends BaseUITest {
         feedContainer = new VBox();
         scrollPane = new ScrollPane(feedContainer);
 
-        // Dummy user
         testUser = new Utente("Test", "User", "testuser_search", "password", TipoUtente.APPASSIONATO, null);
 
-        // Initialize SearchManager
         searchManager = new SearchManager(stage, testUser, feedContainer, scrollPane, () -> {
         });
 
@@ -52,11 +58,19 @@ class SearchManagerTest extends BaseUITest {
         stage.show();
     }
 
+    /**
+     * Configura i dati di test prima di ogni metodo.
+     * Crea l'utente di test.
+     */
     @BeforeEach
     void setupData() {
         testUser = createTestUser("testuser_search", TipoUtente.APPASSIONATO);
     }
 
+    /**
+     * Verifica il comportamento della ricerca quando non ci sono risultati.
+     * Controlla che venga visualizzato un messaggio appropriato.
+     */
     @Test
     void testSearch_NoResults() {
         javafx.application.Platform.runLater(() -> searchManager.performSearch("NonEsistoAssolutamente"));
@@ -71,14 +85,19 @@ class SearchManagerTest extends BaseUITest {
         verifyThat("😔 Nessun risultato trovato per \"NonEsistoAssolutamente\"", isVisible());
     }
 
+    /**
+     * Verifica la ricerca degli utenti.
+     * Controlla che un utente esistente venga trovato e visualizzato.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     * @throws Exception in caso di errore durante l'attesa asincrona.
+     */
     @Test
     void testSearch_Users(org.testfx.api.FxRobot robot) throws Exception {
-        // Create another user to find
         createTestUser("TrovamiUser", TipoUtente.APPASSIONATO);
 
         javafx.application.Platform.runLater(() -> searchManager.performSearch("Trovami"));
 
-        // Wait for async results
         org.testfx.util.WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> {
             return robot.lookup(n -> n instanceof javafx.scene.control.Label
                     && ((javafx.scene.control.Label) n).getText().contains("@TrovamiUser")).tryQuery().isPresent();
@@ -87,33 +106,23 @@ class SearchManagerTest extends BaseUITest {
         verifyThat("👥 Utenti (1)", isVisible());
     }
 
+    /**
+     * Verifica la ricerca degli eventi.
+     * Controlla che un evento esistente venga trovato e visualizzato.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     * @throws Exception in caso di errore durante l'attesa asincrona.
+     */
     @Test
     void testSearch_Events(org.testfx.api.FxRobot robot) throws Exception {
-        // Create event
         Evento e = createTestEvento("Evento Super Bello", "testuser_search");
 
         javafx.application.Platform.runLater(() -> searchManager.performSearch("Super Bello"));
 
-        // Wait for async results
         org.testfx.util.WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> {
             return robot.lookup("Evento Super Bello").tryQuery().isPresent();
         });
 
         verifyThat("📅 Eventi (1)", isVisible());
     }
-
-    // Since SfidaDAO creation helper is missing in BaseTest or not public/standard,
-    // we might skip Challenge test or need to implement createTestSfida if
-    // possible.
-    // BaseTest has sfidaDAO field. Let's check BaseTest for createTestSfida.
-    // I recall reading BaseTest and it had createTestEvento but I don't recall
-    // createTestSfida.
-    // Searching BaseTest content again...
-    /*
-     * Checking cached BaseTest content from previous turn...
-     * Lines 32: protected it.univaq.brewhub.dao.impl.SfidaDAOImpl sfidaDAO;
-     * It does NOT have createTestSfida. It has createTestUser, Torrefattore, Post,
-     * Categoria, Evento, Gruppo, Recensione.
-     * So I can manually use sfidaDAO to create one in the test if needed.
-     */
 }

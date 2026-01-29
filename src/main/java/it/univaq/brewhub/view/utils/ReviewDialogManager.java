@@ -11,8 +11,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -50,17 +51,59 @@ public class ReviewDialogManager {
         Label lblTitle = new Label("Valuta questo Post");
         lblTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3E2723;");
 
-        // Rating
-        Label lblRating = new Label("Voto: 3");
-        Slider ratingSlider = new Slider(1, 5, 3);
-        ratingSlider.setBlockIncrement(1);
-        ratingSlider.setMajorTickUnit(1);
-        ratingSlider.setMinorTickCount(0);
-        ratingSlider.setSnapToTicks(true);
-        ratingSlider.setShowTickLabels(true);
-        ratingSlider.setShowTickMarks(true);
-        ratingSlider.valueProperty().addListener((obs, oldV, newV) -> {
-            lblRating.setText("Voto: " + newV.intValue());
+        // Rating (Stars)
+        HBox starsBox = new HBox(5);
+        starsBox.setAlignment(Pos.CENTER);
+
+        final int[] currentVote = { 5 }; // Default 5
+        Label[] stars = new Label[5];
+
+        for (int i = 0; i < 5; i++) {
+            final int starVal = i + 1;
+            Label star = new Label("\u2B50");
+            star.getStyleClass().add("star-icon");
+            star.getStyleClass().add("text-score-5"); // Initial color
+
+            // Hover: Preview
+            star.setOnMouseEntered(mouseEvent -> {
+                for (int j = 0; j < 5; j++) {
+                    Label s = stars[j];
+                    s.getStyleClass().removeAll("text-score-0", "text-score-1", "text-score-2", "text-score-3",
+                            "text-score-4", "text-score-5");
+                    if (j < starVal) {
+                        s.getStyleClass().add("text-score-" + starVal);
+                        s.setOpacity(1.0);
+                    } else {
+                        s.getStyleClass().add("text-score-0");
+                        s.setOpacity(0.3);
+                    }
+                }
+            });
+
+            // Click: Select
+            star.setOnMouseClicked(mouseEvent -> {
+                currentVote[0] = starVal;
+            });
+
+            stars[i] = star;
+            starsBox.getChildren().add(star);
+        }
+
+        // Mouse Exit: Revert to selected
+        starsBox.setOnMouseExited(mouseEvent -> {
+            int vote = currentVote[0];
+            for (int j = 0; j < 5; j++) {
+                Label s = stars[j];
+                s.getStyleClass().removeAll("text-score-0", "text-score-1", "text-score-2", "text-score-3",
+                        "text-score-4", "text-score-5");
+                if (j < vote) {
+                    s.getStyleClass().add("text-score-" + vote);
+                    s.setOpacity(1.0);
+                } else {
+                    s.getStyleClass().add("text-score-0");
+                    s.setOpacity(0.3);
+                }
+            }
         });
 
         // Review Text
@@ -73,7 +116,7 @@ public class ReviewDialogManager {
         btnSubmit.getStyleClass().add("button-primary");
 
         btnSubmit.setOnAction(e -> {
-            int voto = (int) ratingSlider.getValue();
+            int voto = currentVote[0];
             String testo = txtReview.getText().trim();
 
             Recensione r = new Recensione();
@@ -82,10 +125,8 @@ public class ReviewDialogManager {
             r.setAutore(utente);
             r.setVoto(voto);
             r.setTesto(testo);
-            // r.setDataCreazione viene impostata dal DB o Server di solito,
-            // ma qui possiamo mettere manualmente se RecensioneDAO lo richiede.
-            // RecensioneDAOImpl.create usa data corrente se non specificata?
-            // Verifichiamo se serve. Per ora lasciamo null/vuota.
+            r.setDataCreazione(java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
             try {
                 postService.addReview(r);
@@ -97,7 +138,7 @@ public class ReviewDialogManager {
             }
         });
 
-        root.getChildren().addAll(lblTitle, lblRating, ratingSlider, txtReview, btnSubmit);
+        root.getChildren().addAll(lblTitle, starsBox, txtReview, btnSubmit);
 
         Scene scene = new Scene(root);
         try {

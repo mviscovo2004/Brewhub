@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -16,14 +15,18 @@ import java.sql.SQLException;
 
 /**
  * Test per la vista del profilo personale {@link ProfileView}.
- *
  * Verifica la presenza degli elementi UI principali della vista profilo.
- *
  */
 @ExtendWith(ApplicationExtension.class)
 class ProfileViewTest extends BaseUITest {
     private Utente testUtente;
 
+    /**
+     * Inizializza la vista del profilo prima di ogni test.
+     * 
+     * @param stage stage JavaFX per il test.
+     * @throws Exception se si verifica un errore durante l'inizializzazione.
+     */
     @Start
     private void start(Stage stage) throws Exception {
         ensureDatabaseReady();
@@ -33,6 +36,7 @@ class ProfileViewTest extends BaseUITest {
         try {
             utenteDAO.create(testUtente);
         } catch (SQLException e) {
+            // Ignora eccezioni se l'utente esiste
         }
         ProfileView view = new ProfileView(stage, testUtente);
         Scene scene = new Scene(view.getView(), 800, 600);
@@ -41,6 +45,13 @@ class ProfileViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Verifica la presenza degli elementi principali nella vista del profilo.
+     * Controlla che il titolo, le sezioni dati e i pulsanti di navigazione siano
+     * visibili.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testProfileViewElements(FxRobot robot) {
         verifyThat("Il mio Profilo", isVisible());

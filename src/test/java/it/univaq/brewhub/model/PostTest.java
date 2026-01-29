@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,19 +13,15 @@ import it.univaq.brewhub.model.Utente.TipoUtente;
 
 /**
  * Test unitari per la classe {@link Post}.
- *
  * Verifica i costruttori per i diversi tipi di post (TESTO, FOTO, VIDEO),
  * i metodi getter/setter, le operazioni CRUD sul database e l'integrazione
  * con {@link MediaManager} per la gestione dei file multimediali.
- *
  */
 public class PostTest extends BaseTest {
+
     /**
      * Verifica il costruttore per post di tipo TESTO.
-     *
-     * Controlla che un post testuale venga creato correttamente
-     * senza campo media.
-     *
+     * Controlla che un post testuale venga creato correttamente senza campo media.
      */
     @Test
     public void testCostruttoreTesto() {
@@ -43,10 +40,8 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica il costruttore per post di tipo FOTO.
-     *
-     * Controlla che un post con foto venga creato correttamente
-     * con il percorso del file immagine.
-     *
+     * Controlla che un post con foto venga creato correttamente con il percorso del
+     * file immagine.
      */
     @Test
     public void testCostruttoreFoto() {
@@ -65,10 +60,8 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica il costruttore per post di tipo VIDEO.
-     *
-     * Controlla che un post con video venga creato correttamente
-     * con il percorso del file video.
-     *
+     * Controlla che un post con video venga creato correttamente con il percorso
+     * del file video.
      */
     @Test
     public void testCostruttoreVideo() {
@@ -87,10 +80,8 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica i metodi setter e getter della classe Post.
-     *
-     * Testa tutti i setter e getter inclusi quelli per liste di like,
-     * commenti e data di creazione.
-     *
+     * Testa tutti i setter e getter inclusi quelli per liste di like, commenti e
+     * data di creazione.
      */
     @Test
     public void testSetterGetter() {
@@ -119,12 +110,10 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica le operazioni CRUD sul database per i post.
-     *
-     * Testa creazione ed eliminazione di un post, verificando
-     * che il conteggio dei post sia corretto.
-     *
+     * Testa creazione ed eliminazione di un post, verificando che il conteggio dei
+     * post sia corretto.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testMetodiDB() throws SQLException {
@@ -148,13 +137,11 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica la copia e il recupero di file multimediali.
-     *
      * Testa {@link MediaManager#copyMediaToFolder(java.io.File)} e
-     * {@link MediaManager#getMediaFile(String)} per assicurarsi che i file
-     * vengano copiati e recuperati correttamente.
-     *
+     * {@link MediaManager#getMediaFile(String)} per assicurarsi che i file vengano
+     * copiati e recuperati correttamente.
      * 
-     * @throws java.io.IOException se si verifica un errore I/O
+     * @throws java.io.IOException se si verifica un errore I/O.
      */
     @Test
     public void testMediaManagerCopyAndRetrieve() throws java.io.IOException {
@@ -180,12 +167,10 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica il conteggio totale dei post.
-     *
      * Controlla che il metodo {@link it.univaq.brewhub.dao.PostDAO#countAll()}
      * restituisca il numero corretto di post.
-     *
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testCountPosts() throws SQLException {
@@ -201,12 +186,10 @@ public class PostTest extends BaseTest {
 
     /**
      * Verifica il conteggio dei post creati nelle ultime 24 ore.
-     *
-     * Controlla che solo i post recenti vengano conteggiati,
-     * escludendo quelli più vecchi di 24 ore.
-     *
+     * Controlla che solo i post recenti vengano conteggiati, escludendo quelli più
+     * vecchi di 24 ore.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testCountPostsLast24h() throws SQLException {

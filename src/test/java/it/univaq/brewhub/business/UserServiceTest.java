@@ -10,10 +10,8 @@ import it.univaq.brewhub.model.Utente.TipoUtente;
 
 /**
  * Test per la classe {@link UserService}.
- * <p>
- * Verifica la logica di business per la gestione degli utenti,
- * inclusi login, registrazione e ricerca.
- * </p>
+ * Verifica la logica di business per la gestione degli utenti, inclusi login,
+ * registrazione e ricerca.
  */
 public class UserServiceTest extends BaseTest {
 
@@ -21,11 +19,9 @@ public class UserServiceTest extends BaseTest {
 
     /**
      * Configurazione iniziale per ogni test.
-     * <p>
      * Ottiene l'istanza singleton di UserService.
-     * </p>
      * 
-     * @throws SQLException se si verifica un errore durante la configurazione
+     * @throws SQLException se si verifica un errore durante la configurazione.
      */
     @BeforeEach
     public void setUp() throws SQLException {
@@ -46,9 +42,9 @@ public class UserServiceTest extends BaseTest {
     /**
      * Verifica il login con credenziali valide.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     *                           database.
      */
     @Test
     public void testLoginSuccesso() throws BusinessException, SQLException {
@@ -65,7 +61,7 @@ public class UserServiceTest extends BaseTest {
     /**
      * Verifica il login con credenziali errate.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      */
     @Test
     public void testLoginFallito() throws BusinessException {
@@ -79,9 +75,9 @@ public class UserServiceTest extends BaseTest {
     /**
      * Verifica la registrazione di un nuovo utente.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     *                           database.
      */
     @Test
     public void testRegistrazioneSuccesso() throws BusinessException, SQLException {
@@ -98,9 +94,7 @@ public class UserServiceTest extends BaseTest {
     /**
      * Verifica che la registrazione fallisca con username già esistente.
      * 
-     * @throws BusinessException se si verifica un errore di business
-     * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testRegistrazioneUsernameEsistente() throws SQLException {
@@ -121,7 +115,7 @@ public class UserServiceTest extends BaseTest {
     /**
      * Verifica la ricerca di utenti per username parziale.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testRicercaUtenti() throws SQLException {

@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -22,12 +21,9 @@ import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
 /**
  * Test dell'interfaccia utente per la HomeView.
- *
  * Verifica le funzionalità principali della pagina Home, come la creazione di
- * nuovi post
- * e la loro visualizzazione nel feed. Utilizza TestFX per simulare
- * l'interazione utente.
- *
+ * nuovi post e la loro visualizzazione nel feed.
+ * Utilizza TestFX per simulare l'interazione utente.
  */
 @ExtendWith(ApplicationExtension.class)
 class HomeViewTest extends BaseUITest {
@@ -87,11 +83,9 @@ class HomeViewTest extends BaseUITest {
 
     /**
      * Test: Creazione di un post di testo.
-     *
      * Simula il click sul bottone "Nuovo Post", l'inserimento di titolo e
-     * contenuto,
-     * e la pubblicazione. Verifica che il post sia visibile nel feed.
-     *
+     * contenuto, e la pubblicazione.
+     * Verifica che il post sia visibile nel feed.
      * 
      * @param robot Il robot TestFX per interagire con la UI.
      */

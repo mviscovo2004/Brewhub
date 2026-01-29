@@ -10,6 +10,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test unitari per {@link ChatService}.
+ * Verifica l'invio di messaggi, la marcatura come letti e il recupero delle
+ * conversazioni.
+ */
 public class ChatServiceTest extends BaseTest {
 
     private ChatService chatService;
@@ -26,10 +31,15 @@ public class ChatServiceTest extends BaseTest {
             Utente u = new Utente("Test", "User", username, "pass", Utente.TipoUtente.APPASSIONATO, null);
             utenteDAO.create(u);
         } catch (Exception e) {
-            // Ignore
+            // Ignora se l'utente esiste già
         }
     }
 
+    /**
+     * Verifica l'invio di un messaggio privato.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testSendMessage() throws BusinessException {
         // Messaggio(String sender, String receiver, String contenuto, String timestamp)
@@ -41,6 +51,11 @@ public class ChatServiceTest extends BaseTest {
         assertEquals("Hello World", chat.get(0).getContenuto());
     }
 
+    /**
+     * Verifica la marcatura di un messaggio come letto.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testMarkAsRead() throws BusinessException {
         Messaggio m = new Messaggio("userA", "userB", "Unread", "2023-10-27");
@@ -51,11 +66,16 @@ public class ChatServiceTest extends BaseTest {
         int msgId = chat.get(0).getId();
 
         chatService.markAsRead(msgId);
-        // We assume it works if no exception. Verification would involve re-fetching.
+
         List<Messaggio> updated = chatService.getPrivateMessages("userA", "userB");
         assertTrue(updated.get(0).isLetto());
     }
 
+    /**
+     * Verifica il recupero delle conversazioni attive.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testActiveConversations() throws BusinessException {
         Messaggio m = new Messaggio("userA", "userB", "Hi", "2023-10-27");

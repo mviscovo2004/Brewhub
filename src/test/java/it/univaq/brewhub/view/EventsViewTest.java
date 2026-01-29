@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,15 +13,19 @@ import javafx.stage.Stage;
 
 /**
  * Test per la vista degli eventi {@link EventsView}.
- *
- * Verifica il caricamento dell'interfaccia e la visibilità del pulsante
- * di creazione eventi in base al tipo di utente.
- *
+ * Verifica il caricamento dell'interfaccia e la visibilità del pulsante di
+ * creazione eventi in base al tipo di utente.
  */
 @ExtendWith(ApplicationExtension.class)
 public class EventsViewTest extends BaseUITest {
     private Utente testUser;
 
+    /**
+     * Inizializza la vista degli eventi prima di ogni test.
+     * 
+     * @param stage stage JavaFX per il test.
+     * @throws Exception se si verifica un errore durante l'inizializzazione.
+     */
     @Start
     public void start(Stage stage) throws Exception {
         ensureDatabaseReady();
@@ -30,6 +33,7 @@ public class EventsViewTest extends BaseUITest {
         try {
             utenteDAO.create(testUser);
         } catch (Exception e) {
+            // Ignora eccezioni se l'utente esiste
         }
         EventsView view = new EventsView(testUser);
         Scene scene = new Scene(view, 800, 600);
@@ -37,6 +41,12 @@ public class EventsViewTest extends BaseUITest {
         stage.show();
     }
 
+    /**
+     * Verifica il caricamento corretto dell'interfaccia.
+     * Controlla la presenza dei titoli e degli header delle sezioni.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     public void testInterfaceLoad(org.testfx.api.FxRobot robot) {
         int size = robot.lookup(".section-title").queryAll().size();
@@ -48,6 +58,13 @@ public class EventsViewTest extends BaseUITest {
         assertTrue(hasText, "Almeno un header deve contenere testo identificabile 'Eventi'");
     }
 
+    /**
+     * Verifica la visibilità del pulsante di creazione per utenti non autorizzati.
+     * Un utente APPASSIONATO non dovrebbe vedere il pulsante crea evento.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     * @throws Exception se si verifica un errore durante il test.
+     */
     @Test
     public void testCreateButtonVisibilityForTorrefattore(org.testfx.api.FxRobot robot) throws Exception {
         int buttons = robot.lookup("+ Crea Evento").queryAll().size();

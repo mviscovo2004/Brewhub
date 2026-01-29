@@ -19,11 +19,9 @@ import static org.testfx.matcher.control.LabeledMatchers.hasText;
 
 /**
  * Test per la vista di registrazione {@link RegisterView}.
- *
  * Verifica i casi di registrazione fallita (campi vuoti, password corta,
  * username esistente)
  * e i casi di successo per utenti normali e torrefattori.
- *
  */
 @ExtendWith(ApplicationExtension.class)
 class RegisterViewTest extends BaseUITest {
@@ -48,6 +46,11 @@ class RegisterViewTest extends BaseUITest {
         }
     }
 
+    /**
+     * Inizializza la vista di registrazione prima di ogni test.
+     * 
+     * @param stage stage JavaFX per il test.
+     */
     @Start
     private void start(Stage stage) {
         ensureDatabaseReady();
@@ -58,15 +61,24 @@ class RegisterViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Pulisce i dati del database dopo ogni test.
+     */
     @AfterEach
     void cleanup() {
         try {
             utenteDAO.delete(TEST_USER);
             utenteDAO.delete(TEST_TORREFATTORE);
         } catch (SQLException e) {
+            // Ignora errori di pulizia
         }
     }
 
+    /**
+     * Verifica il comportamento quando si tenta la registrazione con campi vuoti.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testRegistrazioneFallitaCampiVuoti(FxRobot robot) {
         robot.clickOn("#btnRegistrati");
@@ -74,6 +86,12 @@ class RegisterViewTest extends BaseUITest {
         verifyThat("#lblErrore", hasText("⚠ Completa tutti i campi standard e carica una foto"));
     }
 
+    /**
+     * Verifica il comportamento quando si tenta la registrazione con una password
+     * troppo corta.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testRegistrazionePasswordCorta(FxRobot robot) {
         robot.clickOn("#fldNome").write("NomeTest");
@@ -86,6 +104,11 @@ class RegisterViewTest extends BaseUITest {
         verifyThat("#lblErrore", hasText("✗ Password troppo corta (minimo 8 caratteri)"));
     }
 
+    /**
+     * Verifica la registrazione con successo di un utente standard.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testRegistrazioneSuccesso(FxRobot robot) {
         robot.clickOn("#fldNome").write("NomeTest");
@@ -106,12 +129,18 @@ class RegisterViewTest extends BaseUITest {
         }
     }
 
+    /**
+     * Verifica che la registrazione fallisca se l'username è già in uso.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testRegistrazioneUsernameEsistente(FxRobot robot) {
         Utente u = new Utente("N", "C", TEST_USER, "pass", TipoUtente.CURIOSO, "img");
         try {
             utenteDAO.create(u);
         } catch (SQLException e) {
+            // Ignora se esiste
         }
         robot.clickOn("#fldNome").write("NuovoNome");
         robot.clickOn("#fldCognome").write("NuovoCognome");
@@ -123,6 +152,11 @@ class RegisterViewTest extends BaseUITest {
         verifyThat("#lblErrore", hasText("✗ Username già in uso"));
     }
 
+    /**
+     * Verifica la registrazione di un utente "Torrefattore" con i campi aggiuntivi.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testRegistrazioneTorrefattore(FxRobot robot) {
         robot.clickOn("#cbxTipo");
@@ -146,6 +180,11 @@ class RegisterViewTest extends BaseUITest {
         }
     }
 
+    /**
+     * Verifica la navigazione verso la schermata di login.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testNavigazioneLogin(FxRobot robot) {
         robot.clickOn("Hai già un account? Accedi");

@@ -11,6 +11,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test unitari per {@link NotificaService}.
+ * Verifica la creazione, il recupero, la marcatura come letta e l'eliminazione
+ * delle notifiche.
+ */
 public class NotificaServiceTest extends BaseTest {
 
     private NotificaService notificaService;
@@ -32,6 +37,11 @@ public class NotificaServiceTest extends BaseTest {
         }
     }
 
+    /**
+     * Verifica la creazione e il recupero delle notifiche utente.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testCreateAndGetNotifications() throws BusinessException {
         Utente u = new Utente();
@@ -45,6 +55,11 @@ public class NotificaServiceTest extends BaseTest {
         assertEquals("Test Notification", list.get(0).getMessaggio());
     }
 
+    /**
+     * Verifica il conteggio delle notifiche non lette.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testGetUnreadCount() throws BusinessException {
         Utente u = new Utente();
@@ -57,6 +72,11 @@ public class NotificaServiceTest extends BaseTest {
         assertEquals(2, count);
     }
 
+    /**
+     * Verifica la marcatura di una notifica come letta.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testMarkAsRead() throws BusinessException {
         Utente u = new Utente();
@@ -64,7 +84,7 @@ public class NotificaServiceTest extends BaseTest {
         Notifica n = new Notifica(u, "To Read");
         notificaService.createNotification(n);
 
-        // Need to fetch to get ID
+        // Bisogna recuperare per ottenere l'ID generato
         List<Notifica> list = notificaService.getUserNotifications("userA");
         if (list.isEmpty())
             fail("Notification not created");
@@ -75,6 +95,11 @@ public class NotificaServiceTest extends BaseTest {
         assertEquals(0, notificaService.getUnreadCount("userA"));
     }
 
+    /**
+     * Verifica l'eliminazione di una notifica.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testDeleteNotification() throws BusinessException {
         Utente u = new Utente();
@@ -90,6 +115,11 @@ public class NotificaServiceTest extends BaseTest {
         assertTrue(list.isEmpty());
     }
 
+    /**
+     * Verifica l'eliminazione di tutte le notifiche di un utente.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testDeleteAllNotifications() throws BusinessException {
         Utente u = new Utente();
@@ -103,6 +133,9 @@ public class NotificaServiceTest extends BaseTest {
         assertTrue(list.isEmpty());
     }
 
+    /**
+     * Verifica la gestione delle notifiche non valide.
+     */
     @Test
     public void testCreateNotificationInvalid() {
         assertThrows(BusinessException.class, () -> {

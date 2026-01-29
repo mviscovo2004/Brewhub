@@ -23,6 +23,11 @@ import java.util.concurrent.TimeUnit;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
+/**
+ * Test per la classe {@link NotificationManager}.
+ * Verifica la gestione delle notifiche, inclusa la ricezione e la
+ * visualizzazione nel menu a tendina.
+ */
 @ExtendWith(ApplicationExtension.class)
 class NotificationManagerTest extends BaseUITest {
 
@@ -30,6 +35,11 @@ class NotificationManagerTest extends BaseUITest {
     private Button btnNotifiche;
     private Utente testUser;
 
+    /**
+     * Inizializza l'ambiente di test JavaFX con un NotificationManager.
+     * 
+     * @param stage stage JavaFX per il test.
+     */
     @Start
     private void start(Stage stage) {
         ensureDatabaseReady();
@@ -37,10 +47,8 @@ class NotificationManagerTest extends BaseUITest {
         btnNotifiche = new Button("🔔");
         btnNotifiche.setId("btnNotifiche");
 
-        // Dummy user
         testUser = new Utente("Test", "User", "testuser_notif", "password", TipoUtente.APPASSIONATO, null);
 
-        // Notification Manager
         notificationManager = new NotificationManager(stage, testUser, btnNotifiche);
         notificationManager.initialize();
 
@@ -50,11 +58,17 @@ class NotificationManagerTest extends BaseUITest {
         stage.show();
     }
 
+    /**
+     * Configura i dati preliminari per i test.
+     */
     @BeforeEach
     void setupData() {
         testUser = createTestUser("testuser_notif", TipoUtente.APPASSIONATO);
     }
 
+    /**
+     * Ferma il NotificationManager dopo ogni test.
+     */
     @AfterEach
     void tearDownManager() {
         if (notificationManager != null) {
@@ -62,6 +76,11 @@ class NotificationManagerTest extends BaseUITest {
         }
     }
 
+    /**
+     * Verifica il comportamento quando non ci sono notifiche recenti.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testNoNotifications(org.testfx.api.FxRobot robot) {
         // Wait for initial poll
@@ -83,18 +102,18 @@ class NotificationManagerTest extends BaseUITest {
         verifyThat("Nessuna notifica recente", isVisible());
     }
 
+    /**
+     * Verifica la ricezione e visualizzazione di una notifica.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     * @throws SQLException se si verifica un errore durante la creazione della
+     *                      notifica.
+     */
     @Test
     void testReceiveNotification(org.testfx.api.FxRobot robot) throws SQLException {
         // Create a notification in DB
         Notifica n = new Notifica(testUser, "Benvenuto su BrewHub!");
         notificaDAO.create(n);
-
-        // Wait for poll (poll interval is 30s in manager, so verifying badge might be
-        // slow test)
-        // We can force refresh or wait? 30s is too long for unit test.
-        // We can manually trigger showNotifications by clicking button, which calls
-        // logic directly.
-        // Badge update runs on schedule, but list update runs on click.
 
         robot.clickOn("#btnNotifiche");
         WaitForAsyncUtils.waitForFxEvents();

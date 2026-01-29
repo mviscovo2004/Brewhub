@@ -2,7 +2,16 @@ package it.univaq.brewhub.view;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test per la classe di gestione del tema {@link ThemeManager}.
+ * Verifica la correttezza delle costanti di colore e degli stili CSS generati.
+ */
 class ThemeManagerTest {
+
+    /**
+     * Verifica che le costanti di colore non siano nulle o vuote.
+     */
     @Test
     void testColors() {
         assertNotNull(ThemeManager.Colors.DARK_COFFEE);
@@ -12,6 +21,10 @@ class ThemeManagerTest {
         assertNotNull(ThemeManager.Colors.CREAM);
         assertNotNull(ThemeManager.Colors.WHITE_CREAM);
     }
+
+    /**
+     * Verifica che gli stili CSS generati contengano le proprietà corrette.
+     */
     @Test
     void testStyles() {
         String btnStyle = ThemeManager.Styles.buttonPrimary();
@@ -25,6 +38,10 @@ class ThemeManagerTest {
         assertNotNull(headerStyle);
         assertTrue(headerStyle.contains("-fx-effect"));
     }
+
+    /**
+     * Verifica la definizione globale del tema (font).
+     */
     @Test
     void testThemeColors() {
         String font = ThemeManager.getCoffeeThemeColors();

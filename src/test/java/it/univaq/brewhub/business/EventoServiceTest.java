@@ -11,6 +11,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test unitari per {@link EventoService}.
+ * Verifica la creazione degli eventi e la gestione dei partecipanti.
+ */
 public class EventoServiceTest extends BaseTest {
 
     private EventoService eventoService;
@@ -27,10 +31,15 @@ public class EventoServiceTest extends BaseTest {
             Utente u = new Utente("Test", "User", username, "pass", Utente.TipoUtente.APPASSIONATO, null);
             utenteDAO.create(u);
         } catch (Exception e) {
-            // Ignore if exists
+            // Ignora se l'utente esiste già
         }
     }
 
+    /**
+     * Verifica la creazione e il recupero degli eventi.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testCreateAndGetEvents() throws BusinessException {
         Evento e = new Evento();
@@ -44,11 +53,15 @@ public class EventoServiceTest extends BaseTest {
 
         List<Evento> list = eventoService.getAllEvents();
         assertFalse(list.isEmpty());
-        // Verify via stream or ID if possible, but first element check is rudimentary
-        // but ok here
+        // Verifica che il primo evento abbia il nome corretto
         assertEquals("BeerFest", list.get(0).getNome());
     }
 
+    /**
+     * Verifica la gestione dei partecipanti (aggiunta, verifica, rimozione).
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testPartecipazione() throws BusinessException {
         Evento e = new Evento();

@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,18 +9,14 @@ import it.univaq.brewhub.model.Utente.TipoUtente;
 
 /**
  * Test unitari e di integrazione per la classe {@link Torrefattore}.
- *
- * Verifica i costruttori, i getter/setter specifici di Torrefattore
- * e le operazioni CRUD tramite il DAO.
- *
+ * Verifica i costruttori, i getter/setter specifici di Torrefattore e le
+ * operazioni CRUD tramite il DAO.
  */
 public class TorrefattoreTest extends BaseTest {
 
     /**
      * Verifica il costruttore vuoto di Torrefattore.
-     *
      * Il tipo utente deve essere automaticamente impostato a TORREFATTORE.
-     *
      */
     @Test
     public void testCostruttoreVuoto() {
@@ -30,9 +27,7 @@ public class TorrefattoreTest extends BaseTest {
 
     /**
      * Verifica il costruttore completo di Torrefattore.
-     *
      * Tutti i campi devono essere correttamente inizializzati.
-     *
      */
     @Test
     public void testCostruttoreCompleto() {
@@ -100,7 +95,7 @@ public class TorrefattoreTest extends BaseTest {
     /**
      * Verifica la creazione di un Torrefattore nel database.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testCreazioneTorrefattore() throws SQLException {
@@ -134,7 +129,7 @@ public class TorrefattoreTest extends BaseTest {
     /**
      * Verifica l'aggiornamento dei dati di un Torrefattore.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testAggiornamentoTorrefattore() throws SQLException {
@@ -158,7 +153,7 @@ public class TorrefattoreTest extends BaseTest {
     /**
      * Verifica l'eliminazione di un Torrefattore dal database.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testEliminazioneTorrefattore() throws SQLException {

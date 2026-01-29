@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -16,10 +15,8 @@ import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
 /**
  * Test per la vista del profilo di un altro utente {@link UserProfileView}.
- *
  * Verifica la visualizzazione del profilo di un utente target da parte di un
  * utente viewer.
- *
  */
 @ExtendWith(ApplicationExtension.class)
 class UserProfileViewTest extends BaseUITest {
@@ -28,6 +25,12 @@ class UserProfileViewTest extends BaseUITest {
     private Utente viewer;
     private Utente target;
 
+    /**
+     * Inizializza la vista del profilo utente prima di ogni test.
+     * Crea un utente viewer e un utente target se necessario.
+     * 
+     * @param stage stage JavaFX per il test.
+     */
     @Start
     private void start(Stage stage) {
         ensureDatabaseReady();
@@ -38,10 +41,12 @@ class UserProfileViewTest extends BaseUITest {
         try {
             utenteDAO.create(viewer);
         } catch (SQLException e) {
+            // Ignora se esiste
         }
         try {
             utenteDAO.create(target);
         } catch (SQLException e) {
+            // Ignora se esiste
         }
         UserProfileView view = new UserProfileView(stage, viewer, target);
         Scene scene = new Scene(view.getView(), 800, 600);
@@ -50,6 +55,14 @@ class UserProfileViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Verifica la presenza degli elementi principali nella vista del profilo
+     * utente.
+     * Controlla che le informazioni dell'utente target e le statistiche siano
+     * mostrate.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testUserProfileElements(FxRobot robot) {
         verifyThat(TARGET_USER, isVisible());

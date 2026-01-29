@@ -9,10 +9,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test unitari per la classe {@link DatabaseManager}.
- *
- * Verifica la configurazione del database di test e l'inizializzazione
- * dello schema con creazione delle tabelle.
- *
+ * Verifica la configurazione del database di test e l'inizializzazione dello
+ * schema con creazione delle tabelle.
  */
 public class DatabaseManagerTest {
     @TempDir
@@ -51,6 +49,9 @@ public class DatabaseManagerTest {
         }
     }
 
+    /**
+     * Verifica la configurazione del database di test.
+     */
     @Test
     public void testConfigureTestDatabase() {
         String testDbName = "temp_test_db_config.db";
@@ -65,14 +66,19 @@ public class DatabaseManagerTest {
         }
     }
 
+    /**
+     * Verifica l'inizializzazione del database (creazione tabelle).
+     * 
+     * @throws SQLException se si verifica un errore durante l'inizializzazione o
+     *                      l'accesso al database.
+     */
     @Test
     public void testInit() throws SQLException {
         // Usa un db dedicato per non interferire
         String testDbName = "temp_test_db_init.db";
         File dbFile = new File(tempDir, testDbName);
         DatabaseManager.configureTestDatabase(dbFile.getAbsolutePath());
-        // Prima dell'init, le tabelle non dovrebbero esistere (o il file nemmeno c'è
-        // ancora)
+        // Prima dell'init, le tabelle non dovrebbero esistere
         // Init crea tutto
         try {
             DatabaseManager.init();

@@ -1,6 +1,5 @@
 package it.univaq.brewhub.utility;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.IOException;
@@ -11,14 +10,15 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test unitari per la classe {@link MediaManager}.
- *
  * Verifica l'inizializzazione della cartella media, la copia di file
  * multimediali e il recupero dei file.
- *
  */
 public class MediaManagerTest {
     private static final String MEDIA_FOLDER_NAME = "media";
 
+    /**
+     * Verifica che la cartella dei media venga creata correttamente.
+     */
     @Test
     public void testInitMediaFolder() {
         MediaManager.initMediaFolder();
@@ -26,6 +26,12 @@ public class MediaManagerTest {
         assertTrue(mediaDir.exists() && mediaDir.isDirectory());
     }
 
+    /**
+     * Verifica la copia di un file multimediale nella cartella dedicata.
+     * 
+     * @param tempDir directory temporanea fornita da JUnit.
+     * @throws IOException se si verifica un errore durante le operazioni I/O.
+     */
     @Test
     public void testCopyMediaToFolder(@TempDir Path tempDir) throws IOException {
         Path sourcePath = tempDir.resolve("test_image.png");
@@ -41,6 +47,9 @@ public class MediaManagerTest {
         destFile.delete();
     }
 
+    /**
+     * Verifica il recupero di un file multimediale esistente.
+     */
     @Test
     public void testGetMediaFile() {
         String filename = "test_retrieve_" + System.currentTimeMillis() + ".txt";

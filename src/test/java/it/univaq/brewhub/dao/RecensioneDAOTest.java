@@ -13,11 +13,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test unitari per la classe
  * {@link it.univaq.brewhub.dao.impl.RecensioneDAOImpl}.
- * <p>
  * Verifica le operazioni CRUD e le funzionalità specifiche come il calcolo
  * della media
  * e la verifica delle recensioni utente.
- * </p>
  */
 public class RecensioneDAOTest extends BaseTest {
 

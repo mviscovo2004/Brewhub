@@ -12,10 +12,8 @@ import java.util.List;
 
 /**
  * Test per la classe {@link PostService}.
- * <p>
- * Verifica la logica di business per la gestione dei post,
- * inclusi creazione, recupero feed e post popolari.
- * </p>
+ * Verifica la logica di business per la gestione dei post, inclusi creazione,
+ * recupero feed e post popolari.
  */
 public class PostServiceTest extends BaseTest {
 
@@ -24,11 +22,9 @@ public class PostServiceTest extends BaseTest {
 
     /**
      * Configurazione iniziale per ogni test.
-     * <p>
      * Ottiene l'istanza singleton di PostService e crea un utente di test.
-     * </p>
      * 
-     * @throws SQLException se si verifica un errore durante la configurazione
+     * @throws SQLException se si verifica un errore durante la configurazione.
      */
     @BeforeEach
     public void setUp() throws SQLException {
@@ -51,9 +47,9 @@ public class PostServiceTest extends BaseTest {
     /**
      * Verifica la creazione di un post valido.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     *                           database.
      */
     @Test
     public void testCreazionePostSuccesso() throws BusinessException, SQLException {
@@ -116,9 +112,9 @@ public class PostServiceTest extends BaseTest {
     /**
      * Verifica il recupero di tutti i post (feed principale).
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     *                           database.
      */
     @Test
     public void testRecuperoAllPosts() throws BusinessException, SQLException {
@@ -149,9 +145,9 @@ public class PostServiceTest extends BaseTest {
     /**
      * Verifica il recupero dei post popolari.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      * @throws SQLException      se si verifica un errore durante l'accesso al
-     *                           database
+     *                           database.
      */
     @Test
     public void testRecuperoPostPopolari() throws BusinessException, SQLException {
@@ -178,8 +174,8 @@ public class PostServiceTest extends BaseTest {
      */
     @Test
     public void testRecuperoPostPopolariGestioneErrori() {
-        // Questo test verifica che il metodo non lanci eccezioni
-        // anche in caso di errori del database
+        // Questo test verifica che il metodo non lanci eccezioni anche in caso di
+        // errori del database
         List<Post> popolari = postService.getPopularPosts();
 
         assertNotNull(popolari);
@@ -188,7 +184,7 @@ public class PostServiceTest extends BaseTest {
     /**
      * Verifica la creazione di post con diversi tipi.
      * 
-     * @throws BusinessException se si verifica un errore di business
+     * @throws BusinessException se si verifica un errore di business.
      */
     @Test
     public void testCreazioneDiversiTipiPost() throws BusinessException {
@@ -220,8 +216,8 @@ public class PostServiceTest extends BaseTest {
      */
     @Test
     public void testGestioneErroriRecuperoFeed() {
-        // Il metodo dovrebbe restituire una lista vuota in caso di errore
-        // invece di lanciare un'eccezione
+        // Il metodo dovrebbe restituire una lista vuota in caso di errore invece di
+        // lanciare un'eccezione
         List<Post> posts = postService.getAllPosts();
 
         assertNotNull(posts);

@@ -11,6 +11,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test unitari per {@link SfidaService}.
+ * Verifica la creazione delle sfide e la gestione dei partecipanti.
+ */
 public class SfidaServiceTest extends BaseTest {
 
     private SfidaService sfidaService;
@@ -27,10 +31,15 @@ public class SfidaServiceTest extends BaseTest {
             Utente u = new Utente("Test", "User", username, "pass", Utente.TipoUtente.APPASSIONATO, null);
             utenteDAO.create(u);
         } catch (Exception e) {
-            // Ignore if exists
+            // Ignora se l'utente esiste già
         }
     }
 
+    /**
+     * Verifica la creazione e il recupero delle sfide.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testCreateAndGetChallenges() throws BusinessException {
         Sfida s = new Sfida();
@@ -47,6 +56,11 @@ public class SfidaServiceTest extends BaseTest {
         assertEquals("Challenge1", list.get(0).getTitolo());
     }
 
+    /**
+     * Verifica la gestione dei partecipanti alle sfide.
+     * 
+     * @throws BusinessException se si verifica un errore durante l'operazione.
+     */
     @Test
     public void testPartecipazione() throws BusinessException {
         Sfida s = new Sfida();

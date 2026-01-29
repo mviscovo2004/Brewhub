@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -14,13 +13,17 @@ import static org.testfx.matcher.control.LabeledMatchers.hasText;
 
 /**
  * Test per la vista di login {@link LoginView}.
- *
- * Verifica i casi di login fallito (campi vuoti, credenziali errate)
- * e il funzionamento del componente password toggler.
- *
+ * Verifica i casi di login fallito (campi vuoti, credenziali errate) e il
+ * funzionamento del componente password toggler.
  */
 @ExtendWith(ApplicationExtension.class)
 class LoginViewTest extends BaseUITest {
+
+    /**
+     * Inizializza la vista di login prima di ogni test.
+     * 
+     * @param stage stage JavaFX per il test.
+     */
     @Start
     private void start(Stage stage) {
         ensureDatabaseReady();
@@ -31,6 +34,11 @@ class LoginViewTest extends BaseUITest {
         stage.toFront();
     }
 
+    /**
+     * Verifica il comportamento quando si tenta il login con campi vuoti.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testLoginFallitoCampiVuoti(FxRobot robot) {
         robot.clickOn("#loginButton");
@@ -38,6 +46,11 @@ class LoginViewTest extends BaseUITest {
         verifyThat("#errorLabel", hasText("⚠ Inserisci username e password"));
     }
 
+    /**
+     * Verifica il comportamento quando si tenta il login con credenziali errate.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testLoginFallitoCredenzialiErrate(FxRobot robot) {
         robot.clickOn("#usernameField").write("utenteInesistenteTest");
@@ -47,6 +60,11 @@ class LoginViewTest extends BaseUITest {
         verifyThat("#errorLabel", hasText("✗ Credenziali non valide"));
     }
 
+    /**
+     * Verifica il funzionamento del componente per mostrare/nascondere la password.
+     * 
+     * @param robot l'istanza di FxRobot per interagire con la UI.
+     */
     @Test
     void testPasswordTogglerComponent(FxRobot robot) {
         robot.clickOn(".password-field").write("secretLogin");

@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +24,7 @@ public class CommentoTest extends BaseTest {
         String contenuto = "Bel post!";
         LocalDateTime now = LocalDateTime.now();
         Commento c = new Commento(u, p, contenuto, now);
+
         assertEquals(u, c.getUtente());
         assertEquals(p, c.getPost());
         assertEquals(contenuto, c.getContenuto());
@@ -31,7 +33,8 @@ public class CommentoTest extends BaseTest {
 
     /**
      * Verifica le operazioni CRUD sul database per i Commenti.
-     * @throws SQLException Se si verifica un errore SQL.
+     * 
+     * @throws SQLException se si verifica un errore SQL.
      */
     @Test
     public void testMetodiDB() throws SQLException {
@@ -39,7 +42,8 @@ public class CommentoTest extends BaseTest {
         try {
             utenteDAO.create(autore);
         } catch (SQLException e) {
-        } 
+        }
+
         Post p = new Post();
         p.setAutore(autore);
         p.setTitolo("Post per Commenti");
@@ -47,21 +51,24 @@ public class CommentoTest extends BaseTest {
         p.setTipo(TipoPost.TESTO);
         postDAO.create(p);
         assertTrue(p.getId() > 0, "Il post dovrebbe avere un ID dopo il salvataggio");
+
         Commento c = new Commento();
         c.setPost(p);
-        c.setUtente(autore); 
+        c.setUtente(autore);
         c.setContenuto("Primo Commento");
-        c.setDataCreazione(LocalDateTime.now()); 
+        c.setDataCreazione(LocalDateTime.now());
         commentoDAO.create(c);
         assertTrue(c.getId() > 0, "Il commento dovrebbe avere un ID dopo il salvataggio");
+
         List<Commento> commenti = commentoDAO.findByPost(p);
         assertFalse(commenti.isEmpty());
-        boolean found = commenti.stream().anyMatch(comm -> comm.getContenuto().equals("Primo Commento"));
-        assertTrue(found);
+        assertTrue(commenti.stream().anyMatch(comm -> comm.getContenuto().equals("Primo Commento")));
+
         commentoDAO.delete(c.getId());
         commenti = commentoDAO.findByPost(p);
-        boolean foundAfterDelete = commenti.stream().anyMatch(comm -> comm.getId() == c.getId());
-        assertFalse(foundAfterDelete, "Il commento non dovrebbe essere presente dopo l'eliminazione");
+        assertFalse(commenti.stream().anyMatch(comm -> comm.getId() == c.getId()),
+                "Il commento non dovrebbe essere presente dopo l'eliminazione");
+
         postDAO.delete(p.getId());
         utenteDAO.delete(autore.getUsername());
     }

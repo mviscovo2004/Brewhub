@@ -9,21 +9,15 @@ import it.univaq.brewhub.model.Utente.TipoUtente;
 
 /**
  * Test unitari per la classe {@link Utente}.
- *
  * Verifica i costruttori, i metodi getter/setter, le operazioni CRUD sul
  * database,
- * l'integrazione con {@link it.univaq.brewhub.business.SessionManager} e le
- * funzionalità
- * specifiche come la ricerca e il ranking degli utenti più attivi.
- *
+ * l'integrazione con {@link it.univaq.brewhub.business.SessionManager} e il
+ * ranking.
  */
 public class UtenteTest extends BaseTest {
+
     /**
      * Verifica il costruttore per utenti ospiti.
-     *
-     * Controlla che un utente ospite venga creato correttamente con tipo OSPITE
-     * e senza password.
-     *
      */
     @Test
     public void testCostruttoreOspite() {
@@ -36,9 +30,6 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica il costruttore completo con tutti i parametri.
-     *
-     * Controlla che tutti i campi vengano inizializzati correttamente.
-     *
      */
     @Test
     public void testCostruttoreCompleto() {
@@ -59,10 +50,6 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica i metodi setter e getter della classe Utente.
-     *
-     * Testa tutti i setter e getter per assicurarsi che i valori
-     * vengano impostati e recuperati correttamente.
-     *
      */
     @Test
     public void testSetterGetter() {
@@ -85,12 +72,8 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica le operazioni CRUD sul database.
-     *
-     * Testa creazione, recupero, login, aggiornamento ed eliminazione
-     * di un utente nel database.
-     *
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testMetodiDB() throws SQLException {
@@ -113,12 +96,8 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica che la ricerca escluda gli utenti eliminati.
-     *
-     * Controlla che gli utenti eliminati (soft delete) non compaiano
-     * nei risultati di ricerca.
-     *
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testSearchExcludesDeleted() throws SQLException {
@@ -136,9 +115,6 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica il pattern Singleton di SessionManager.
-     *
-     * Controlla che getInstance() restituisca sempre la stessa istanza.
-     *
      */
     @Test
     public void testSessionManagerSingleton() {
@@ -149,10 +125,6 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica le funzionalità di login e logout di SessionManager.
-     *
-     * Testa il ciclo completo di login e logout, verificando lo stato
-     * della sessione e l'utente corrente.
-     *
      */
     @Test
     public void testSessionManagerLoginLogout() {
@@ -171,12 +143,8 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica il workflow completo per un Torrefattore.
-     *
-     * Testa creazione, recupero e verifica dei dati specifici
-     * di un utente di tipo Torrefattore.
-     *
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testTorrefattoreWorkflow() throws SQLException {
@@ -195,12 +163,8 @@ public class UtenteTest extends BaseTest {
 
     /**
      * Verifica il ranking degli utenti più attivi.
-     *
-     * Controlla che gli utenti con più post vengano classificati
-     * prima di quelli con meno post.
-     *
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testFindTopActiveUsers() throws SQLException {

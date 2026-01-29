@@ -10,7 +10,6 @@ import it.univaq.brewhub.model.Utente.TipoUtente;
 
 /**
  * Test unitari e di integrazione per la classe {@link Recensione}.
- *
  * Verifica i costruttori, i getter/setter e le operazioni CRUD tramite il DAO.
  *
  */
@@ -115,7 +114,7 @@ public class RecensioneTest extends BaseTest {
     /**
      * Verifica la creazione di una Recensione nel database.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testCreazioneRecensione() throws SQLException {
@@ -138,7 +137,7 @@ public class RecensioneTest extends BaseTest {
     /**
      * Verifica il recupero di recensioni per un post specifico.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testRecuperoRecensioniPerPost() throws SQLException {
@@ -162,7 +161,7 @@ public class RecensioneTest extends BaseTest {
     /**
      * Verifica l'eliminazione di una Recensione dal database.
      * 
-     * @throws SQLException se si verifica un errore durante l'accesso al database
+     * @throws SQLException se si verifica un errore durante l'accesso al database.
      */
     @Test
     public void testEliminazioneRecensione() throws SQLException {

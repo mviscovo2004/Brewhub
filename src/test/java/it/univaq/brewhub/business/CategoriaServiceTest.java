@@ -10,6 +10,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test unitari per {@link CategoriaService}.
+ * Verifica le operazioni CRUD e la gestione delle eccezioni per le categorie.
+ */
 public class CategoriaServiceTest extends BaseTest {
 
     private CategoriaService categoriaService;
@@ -19,6 +23,11 @@ public class CategoriaServiceTest extends BaseTest {
         categoriaService = CategoriaService.getInstance();
     }
 
+    /**
+     * Verifica la creazione e il recupero delle categorie.
+     * 
+     * @throws BusinessException se si verifica un errore di business.
+     */
     @Test
     public void testCreateAndGetCategories() throws BusinessException {
         Categoria c = new Categoria("TestCategory", "Icon");
@@ -29,6 +38,11 @@ public class CategoriaServiceTest extends BaseTest {
         assertTrue(found);
     }
 
+    /**
+     * Verifica l'aggiornamento di una categoria.
+     * 
+     * @throws BusinessException se si verifica un errore di business.
+     */
     @Test
     public void testUpdateCategory() throws BusinessException {
         Categoria c = new Categoria("ToUpdate", "Icon");
@@ -45,6 +59,11 @@ public class CategoriaServiceTest extends BaseTest {
         assertEquals("UpdatedName", updated.getNome());
     }
 
+    /**
+     * Verifica l'eliminazione di una categoria.
+     * 
+     * @throws BusinessException se si verifica un errore di business.
+     */
     @Test
     public void testDeleteCategory() throws BusinessException {
         Categoria c = new Categoria("ToDelete", "Icon");
@@ -60,6 +79,11 @@ public class CategoriaServiceTest extends BaseTest {
         assertNull(deleted);
     }
 
+    /**
+     * Verifica che non sia possibile creare categorie duplicate.
+     * 
+     * @throws BusinessException se si verifica un errore di business.
+     */
     @Test
     public void testCreateDuplicateCategory() throws BusinessException {
         Categoria c1 = new Categoria("UniqueCat", "Icon");
@@ -71,6 +95,9 @@ public class CategoriaServiceTest extends BaseTest {
         });
     }
 
+    /**
+     * Verifica la gestione di categorie non valide (null o con nome null).
+     */
     @Test
     public void testInvalidCategory() {
         assertThrows(BusinessException.class, () -> categoriaService.createCategory(null));
