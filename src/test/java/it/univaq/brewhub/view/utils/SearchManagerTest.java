@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view.utils;
 
-import it.univaq.brewhub.model.Evento;
 import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.model.Utente.TipoUtente;
 import it.univaq.brewhub.view.BaseUITest;
@@ -32,7 +31,6 @@ class SearchManagerTest extends BaseUITest {
     private VBox feedContainer;
     private ScrollPane scrollPane;
     private Utente testUser;
-    private Stage stage;
 
     /**
      * Inizializza l'interfaccia grafica per i test.
@@ -42,7 +40,7 @@ class SearchManagerTest extends BaseUITest {
      */
     @Start
     private void start(Stage stage) {
-        this.stage = stage;
+
         ensureDatabaseReady();
 
         feedContainer = new VBox();
@@ -115,7 +113,7 @@ class SearchManagerTest extends BaseUITest {
      */
     @Test
     void testSearch_Events(org.testfx.api.FxRobot robot) throws Exception {
-        Evento e = createTestEvento("Evento Super Bello", "testuser_search");
+        createTestEvento("Evento Super Bello", "testuser_search");
 
         javafx.application.Platform.runLater(() -> searchManager.performSearch("Super Bello"));
 

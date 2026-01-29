@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: it.univaq.brewhub.CommentoTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.048 s - in it.univaq.brewhub.CommentoTest
