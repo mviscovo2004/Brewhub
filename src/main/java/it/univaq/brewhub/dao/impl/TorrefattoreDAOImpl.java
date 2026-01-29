@@ -11,17 +11,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Implementazione DAO specifica per i Torrefattori.
+ * Implementazione DAO specifica per i {@link Torrefattore}.
  * <p>
- * Estende le funzionalità di base dell'utente gestendo i dati aggiuntivi
- * aziendali
- * nella tabella 'torrefattori'. Utilizza la composizione con {@link UtenteDAO}.
+ * Estende le funzionalità di base dell'utente utilizzando la composizione con
+ * {@link UtenteDAO}
+ * e gestisce i dati aziendali specifici nella tabella 'torrefattori'.
  * </p>
  */
 public class TorrefattoreDAOImpl implements TorrefattoreDAO {
 
     private final UtenteDAO utenteDAO = new UtenteDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Crea prima l'utente base nella tabella 'utenti' e poi inserisce i dettagli
+     * aziendali
+     * nella tabella 'torrefattori'. In caso di errore nel secondo passaggio, esegue
+     * un rollback manuale.
+     * </p>
+     */
     @Override
     public void create(Torrefattore t) throws SQLException {
         // 1. Crea l'utente base
@@ -46,12 +55,15 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
             try {
                 utenteDAO.delete(t.getUsername());
             } catch (SQLException ex) {
-                // Log o ignora, il danno è già fatto
+                // Log o ignora, il danno principale è l'eccezione originale
             }
             throw e;
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Torrefattore findByUsername(String username) throws SQLException {
         // Query in JOIN per recuperare tutti i dati (base + estesi)
@@ -74,6 +86,9 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
         return null;
     }
 
+    /**
+     * Mappa il ResultSet in un oggetto Torrefattore.
+     */
     private Torrefattore mapResultSetToTorrefattore(ResultSet rs) throws SQLException {
         Torrefattore t = new Torrefattore();
         // Mappatura campi base
@@ -93,6 +108,9 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
         return t;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void update(Torrefattore t) throws SQLException {
         // Aggiorna tabella base
@@ -113,6 +131,9 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(String username) throws SQLException {
         // Elimina i dettagli specifici
@@ -122,8 +143,7 @@ public class TorrefattoreDAOImpl implements TorrefattoreDAO {
             pstmt.setString(1, username);
             pstmt.executeUpdate();
         }
-        // Elimina anche l'utente base per garantire consistenza (e passare il test di
-        // eliminazione)
+        // Elimina anche l'utente base per completare l'eliminazione
         utenteDAO.delete(username);
     }
 }

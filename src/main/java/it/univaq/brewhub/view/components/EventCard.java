@@ -9,58 +9,65 @@ import it.univaq.brewhub.utility.Log;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class EventCard extends VBox {
+/**
+ * Componente UI che rappresenta una card per un singolo evento.
+ * Mostra i dettagli dell'evento e permette agli utenti di partecipare o (se
+ * admin) di eliminarlo.
+ */
+public class EventCard extends BaseCard {
     private final Evento evento;
     private final Utente utenteLoggato;
     private final EventoService eventoService = EventoService.getInstance();
 
+    /**
+     * Costruisce una nuova card per un evento.
+     *
+     * @param evento        L'evento da visualizzare.
+     * @param utenteLoggato L'utente attualmente loggato.
+     */
     public EventCard(Evento evento, Utente utenteLoggato) {
+        super();
         this.evento = evento;
         this.utenteLoggato = utenteLoggato;
         initUI();
     }
 
+    /**
+     * Inizializza l'interfaccia utente con header, contenuto e footer.
+     */
     private void initUI() {
-        this.setSpacing(10);
-        this.setMaxWidth(700);
-        this.getStyleClass().add("post-card");
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
-        Label dateLbl = new Label("\uD83D\uDCC5 " + evento.getData());
-        dateLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037;");
-        Label locationLbl = new Label("\uD83D\uDCCD " + evento.getLuogo());
-        locationLbl.setStyle("-fx-text-fill: #795548;");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        // Badge Organizzatore (Torrefattore)
-        Label organizerLbl = new Label("Organizzato da: " + evento.getOrganizzatore());
-        organizerLbl.setStyle("-fx-font-size: 10px; -fx-opacity: 0.7;");
-        it.univaq.brewhub.view.components.VerificationBadge verifiedBadge = new it.univaq.brewhub.view.components.VerificationBadge(
-                14);
+
+        Label dateLbl = createPrimaryInfoLabel("🗓 " + evento.getData(), "#5D4037");
+        Label locationLbl = createSecondaryInfoLabel("📍 " + evento.getLuogo(), "#795548");
+        Region spacer = createSpacer();
+
+        // Badge Organizzatore
+        Label organizerLbl = createSmallInfoLabel("Organizzato da: " + evento.getOrganizzatore());
+        VerificationBadge verifiedBadge = new VerificationBadge(14);
+
         header.getChildren().addAll(dateLbl, locationLbl, spacer, organizerLbl, verifiedBadge);
-        // Titolo
-        Label titleLbl = new Label(evento.getNome());
-        titleLbl.getStyleClass().add("post-title"); // Riutilizza stile titolo
-        // Descrizione
-        Label descLbl = new Label(evento.getDescrizione());
-        descLbl.setWrapText(true);
-        descLbl.getStyleClass().add("post-content");
-        // Footer: Partecipanti e Bottone
-        HBox footer = new HBox(15);
-        footer.setAlignment(Pos.CENTER_LEFT);
-        Label participantsLbl = new Label("\uD83D\uDC65 Partecipanti: " + evento.getPartecipantiCount());
-        participantsLbl.setStyle("-fx-text-fill: #5D4037;");
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
+        // Titolo e Descrizione
+        Label titleLbl = createTitleLabel(evento.getNome());
+        Label descLbl = createContentLabel(evento.getDescrizione());
+
+        // Footer
+        HBox footer = createFooterBox();
+        Label participantsLbl = createSecondaryInfoLabel("👥 Partecipanti: " + evento.getPartecipantiCount(),
+                "#5D4037");
+        Region footerSpacer = createSpacer();
         footer.getChildren().addAll(participantsLbl, footerSpacer);
+
         // Controlla se l'evento è passato
         boolean isPast = false;
         try {
@@ -72,18 +79,15 @@ public class EventCard extends VBox {
         } catch (Exception e) {
             // Ignora errori di parsing
         }
+
         if (isPast) {
             Button btnEnded = new Button("Terminato");
             btnEnded.setDisable(true);
             btnEnded.setStyle("-fx-opacity: 0.6; -fx-background-color: #9E9E9E; -fx-text-fill: white;");
             footer.getChildren().add(btnEnded);
         } else {
-            Button btnParticipate = new Button();
-            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-                btnParticipate.setText("Partecipa");
-                btnParticipate.setDisable(true);
-                btnParticipate.setTooltip(new Tooltip("Accedi per partecipare"));
-            } else {
+            if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
+                Button btnParticipate = new Button();
                 updateParticipateButton(btnParticipate);
                 btnParticipate.setOnAction(e -> {
                     try {
@@ -95,18 +99,19 @@ public class EventCard extends VBox {
                             evento.setPartecipantiCount(evento.getPartecipantiCount() + 1);
                         }
                         updateParticipateButton(btnParticipate);
-                        participantsLbl.setText("\uD83D\uDC65 Partecipanti: " + evento.getPartecipantiCount());
+                        participantsLbl.setText("👥 Partecipanti: " + evento.getPartecipantiCount());
                     } catch (BusinessException ex) {
                         Log.error("Errore gestione partecipazione evento", ex);
                         DialogUtils.showError("Errore", ex.getMessage(), this.getScene().getWindow());
                     }
                 });
+                footer.getChildren().add(btnParticipate);
             }
-            footer.getChildren().add(btnParticipate);
         }
+
         // Funzionalità Admin: Bottone Elimina
         if (utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
-            Button btnDelete = new Button("\uD83D\uDDD1 Elimina");
+            Button btnDelete = new Button("🗑 Elimina");
             btnDelete.getStyleClass().add("button-danger");
             btnDelete.setStyle("-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-weight: bold;");
             btnDelete.setOnAction(e -> {
@@ -123,13 +128,19 @@ public class EventCard extends VBox {
             });
             footer.getChildren().add(btnDelete);
         }
+
         this.getChildren().addAll(header, titleLbl, descLbl, footer);
     }
 
+    /**
+     * Aggiorna lo stato e il testo del pulsante di partecipazione.
+     *
+     * @param btn Il pulsante da aggiornare.
+     */
     private void updateParticipateButton(Button btn) {
         boolean isParticipating = eventoService.isParticipating(evento.getId(), utenteLoggato.getUsername());
         if (isParticipating) {
-            btn.setText("\u2714 Partecipi");
+            btn.setText("✔ Partecipi");
             btn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         } else {
             btn.setText("Partecipa");

@@ -5,59 +5,78 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Interfaccia DAO per la gestione delle Notifiche.
+ * Interfaccia DAO per la gestione delle {@link Notifica}.
+ * Permette la creazione, lettura e gestione dello stato delle notifiche inviate
+ * agli utenti.
  */
 public interface NotificaDAO {
 
     /**
-     * Crea una nuova notifica.
-     * @param notifica La notifica da creare.
-     * @throws SQLException Errore SQL.
+     * Crea una nuova notifica per un utente.
+     *
+     * @param notifica L'oggetto Notifica da salvare.
+     * @throws SQLException Se si verifica un errore durante l'operazione.
      */
     void create(Notifica notifica) throws SQLException;
 
     /**
-     * Recupera le notifiche di un utente.
-     * @param username Username dell'utente.
-     * @return Lista di notifiche.
-     * @throws SQLException Errore SQL.
+     * Recupera tutte le notifiche (lette e non lette) di un utente.
+     *
+     * @param username L'username dell'utente.
+     * @return Una lista di notifiche, ordinate solitamente per data (dalla più
+     *         recente).
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     List<Notifica> findByUser(String username) throws SQLException;
 
     /**
-     * Segna una notifica come letta.
-     * @param id ID della notifica.
-     * @throws SQLException Errore SQL.
+     * Contrassegna una notifica come letta.
+     *
+     * @param id L'identificativo della notifica.
+     * @throws SQLException Se si verifica un errore durante l'aggiornamento.
      */
     void markAsRead(int id) throws SQLException;
 
     /**
-     * Conta le notifiche non lette.
-     * @param username Username dell'utente.
-     * @return Numero di notifiche non lette.
-     * @throws SQLException Errore SQL.
+     * Conta il numero di notifiche non ancora lette da un utente.
+     *
+     * @param username L'username dell'utente.
+     * @return Il numero di notifiche non lette.
+     * @throws SQLException Se si verifica un errore durante il conteggio.
      */
     int getUnreadCount(String username) throws SQLException;
 
     /**
      * Elimina una singola notifica.
-     * @param id ID della notifica.
-     * @throws SQLException Errore SQL.
+     *
+     * @param id L'identificativo della notifica da eliminare.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione.
      */
     void delete(int id) throws SQLException;
 
     /**
-     * Elimina tutte le notifiche di un utente.
-     * @param username Username dell'utente.
-     * @throws SQLException Errore SQL.
+     * Elimina tutte le notifiche associate a un utente.
+     *
+     * @param username L'username dell'utente.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione massiva.
      */
     void deleteAll(String username) throws SQLException;
 
     /**
-     * Recupera tutte le notifiche non lette di un utente.
-     * @param username Username.
-     * @return Lista di notifiche non lette.
-     * @throws SQLException Errore SQL.
+     * Recupera solo le notifiche non lette di un utente.
+     *
+     * @param username L'username dell'utente.
+     * @return Una lista di notifiche non lette.
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     List<Notifica> findAllUnread(String username) throws SQLException;
+
+    /**
+     * Segna tutte le notifiche di un utente come lette in un'unica operazione.
+     *
+     * @param username L'username dell'utente.
+     * @throws SQLException Se si verifica un errore durante l'aggiornamento
+     *                      massivo.
+     */
+    void markAllAsRead(String username) throws SQLException;
 }

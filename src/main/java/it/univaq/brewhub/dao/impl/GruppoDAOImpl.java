@@ -8,22 +8,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per i Gruppi.
- * <p>Gestisce la creazione di gruppi, l'aggiunta di membri e le notifiche associate.</p>
+ * Implementazione dell'interfaccia {@link GruppoDAO}.
+ * Gestisce la persistenza dei gruppi di chat e l'invio di notifiche ai membri
+ * aggiunti.
  */
 public class GruppoDAOImpl implements GruppoDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * L'operazione è transazionale: crea il gruppo e associa i membri in un'unica
+     * transazione.
+     * Invia notifiche ai membri (escluso il creatore) dopo il commit.
+     * </p>
+     */
     @Override
-    public int createGruppo(String nome, String creatore, List<String> membri) {
+    public int createGruppo(String nome, String creatore, List<String> membri) throws SQLException {
         String sql = "INSERT INTO gruppi(nome, creatore) VALUES(?, ?)";
         String sqlMember = "INSERT OR IGNORE INTO membri_gruppo(id_gruppo, username) VALUES(?, ?)";
         int idGruppo = -1;
         List<String> recipients = new ArrayList<>();
 
         try (Connection conn = DatabaseManager.getConnection()) {
-            conn.setAutoCommit(false); // Transazione per garantire consistenza
+            conn.setAutoCommit(false); // Inizio transazione
             try {
                 // 1. Crea il gruppo
                 try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -34,7 +43,7 @@ public class GruppoDAOImpl implements GruppoDAO {
                         if (generatedKeys.next()) {
                             idGruppo = generatedKeys.getInt(1);
                         } else {
-                            throw new SQLException("Creating group failed, no ID obtained.");
+                            throw new SQLException("Creazione gruppo fallita, nessun ID ottenuto.");
                         }
                     }
                 }
@@ -54,7 +63,7 @@ public class GruppoDAOImpl implements GruppoDAO {
                                     pstmtMember.setInt(1, idGruppo);
                                     pstmtMember.setString(2, m);
                                     pstmtMember.executeUpdate();
-                                    recipients.add(m); 
+                                    recipients.add(m);
                                 }
                             }
                         }
@@ -67,9 +76,6 @@ public class GruppoDAOImpl implements GruppoDAO {
             } finally {
                 conn.setAutoCommit(true);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
         }
 
         // Notifiche (fuori dalla transazione DB principale)
@@ -79,6 +85,12 @@ public class GruppoDAOImpl implements GruppoDAO {
         return idGruppo;
     }
 
+    /**
+     * Invia una notifica a un utente aggiunto a un gruppo.
+     *
+     * @param username  L'username dell'utente.
+     * @param groupName Il nome del gruppo.
+     */
     private void sendGroupNotification(String username, String groupName) {
         try {
             it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
@@ -86,12 +98,15 @@ public class GruppoDAOImpl implements GruppoDAO {
             String msg = "Sei stato aggiunto al gruppo \"" + groupName + "\"";
             notificaDAO.create(new it.univaq.brewhub.model.Notifica(u, msg));
         } catch (SQLException e) {
-            System.err.println("Errore notifica gruppo: " + e.getMessage());
+            it.univaq.brewhub.utility.Log.error("Errore notifica gruppo", e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Gruppo getGruppo(int id) {
+    public Gruppo getGruppo(int id) throws SQLException {
         String sql = "SELECT * FROM gruppi WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -105,14 +120,15 @@ public class GruppoDAOImpl implements GruppoDAO {
                     return g;
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<Gruppo> getGruppiUtente(String username) {
+    public List<Gruppo> getGruppiUtente(String username) throws SQLException {
         List<Gruppo> gruppi = new ArrayList<>();
         String sql = "SELECT g.* FROM gruppi g JOIN membri_gruppo mg ON g.id = mg.id_gruppo WHERE mg.username = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -127,14 +143,15 @@ public class GruppoDAOImpl implements GruppoDAO {
                     gruppi.add(g);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return gruppi;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addMembro(int idGruppo, String username) {
+    public void addMembro(int idGruppo, String username) throws SQLException {
         boolean added = false;
         String sql = "INSERT OR IGNORE INTO membri_gruppo(id_gruppo, username) VALUES(?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
@@ -144,8 +161,6 @@ public class GruppoDAOImpl implements GruppoDAO {
             int rows = pstmt.executeUpdate();
             if (rows > 0)
                 added = true;
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         if (added) {
             Gruppo g = getGruppo(idGruppo);
@@ -155,53 +170,64 @@ public class GruppoDAOImpl implements GruppoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeMembro(int idGruppo, String username) {
+    public void removeMembro(int idGruppo, String username) throws SQLException {
         String sql = "DELETE FROM membri_gruppo WHERE id_gruppo = ? AND username = ?";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idGruppo);
             pstmt.setString(2, username);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void renameGruppo(int id, String nuovoNome) {
+    public void renameGruppo(int id, String nuovoNome) throws SQLException {
         String sql = "UPDATE gruppi SET nome = ? WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nuovoNome);
             pstmt.setInt(2, id);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void deleteGruppo(int id) {
+    public void deleteGruppo(int id) throws SQLException {
         String sqlMembers = "DELETE FROM membri_gruppo WHERE id_gruppo = ?";
         String sqlMsgs = "DELETE FROM messaggi WHERE id_gruppo = ?";
         String sqlGroup = "DELETE FROM gruppi WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection()) {
-            // Esecuzione sequenziale delle cancellazioni
-            try (PreparedStatement p1 = conn.prepareStatement(sqlMembers)) {
-                p1.setInt(1, id);
-                p1.executeUpdate();
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement p1 = conn.prepareStatement(sqlMembers)) {
+                    p1.setInt(1, id);
+                    p1.executeUpdate();
+                }
+                try (PreparedStatement p2 = conn.prepareStatement(sqlMsgs)) {
+                    p2.setInt(1, id);
+                    p2.executeUpdate();
+                }
+                try (PreparedStatement p3 = conn.prepareStatement(sqlGroup)) {
+                    p3.setInt(1, id);
+                    p3.executeUpdate();
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
             }
-            try (PreparedStatement p2 = conn.prepareStatement(sqlMsgs)) {
-                p2.setInt(1, id);
-                p2.executeUpdate();
-            }
-            try (PreparedStatement p3 = conn.prepareStatement(sqlGroup)) {
-                p3.setInt(1, id);
-                p3.executeUpdate();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

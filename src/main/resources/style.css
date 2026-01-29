@@ -699,7 +699,7 @@
 }
 
 /* ============================================
-   COLORI SFONDO (Riaggiunti)
+   COLORI SFONDO 
    ============================================ */
 
 .sidebar {
@@ -1996,4 +1996,261 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 10 0 0 0;
+}
+
+/* ============================================
+   COMBOBOX DROPDOWN STYLING
+   ============================================ */
+
+.combo-box-popup .list-view {
+    -fx-background-color: #FFFBF5;
+    -fx-background-radius: 5;
+    -fx-border-color: #D4A574;
+    -fx-border-radius: 5;
+    -fx-effect: dropshadow(gaussian, rgba(93, 64, 55, 0.2), 5, 0, 0, 1);
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2C1810;
+    -fx-padding: 8 10;
+    -fx-font-size: 13px;
+}
+
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #FFF8E1;
+    -fx-text-fill: #3E2723;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #8D6E63;
+    -fx-text-fill: #FFF8F3;
+}
+
+/* ============================================
+   NOTIFICATION SYSTEM STYLING
+   ============================================ */
+
+/* ============================================
+   NOTIFICATION SYSTEM STYLING (PREMIUM REDESIGN)
+   ============================================ */
+
+/* Dropdown Menu Container */
+.notification-menu {
+    -fx-background-color: #FFFBF5;
+    -fx-background-radius: 12;
+    -fx-border-color: #D7CCC8;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(62, 39, 35, 0.15), 15, 0, 0, 4);
+    -fx-padding: 8;
+}
+
+/* Notification Card */
+.notification-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: transparent;
+    -fx-padding: 12;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 5, 0, 0, 2);
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+.notification-card:hover {
+    -fx-background-color: #FFF8E1;
+    /* Light cream hover */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 8, 0, 0, 3);
+    -fx-translate-y: -1;
+}
+
+/* Read Status Dots */
+.notification-dot-unread {
+    -fx-fill: #FF6F00;
+    /* Amber alert */
+    -fx-stroke: white;
+    -fx-stroke-width: 1;
+}
+
+.notification-dot-read {
+    -fx-fill: transparent;
+    -fx-stroke: #E0E0E0;
+}
+
+/* Icons */
+.notification-icon-box {
+    -fx-background-color: #F5F5F5;
+    -fx-background-radius: 50%;
+    /* Circle */
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-alignment: center;
+}
+
+.icon-like {
+    -fx-background-color: #FFEBEE;
+}
+
+.icon-comment {
+    -fx-background-color: #E3F2FD;
+}
+
+.icon-system {
+    -fx-background-color: #E8F5E9;
+}
+
+.notification-emoji {
+    -fx-font-size: 16px;
+}
+
+/* Typography */
+.notification-title {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3E2723;
+    -fx-font-size: 13px;
+}
+
+.notification-time {
+    -fx-font-size: 10px;
+    -fx-text-fill: #9E9E9E;
+}
+
+.notification-body {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5D4037;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.text-unread {
+    -fx-font-weight: bold;
+    -fx-text-fill: #212121;
+}
+
+/* Close Button */
+.notification-close-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #BCAAA4;
+    -fx-font-size: 10px;
+    -fx-cursor: hand;
+    -fx-padding: 4;
+    -fx-opacity: 0.6;
+}
+
+.notification-close-btn:hover {
+    -fx-text-fill: #D32F2F;
+    -fx-background-color: #FFEBEE;
+    -fx-background-radius: 50%;
+    -fx-opacity: 1;
+}
+
+/* Separator styling tweak */
+.notification-menu .separator .line {
+    -fx-border-color: #EFEBE9;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Empty State */
+.notification-empty {
+    -fx-text-fill: #8D6E63;
+    -fx-font-style: italic;
+    -fx-padding: 20;
+    -fx-alignment: center;
+    -fx-font-size: 13px;
+}
+
+/* ============================================
+   ADMIN & DASHBOARD STYLING
+   ============================================ */
+
+.admin-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 4);
+}
+
+.stat-card {
+    -fx-alignment: center;
+    -fx-padding: 20;
+    -fx-pref-width: 200;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 5, 0, 0, 2);
+}
+
+.stat-card-icon {
+    -fx-font-size: 32px;
+}
+
+.stat-card-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.stat-card-title {
+    -fx-font-size: 14px;
+    -fx-text-fill: #757575;
+}
+
+.dashboard-user-row {
+    -fx-background-color: white;
+    -fx-padding: 15;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0, 0, 2);
+}
+
+.category-list-view {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+}
+
+.category-list-cell-container {
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.03), 2, 0, 0, 1);
+    -fx-padding: 10;
+}
+
+/* Common Text Styles */
+.text-bold-coffee {
+    -fx-font-weight: bold;
+    -fx-text-fill: #3E2723;
+}
+
+.text-subtle-coffee {
+    -fx-text-fill: #795548;
+}
+
+/* Notification Action Buttons (Footer) */
+.btn-mark-all {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5D4037;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+    -fx-padding: 4 8;
+    -fx-underline: true;
+}
+
+.btn-mark-all:hover {
+    -fx-text-fill: #8D6E63;
+    -fx-background-color: #F5F5F5;
+    -fx-background-radius: 4;
+}
+
+.small-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #D32F2F;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+    -fx-padding: 4 8;
+    -fx-underline: true;
+}
+
+.small-button:hover {
+    -fx-text-fill: #B71C1C;
+    -fx-background-color: #FFEBEE;
+    -fx-background-radius: 4;
 }

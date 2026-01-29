@@ -1,58 +1,91 @@
 package it.univaq.brewhub.utility;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.ResultSet;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
- * Gestore principale per la connessione e l'inizializzazione del database
+ * Gestore centralizzato per la connessione e la configurazione del database
  * SQLite.
- * <p>
- * Questa classe fornisce metodi statici per ottenere connessioni al database,
- * configurare l'ambiente di test e inizializzare lo schema del database creando
- * le tabelle necessarie se non esistono.
- * </p>
+ * Gestisce il pool di connessioni, l'inizializzazione dello schema (DDL) e
+ * le migrazioni automatiche per correggere eventuali incongruenze strutturali.
  */
 public class DatabaseManager {
 
-    /** URL di connessione predefinito per il database di produzione. */
     private static String connectionUrl = "jdbc:sqlite:brewhub.db";
+    private static HikariDataSource dataSource;
 
     /**
-     * Configura il DatabaseManager per utilizzare un database specifico (es. per i
-     * test).
-     * 
-     * @param dbPath Il percorso del file del database da utilizzare.
+     * Configura il gestore per utilizzare un database di test specifico.
+     * Chiude eventuali connessioni attive prima di riconfigurare.
+     *
+     * @param dbPath Il percorso del file database di test.
      */
     public static void configureTestDatabase(String dbPath) {
         connectionUrl = "jdbc:sqlite:" + dbPath;
+        shutdown();
     }
 
     /**
-     * Ottiene una nuova connessione al database.
-     * 
-     * @return Un oggetto {@link Connection} attivo.
-     * @throws SQLException Se si verifica un errore durante la connessione.
+     * Chiude il pool di connessioni (DataSource) e rilascia le risorse.
+     */
+    public static void shutdown() {
+        if (dataSource != null) {
+            dataSource.close();
+            dataSource = null;
+        }
+    }
+
+    /**
+     * Configura e restituisce il DataSource HikariCP.
+     * Implementa il pattern Singleton per il DataSource.
+     *
+     * @return L'istanza di HikariDataSource configurata.
+     */
+    private static synchronized HikariDataSource getDataSource() {
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(connectionUrl);
+            config.setDriverClassName("org.sqlite.JDBC");
+
+            // Impostazioni HikariCP ottimizzate per SQLite
+            config.setMaximumPoolSize(10);
+            config.setMinimumIdle(2);
+            config.setIdleTimeout(30000); // 30 secondi
+            config.setPoolName("BrewHubPool");
+
+            // Ottimizzazioni specifiche per SQLite
+            config.addDataSourceProperty("journal_mode", "WAL"); // Write-Ahead Logging
+            config.addDataSourceProperty("synchronous", "NORMAL");
+
+            // Abilita i vincoli di chiave esterna per ogni nuova connessione
+            config.setConnectionInitSql("PRAGMA foreign_keys = ON;");
+
+            dataSource = new HikariDataSource(config);
+        }
+        return dataSource;
+    }
+
+    /**
+     * Ottiene una connessione attiva dal pool.
+     *
+     * @return Un oggetto Connection.
+     * @throws SQLException Se non è possibile ottenere una connessione.
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(connectionUrl);
+        return getDataSource().getConnection();
     }
 
     /**
-     * Inizializza lo schema del database.
-     * <p>
-     * Crea tutte le tabelle necessarie (utenti, post, commenti, ecc.) se non
-     * esistono già.
-     * Abilita inoltre il supporto per le chiavi esterne (Foreign Keys) in SQLite.
-     * </p>
+     * Inizializza il database creando tutte le tabelle necessarie se non esistono.
+     * Esegue inoltre eventuali script di migrazione per aggiornare lo schema.
      */
     public static void init() {
         try (Connection conn = getConnection();
                 Statement stmt = conn.createStatement()) {
-
-            // Abilita il supporto alle Foreign Keys
-            stmt.execute("PRAGMA foreign_keys = ON");
 
             // Tabella Utenti
             String sqlUtenti = "CREATE TABLE IF NOT EXISTS utenti (" +
@@ -138,29 +171,26 @@ public class DatabaseManager {
                     ")";
             stmt.execute(sqlCategorie);
 
-            // Migrazioni schema: Aggiunta colonne se mancanti
+            // Aggiornamento schema per colonne aggiunte successivamente
             try {
                 stmt.execute(
                         "ALTER TABLE post ADD COLUMN category_id INTEGER REFERENCES categorie(id) ON DELETE SET NULL");
             } catch (SQLException e) {
-                // Colonna già esistente
+                // Ignora se la colonna esiste già
             }
             try {
                 stmt.execute("ALTER TABLE categorie ADD COLUMN icona TEXT");
             } catch (SQLException e) {
-                // Colonna già esistente
+                // Ignora se la colonna esiste già
             }
 
-            // Popolamento dati iniziali Categorie
-            try (java.sql.ResultSet rsCat = stmt.executeQuery("SELECT COUNT(*) FROM categorie")) {
-                if (rsCat.next() && rsCat.getInt(1) == 0) {
-                    stmt.execute("INSERT INTO categorie(nome) VALUES('Torrefattori')");
-                    stmt.execute("INSERT INTO categorie(nome) VALUES('Miscele')");
-                    stmt.execute("INSERT INTO categorie(nome) VALUES('Eventi')");
-                }
-            }
+            // Popolamento iniziale categorie
+            stmt.execute("DELETE FROM categorie WHERE nome = 'Eventi'");
+            stmt.execute("INSERT OR IGNORE INTO categorie(nome, icona) VALUES('Torrefattori', '☕')");
+            stmt.execute("INSERT OR IGNORE INTO categorie(nome, icona) VALUES('Miscele', '☕')");
+            stmt.execute("INSERT OR IGNORE INTO categorie(nome, icona) VALUES('Guide', '📖')");
 
-            // Indici per performance
+            // Indici per ottimizzazione performance
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_post_autore ON post(autore_username)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_commenti_post ON commenti(post_id)");
 
@@ -177,7 +207,7 @@ public class DatabaseManager {
                     ")";
             stmt.execute(sqlTorrefattori);
 
-            // Tabella Messaggi (Chat)
+            // Tabella Messaggi (Chat interna)
             String sqlMessaggi = "CREATE TABLE IF NOT EXISTS messaggi (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "sender TEXT NOT NULL, " +
@@ -211,7 +241,7 @@ public class DatabaseManager {
                     ")";
             stmt.execute(sqlMembriGruppo);
 
-            // Migrazione Torrefattori
+            // Migrazione colonna nome_azienda per torrefattori
             try {
                 stmt.execute("ALTER TABLE torrefattori ADD COLUMN nome_azienda TEXT");
             } catch (SQLException e) {
@@ -280,14 +310,93 @@ public class DatabaseManager {
             System.err.println("Errore inizializzazione DB: " + e.getMessage());
         }
 
-        // Verifica ed esegue migrazioni complesse
+        // Esegue i controlli e le migrazioni per lo schema
         migrateMessaggiTableIfRequired();
+        migrateTablesReferencingWrongTableName();
     }
 
     /**
-     * Controlla se la tabella 'messaggi' necessita di migrazione per correggere
-     * vincoli NOT NULL.
-     * Esegue una migrazione sicura tramite tabella temporanea se necessario.
+     * Verifica e corregge i riferimenti stranieri errati alla tabella 'posts'
+     * (plurale)
+     * invece di 'post' (singolare) nelle tabelle collegate.
+     */
+    private static void migrateTablesReferencingWrongTableName() {
+        String[] tablesToCheck = { "commenti", "likes", "saved_posts" };
+
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            for (String tableName : tablesToCheck) {
+                boolean needsFix = false;
+                try (ResultSet rs = stmt.executeQuery("PRAGMA foreign_key_list(" + tableName + ")")) {
+                    while (rs.next()) {
+                        String refTable = rs.getString("table");
+                        if ("posts".equalsIgnoreCase(refTable)) {
+                            needsFix = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (needsFix) {
+                    Log.info(
+                            "Correzione schema: " + tableName + " referenzia 'posts', migrazione a 'post' in corso...");
+                    conn.setAutoCommit(false);
+                    try {
+                        stmt.execute("PRAGMA foreign_keys=OFF");
+                        stmt.execute("ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old");
+
+                        // Ricrea la tabella con la ForeignKey corretta
+                        String createSql = "";
+                        if ("commenti".equals(tableName)) {
+                            createSql = "CREATE TABLE " + tableName + " (" +
+                                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                    "post_id INTEGER NOT NULL, " +
+                                    "username TEXT, " +
+                                    "contenuto TEXT NOT NULL, " +
+                                    "data_creazione TEXT NOT NULL, " +
+                                    "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE SET NULL" +
+                                    ")";
+                        } else if ("likes".equals(tableName)) {
+                            createSql = "CREATE TABLE " + tableName + " (" +
+                                    "post_id INTEGER NOT NULL, " +
+                                    "username TEXT NOT NULL, " +
+                                    "PRIMARY KEY (post_id, username), " +
+                                    "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE, " +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE" +
+                                    ")";
+                        } else if ("saved_posts".equals(tableName)) {
+                            createSql = "CREATE TABLE " + tableName + " (" +
+                                    "username TEXT NOT NULL, " +
+                                    "post_id INTEGER NOT NULL, " +
+                                    "PRIMARY KEY (username, post_id), " +
+                                    "FOREIGN KEY(username) REFERENCES utenti(username) ON DELETE CASCADE, " +
+                                    "FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE" +
+                                    ")";
+                        }
+
+                        stmt.execute(createSql);
+                        stmt.execute("INSERT INTO " + tableName + " SELECT * FROM " + tableName + "_old");
+                        stmt.execute("DROP TABLE " + tableName + "_old");
+                        stmt.execute("PRAGMA foreign_keys=ON");
+                        conn.commit();
+                        Log.info("Migrazione schema per '" + tableName + "' completata.");
+                    } catch (Exception e) {
+                        conn.rollback();
+                        Log.error("Migrazione fallita per " + tableName, e);
+                    } finally {
+                        conn.setAutoCommit(true);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            Log.error("Errore durante la verifica dei nomi tabella errati", e);
+        }
+    }
+
+    /**
+     * Controlla se la tabella 'messaggi' necessita di essere migrata per rimuovere
+     * eventuali vincoli NOT NULL non più desiderati o per aggiornamenti di schema.
+     * Utilizza una tabella temporanea per preservare i dati.
      */
     private static void migrateMessaggiTableIfRequired() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
@@ -305,7 +414,7 @@ public class DatabaseManager {
             }
 
             if (needsMigration) {
-                Log.info("Starting schema migration for 'messaggi' table...");
+                Log.info("Avvio migrazione schema per la tabella 'messaggi'...");
                 conn.setAutoCommit(false);
                 try {
                     stmt.execute("PRAGMA foreign_keys=OFF");
@@ -332,31 +441,29 @@ public class DatabaseManager {
                     stmt.execute("DROP TABLE messaggi_old");
                     stmt.execute("PRAGMA foreign_keys=ON");
                     conn.commit();
-                    Log.info("Schema migration for 'messaggi' completed successfully.");
+                    Log.info("Migrazione schema per 'messaggi' completata con successo.");
                 } catch (Exception e) {
                     conn.rollback();
-                    Log.error("Migration failed, rolling back.", e);
+                    Log.error("Migrazione fallita, rollback eseguito.", e);
                 } finally {
                     conn.setAutoCommit(true);
                 }
             }
         } catch (SQLException e) {
-            Log.error("Error checking/migrating schema", e);
+            Log.error("Errore durante la verifica/migrazione dello schema", e);
         }
     }
 
     /**
-     * Esegue il backup del database corrente.
-     * <p>
-     * Utilizza il comando SQLite `VACUUM INTO` per creare una copia sicura.
-     * </p>
-     * 
-     * @param destinationFile Il file di destinazione per il backup.
-     * @throws SQLException In caso di errori SQL.
+     * Esegue un backup completo del database in un file specificato.
+     * Utilizza la funzionalità VACUUM INTO di SQLite.
+     *
+     * @param destinationFile Il file in cui salvare il backup.
+     * @throws SQLException Se si verifica un errore durante l'operazione.
      */
     public static void backup(java.io.File destinationFile) throws SQLException {
         String destPath = destinationFile.getAbsolutePath();
-        destPath = destPath.replace("'", "''"); // Escape semplice per SQL string
+        destPath = destPath.replace("'", "''"); // Escape degli apici nel path
         try (Connection conn = getConnection();
                 Statement stmt = conn.createStatement()) {
             stmt.execute("VACUUM INTO '" + destPath + "'");
@@ -364,13 +471,10 @@ public class DatabaseManager {
     }
 
     /**
-     * Ripristina il database da un file di backup.
-     * <p>
-     * Sovrascrive il file database attuale.
-     * </p>
-     * 
-     * @param backupFile Il file di backup da ripristinare.
-     * @throws java.io.IOException In caso di errori di I/O (es. file in uso).
+     * Ripristina il database da un file di backup, sovrascrivendo quello attuale.
+     *
+     * @param backupFile Il file di backup da utilizzare.
+     * @throws java.io.IOException Se si verificano errori di I/O (es. permessi).
      */
     public static void restore(java.io.File backupFile) throws java.io.IOException {
         java.io.File dbFile = new java.io.File("brewhub.db");

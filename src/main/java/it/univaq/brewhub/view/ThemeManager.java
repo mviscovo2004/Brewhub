@@ -5,9 +5,13 @@ import javafx.scene.Scene;
 /**
  * Gestore centralizzato del tema e degli stili grafici dell'applicazione.
  *
- * Definisce la palette colori (Coffee Theme) e fornisce metodi per applicare
- * stili CSS coerenti ai componenti JavaFX.
- *
+ * <p>
+ * Responsabilità:
+ * <ul>
+ * <li>Definizione della palette colori (Coffee Theme).</li>
+ * <li>Fornitura di metodi per applicare il CSS globale.</li>
+ * <li>Fornitura di generatori di stile inline per componenti dinamici.</li>
+ * </ul>
  */
 public class ThemeManager {
 
@@ -15,7 +19,7 @@ public class ThemeManager {
 
         /**
          * Applica il foglio di stile CSS alla scena specificata.
-         * 
+         *
          * @param scene La scena JavaFX a cui applicare il tema.
          */
         public static void applyTheme(Scene scene) {
@@ -29,7 +33,7 @@ public class ThemeManager {
 
         /**
          * Restituisce lo stile CSS base per il font dell'applicazione.
-         * 
+         *
          * @return Stringa CSS per font-family.
          */
         public static String getCoffeeThemeColors() {

@@ -9,58 +9,63 @@ import it.univaq.brewhub.utility.Log;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class SfidaCard extends VBox {
+/**
+ * Componente UI per visualizzare una card relativa a una Sfida (contest).
+ * Mostra dettagli come scadenza, premio, creatore e permette la partecipazione.
+ */
+public class SfidaCard extends BaseCard {
     private final Sfida sfida;
     private final Utente utenteLoggato;
     private final SfidaService sfidaService = SfidaService.getInstance();
 
+    /**
+     * Costruisce una nuova card per una sfida.
+     *
+     * @param sfida         La sfida da visualizzare.
+     * @param utenteLoggato L'utente corrente.
+     */
     public SfidaCard(Sfida sfida, Utente utenteLoggato) {
+        super();
         this.sfida = sfida;
         this.utenteLoggato = utenteLoggato;
         initUI();
     }
 
+    /**
+     * Inizializza l'interfaccia utente.
+     */
     private void initUI() {
-        this.setSpacing(10);
-        this.setMaxWidth(700);
-        this.getStyleClass().add("post-card");
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
-        Label dateLbl = new Label("\u23F3 Scadenza: " + sfida.getScadenza());
-        dateLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #D32F2F;");
-        Label prizeLbl = new Label("\uD83C\uDFC6 Premio: " + sfida.getPremio());
-        prizeLbl.setStyle("-fx-text-fill: #FBC02D; -fx-font-weight: bold;");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        // Badge Creatore (Torrefattore)
-        Label organizerLbl = new Label("Sfida di: " + sfida.getCreatore());
-        organizerLbl.setStyle("-fx-font-size: 10px; -fx-opacity: 0.7;");
-        it.univaq.brewhub.view.components.VerificationBadge verifiedBadge = new it.univaq.brewhub.view.components.VerificationBadge(
-                14);
+
+        Label dateLbl = createPrimaryInfoLabel("⏳ Scadenza: " + sfida.getScadenza(), "#D32F2F");
+        Label prizeLbl = createSecondaryInfoLabel("🏆 Premio: " + sfida.getPremio(), "#FBC02D");
+        Region spacer = createSpacer();
+
+        // Badge Creatore
+        Label organizerLbl = createSmallInfoLabel("Sfida di: " + sfida.getCreatore());
+        VerificationBadge verifiedBadge = new VerificationBadge(14);
+
         header.getChildren().addAll(dateLbl, prizeLbl, spacer, organizerLbl, verifiedBadge);
-        // Titolo
-        Label titleLbl = new Label(sfida.getTitolo());
-        titleLbl.getStyleClass().add("post-title");
-        // Descrizione
-        Label descLbl = new Label(sfida.getDescrizione());
-        descLbl.setWrapText(true);
-        descLbl.getStyleClass().add("post-content");
-        // Footer: Partecipanti e Bottone
-        HBox footer = new HBox(15);
-        footer.setAlignment(Pos.CENTER_LEFT);
-        Label participantsLbl = new Label("\uD83D\uDC65 Partecipanti: " + sfida.getPartecipantiCount());
-        participantsLbl.setStyle("-fx-text-fill: #5D4037;");
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
+        // Titolo e Descrizione
+        Label titleLbl = createTitleLabel(sfida.getTitolo());
+        Label descLbl = createContentLabel(sfida.getDescrizione());
+
+        // Footer
+        HBox footer = createFooterBox();
+        Label participantsLbl = createSecondaryInfoLabel("👥 Partecipanti: " + sfida.getPartecipantiCount(), "#5D4037");
+        Region footerSpacer = createSpacer();
         footer.getChildren().addAll(participantsLbl, footerSpacer);
+
         // Check expired
         boolean isExpired = false;
         try {
@@ -72,18 +77,15 @@ public class SfidaCard extends VBox {
         } catch (Exception e) {
             // Ignore parsing errors
         }
+
         if (isExpired) {
             Button btnEnded = new Button("Terminata");
             btnEnded.setDisable(true);
             btnEnded.setStyle("-fx-opacity: 0.6; -fx-background-color: #9E9E9E; -fx-text-fill: white;");
             footer.getChildren().add(btnEnded);
         } else {
-            Button btnParticipate = new Button();
-            if (utenteLoggato.getTipo() == Utente.TipoUtente.OSPITE) {
-                btnParticipate.setText("Partecipa");
-                btnParticipate.setDisable(true);
-                btnParticipate.setTooltip(new Tooltip("Accedi per partecipare"));
-            } else {
+            if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
+                Button btnParticipate = new Button();
                 updateParticipateButton(btnParticipate);
                 btnParticipate.setOnAction(e -> {
                     try {
@@ -95,20 +97,21 @@ public class SfidaCard extends VBox {
                             sfida.setPartecipantiCount(sfida.getPartecipantiCount() + 1);
                         }
                         updateParticipateButton(btnParticipate);
-                        participantsLbl.setText("\uD83D\uDC65 Partecipanti: " + sfida.getPartecipantiCount());
+                        participantsLbl.setText("👥 Partecipanti: " + sfida.getPartecipantiCount());
                     } catch (BusinessException ex) {
                         Log.error("Errore gestione partecipazione sfida", ex);
                         DialogUtils.showError("Errore", ex.getMessage(), this.getScene().getWindow());
                     }
                 });
+                footer.getChildren().add(btnParticipate);
             }
-            footer.getChildren().add(btnParticipate);
         }
+
         // Admin functionality: Delete button
         if (utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN ||
                 (utenteLoggato.getTipo() == Utente.TipoUtente.TORREFATTORE
                         && utenteLoggato.getUsername().equals(sfida.getCreatore()))) {
-            Button btnDelete = new Button("\uD83D\uDDD1 Elimina");
+            Button btnDelete = new Button("🗑 Elimina");
             btnDelete.getStyleClass().add("button-danger");
             btnDelete.setStyle("-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-weight: bold;");
             btnDelete.setOnAction(e -> {
@@ -124,13 +127,17 @@ public class SfidaCard extends VBox {
             });
             footer.getChildren().add(btnDelete);
         }
+
         this.getChildren().addAll(header, titleLbl, descLbl, footer);
     }
 
+    /**
+     * Aggiorna lo stato del pulsante partecipazione (Iscriviti/Disiscriviti).
+     */
     private void updateParticipateButton(Button btn) {
         boolean isParticipating = sfidaService.isParticipating(sfida.getId(), utenteLoggato.getUsername());
         if (isParticipating) {
-            btn.setText("\u2714 Partecipi");
+            btn.setText("✔ Partecipi");
             btn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         } else {
             btn.setText("Partecipa");

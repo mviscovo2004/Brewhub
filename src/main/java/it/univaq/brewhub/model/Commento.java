@@ -3,38 +3,50 @@ package it.univaq.brewhub.model;
 import java.time.LocalDateTime;
 
 /**
- * Rappresenta un commento lasciato da un utente su un post.
+ * Classe che modella un commento effettuato da un utente su un post.
  */
 public class Commento {
 
-	/** Identificativo univoco del commento. */
-	private int id; 
+	/**
+	 * Identificativo univoco del commento.
+	 */
+	private int id;
 
-	/** L'autore del commento. */
+	/**
+	 * L'utente che ha scritto il commento.
+	 */
 	private Utente utente;
 
-	/** Il post a cui il commento si riferisce. */
+	/**
+	 * Il post associato al commento.
+	 */
 	private Post post;
 
-	/** Il testo del commento. */
+	/**
+	 * Il contenuto testuale del commento.
+	 */
 	private String contenuto;
 
-	/** Data e ora di creazione. */
+	/**
+	 * Data e ora in cui il commento è stato creato.
+	 * Di default è inizializzato al momento della creazione dell'oggetto.
+	 */
 	private LocalDateTime dataCreazione = LocalDateTime.now();
 
 	/**
-	 * Costruttore vuoto.
+	 * Costruttore predefinito.
 	 */
 	public Commento() {
 	}
 
 	/**
-	 * Costruttore completo.
+	 * Costruttore per creare un nuovo commento con tutti i dettagli.
 	 * 
-	 * @param utente        L'autore.
-	 * @param post          Il post target.
+	 * @param utente        L'autore del commento.
+	 * @param post          Il post a cui il commento si riferisce.
 	 * @param contenuto     Il testo del commento.
-	 * @param dataCreazione La data di creazione (opzionale, se null usa now()).
+	 * @param dataCreazione La data di creazione. Se null, viene mantenuta quella
+	 *                      attuale.
 	 */
 	public Commento(Utente utente, Post post, String contenuto, LocalDateTime dataCreazione) {
 		this.contenuto = contenuto;
@@ -47,7 +59,8 @@ public class Commento {
 
 	/**
 	 * Restituisce l'ID del commento.
-	 * @return L'identificativo.
+	 *
+	 * @return L'identificativo del commento.
 	 */
 	public int getId() {
 		return id;
@@ -55,71 +68,80 @@ public class Commento {
 
 	/**
 	 * Imposta l'ID del commento.
-	 * @param id Il nuovo ID.
+	 *
+	 * @param id Il nuovo identificativo da assegnare.
 	 */
 	public void setId(int id) {
 		this.id = id;
 	}
 
 	/**
-	 * Restituisce il contenuto del commento.
-	 * @return Il testo.
+	 * Restituisce il contenuto testuale del commento.
+	 *
+	 * @return Il testo del commento.
 	 */
 	public String getContenuto() {
 		return contenuto;
 	}
 
 	/**
-	 * Imposta il contenuto del commento.
-	 * @param contenuto Il nuovo testo.
+	 * Imposta il contenuto testuale del commento.
+	 *
+	 * @param contenuto Il nuovo testo da assegnare.
 	 */
 	public void setContenuto(String contenuto) {
 		this.contenuto = contenuto;
 	}
 
 	/**
-	 * Restituisce la data di creazione.
-	 * @return {@link LocalDateTime} di creazione.
+	 * Restituisce la data e l'ora di creazione del commento.
+	 *
+	 * @return La data di creazione.
 	 */
 	public LocalDateTime getDataCreazione() {
 		return dataCreazione;
 	}
 
 	/**
-	 * Imposta la data di creazione.
-	 * @param dataCreazione La nuova data.
+	 * Imposta la data e l'ora di creazione del commento.
+	 *
+	 * @param dataCreazione La nuova data di creazione.
 	 */
 	public void setDataCreazione(LocalDateTime dataCreazione) {
 		this.dataCreazione = dataCreazione;
 	}
 
 	/**
-	 * Restituisce il post associato.
-	 * @return L'oggetto {@link Post}.
+	 * Restituisce il post a cui è associato il commento.
+	 *
+	 * @return L'oggetto Post associato.
 	 */
 	public Post getPost() {
 		return post;
 	}
 
 	/**
-	 * Imposta il post associato.
-	 * @param post Il nuovo post.
+	 * Imposta il post a cui è associato il commento.
+	 *
+	 * @param post Il nuovo post da associare.
 	 */
 	public void setPost(Post post) {
 		this.post = post;
 	}
 
 	/**
-	 * Restituisce l'autore del commento.
-	 * @return L'oggetto {@link Utente}.
+	 * Restituisce l'utente autore del commento.
+	 *
+	 * @return L'utente che ha scritto il commento.
 	 */
 	public Utente getUtente() {
 		return utente;
 	}
 
 	/**
-	 * Imposta l'autore del commento.
-	 * @param utente Il nuovo autore.
+	 * Imposta l'utente autore del commento.
+	 *
+	 * @param utente Il nuovo autore da assegnare.
 	 */
 	public void setUtente(Utente utente) {
 		this.utente = utente;

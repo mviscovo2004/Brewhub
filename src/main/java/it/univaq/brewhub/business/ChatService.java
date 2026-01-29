@@ -6,14 +6,14 @@ import it.univaq.brewhub.dao.GruppoDAO;
 import it.univaq.brewhub.dao.MessaggioDAO;
 import it.univaq.brewhub.dao.impl.GruppoDAOImpl;
 import it.univaq.brewhub.dao.impl.MessaggioDAOImpl;
+
+import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Service Layer per la gestione della Chat (Messaggi e Gruppi).
- * <p>
- * Centralizza la logica relativa ai messaggi privati e di gruppo.
+ * Service Layer dedicato alla gestione della messaggistica e chat.
+ * Gestisce sia i messaggi privati tra utenti che le chat di gruppo.
  * Implementa il pattern Singleton.
- * </p>
  */
 public class ChatService {
 
@@ -21,11 +21,19 @@ public class ChatService {
     private final MessaggioDAO messaggioDAO;
     private final GruppoDAO gruppoDAO;
 
+    /**
+     * Costruttore privato che inizializza i DAO necessari.
+     */
     private ChatService() {
         this.messaggioDAO = new MessaggioDAOImpl();
         this.gruppoDAO = new GruppoDAOImpl();
     }
 
+    /**
+     * Restituisce l'istanza singleton di ChatService.
+     *
+     * @return L'istanza unica del servizio.
+     */
     public static synchronized ChatService getInstance() {
         if (instance == null) {
             instance = new ChatService();
@@ -33,99 +41,137 @@ public class ChatService {
         return instance;
     }
 
-    // ==================== MESSAGGI ====================
+    // ==================== SEZIONE MESSAGGI ====================
 
     /**
-     * Invia un messaggio (privato o di gruppo).
-     * 
+     * Invia un nuovo messaggio, sia privato che in un gruppo.
+     *
      * @param messaggio Il messaggio da inviare.
-     * @throws BusinessException Se mancano dati o errore tecnico.
+     * @throws BusinessException Se il contenuto è vuoto, manca il mittente o il
+     *                           destinatario.
      */
     public void sendMessage(Messaggio messaggio) throws BusinessException {
         if (messaggio == null || messaggio.getContenuto() == null || messaggio.getContenuto().isBlank()) {
             throw new BusinessException("Il testo del messaggio è obbligatorio");
         }
         if (messaggio.getSender() == null) {
-            throw new BusinessException("Il mittente è obbligatorio");
+            throw new BusinessException("Il mittente del messaggio è obbligatorio");
         }
-        // Verifica che sia specificato almeno un destinatario (privato) o un gruppo
+        // Deve esserci almeno un destinatario (chat 1-to-1) o un ID gruppo (chat di
+        // gruppo)
         if (messaggio.getReceiver() == null && messaggio.getIdGruppo() == null) {
-            throw new BusinessException("Specificare un destinatario o un gruppo");
+            throw new BusinessException("Specificare un destinatario o un gruppo di destinazione");
         }
 
-        messaggioDAO.create(messaggio);
+        try {
+            messaggioDAO.create(messaggio);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore durante l'invio del messaggio", e);
+            throw new BusinessException("Impossibile inviare il messaggio", e);
+        }
     }
 
     /**
-     * Recupera i messaggi di una conversazione privata.
-     * 
-     * @param user1 Primo utente.
-     * @param user2 Secondo utente.
-     * @return Lista di messaggi.
+     * Recupera lo storico dei messaggi scambiati privatamente tra due utenti.
+     *
+     * @param user1 Username del primo utente.
+     * @param user2 Username del secondo utente.
+     * @return Una lista di messaggi ordinati cronologicamente.
      */
     public List<Messaggio> getPrivateMessages(String user1, String user2) {
-        return messaggioDAO.getConversazione(user1, user2);
+        try {
+            return messaggioDAO.getConversazione(user1, user2);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore recupero messaggi privati tra " + user1 + " e " + user2, e);
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**
-     * Recupera i messaggi di un gruppo.
-     * 
-     * @param groupId ID del gruppo.
-     * @return Lista di messaggi.
+     * Recupera tutti i messaggi inviati all'interno di un gruppo specifico.
+     *
+     * @param groupId L'ID del gruppo.
+     * @return Una lista di messaggi del gruppo.
      */
     public List<Messaggio> getGroupMessages(int groupId) {
-        return messaggioDAO.getMessaggiGruppo(groupId);
+        try {
+            return messaggioDAO.getMessaggiGruppo(groupId);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore recupero messaggi gruppo " + groupId, e);
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**
-     * Recupera gli utenti con cui un utente ha conversazioni attive.
-     * 
-     * @param username Username dell'utente.
-     * @return Lista di username.
+     * Ottiene la lista degli username con cui l'utente specificato ha conversazioni
+     * attive.
+     *
+     * @param username L'username dell'utente.
+     * @return Una lista di username.
      */
     public List<String> getActiveConversations(String username) {
-        return messaggioDAO.getUtentiConversazioni(username);
+        try {
+            return messaggioDAO.getUtentiConversazioni(username);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore recupero conversazioni attive per " + username, e);
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**
-     * Marca un messaggio come letto.
-     * 
-     * @param messageId ID del messaggio.
+     * Contrassegna un messaggio come "letto".
+     *
+     * @param messageId L'ID del messaggio.
      */
     public void markAsRead(int messageId) {
-        messaggioDAO.segnaComeLetto(messageId);
+        try {
+            messaggioDAO.segnaComeLetto(messageId);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore durante la marcatura del messaggio come letto: " + messageId,
+                    e);
+        }
     }
 
     /**
-     * Conta i messaggi non letti per un utente.
-     * 
-     * @param username Username dell'utente.
-     * @return Numero di messaggi non letti.
+     * Calcola il numero totale di messaggi non letti per un determinato utente.
+     *
+     * @param username L'username dell'utente.
+     * @return Il numero di messaggi non letti.
      */
     public int getUnreadCount(String username) {
-        return messaggioDAO.contaNonLetti(username);
+        try {
+            return messaggioDAO.contaNonLetti(username);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore conteggio messaggi non letti per " + username, e);
+            return 0;
+        }
     }
 
     /**
-     * Elimina una conversazione privata.
-     * 
-     * @param user1 Primo utente.
-     * @param user2 Secondo utente.
+     * Elimina l'intera conversazione privata tra due utenti.
+     *
+     * @param user1 Username del primo utente.
+     * @param user2 Username del secondo utente.
      */
     public void deleteConversation(String user1, String user2) {
-        messaggioDAO.deleteConversazione(user1, user2);
+        try {
+            messaggioDAO.deleteConversazione(user1, user2);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore eliminazione conversazione tra " + user1 + " e " + user2, e);
+        }
     }
 
-    // ==================== GRUPPI ====================
+    // ==================== SEZIONE GRUPPI ====================
 
     /**
-     * Crea un nuovo gruppo.
-     * 
-     * @param nome     Nome del gruppo.
-     * @param creatore Username del creatore.
-     * @param membri   Lista iniziale dei membri.
-     * @return ID del gruppo creato.
-     * @throws BusinessException Se mancano dati o errore tecnico.
+     * Crea un nuovo gruppo di chat.
+     *
+     * @param nome     Il nome del gruppo.
+     * @param creatore L'username dell'utente che crea il gruppo.
+     * @param membri   Una lista iniziale di username da aggiungere al gruppo.
+     * @return L'ID del nuovo gruppo creato.
+     * @throws BusinessException Se il nome del gruppo o il creatore non sono
+     *                           validi.
      */
     public int createGroup(String nome, String creatore, List<String> membri) throws BusinessException {
         if (nome == null || nome.isBlank()) {
@@ -134,69 +180,101 @@ public class ChatService {
         if (creatore == null) {
             throw new BusinessException("Il creatore del gruppo è obbligatorio");
         }
-        return gruppoDAO.createGruppo(nome, creatore, membri);
+        try {
+            return gruppoDAO.createGruppo(nome, creatore, membri);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore durante la creazione del gruppo", e);
+            throw new BusinessException("Impossibile creare il gruppo", e);
+        }
     }
 
     /**
-     * Recupera tutti i gruppi di cui un utente fa parte.
-     * 
-     * @param username Username dell'utente.
-     * @return Lista di gruppi.
+     * Recupera tutti i gruppi a cui partecipa un determinato utente.
+     *
+     * @param username L'username dell'utente.
+     * @return Una lista di gruppi.
      */
     public List<Gruppo> getUserGroups(String username) {
-        return gruppoDAO.getGruppiUtente(username);
+        try {
+            return gruppoDAO.getGruppiUtente(username);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore recupero gruppi per " + username, e);
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**
-     * Recupera un gruppo per ID.
-     * 
-     * @param id ID del gruppo.
-     * @return Il gruppo trovato o null.
+     * Recupera le informazioni di un gruppo tramite il suo ID.
+     *
+     * @param id L'ID del gruppo.
+     * @return L'oggetto Gruppo, o null se non trovato.
      */
     public Gruppo getGroupById(int id) {
-        return gruppoDAO.getGruppo(id);
+        try {
+            return gruppoDAO.getGruppo(id);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore recupero gruppo con ID: " + id, e);
+            return null;
+        }
     }
 
     /**
-     * Aggiunge un membro a un gruppo.
-     * 
-     * @param groupId  ID del gruppo.
-     * @param username Username del membro.
+     * Aggiunge un nuovo partecipante a un gruppo esistente.
+     *
+     * @param groupId  L'ID del gruppo.
+     * @param username L'username dell'utente da aggiungere.
      */
     public void addGroupMember(int groupId, String username) {
-        gruppoDAO.addMembro(groupId, username);
+        try {
+            gruppoDAO.addMembro(groupId, username);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore aggiunta membro " + username + " al gruppo " + groupId, e);
+        }
     }
 
     /**
-     * Rimuove un membro da un gruppo.
-     * 
-     * @param groupId  ID del gruppo.
-     * @param username Username del membro.
+     * Rimuove un partecipante da un gruppo.
+     *
+     * @param groupId  L'ID del gruppo.
+     * @param username L'username dell'utente da rimuovere.
      */
     public void removeGroupMember(int groupId, String username) {
-        gruppoDAO.removeMembro(groupId, username);
+        try {
+            gruppoDAO.removeMembro(groupId, username);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore rimozione membro " + username + " dal gruppo " + groupId, e);
+        }
     }
 
     /**
-     * Rinomina un gruppo.
-     * 
-     * @param groupId ID del gruppo.
-     * @param newName Nuovo nome.
-     * @throws BusinessException Se il nome è vuoto.
+     * Modifica il nome di un gruppo esistente.
+     *
+     * @param groupId L'ID del gruppo.
+     * @param newName Il nuovo nome da assegnare.
+     * @throws BusinessException Se il nuovo nome è vuoto.
      */
     public void renameGroup(int groupId, String newName) throws BusinessException {
         if (newName == null || newName.isBlank()) {
             throw new BusinessException("Il nome del gruppo non può essere vuoto");
         }
-        gruppoDAO.renameGruppo(groupId, newName);
+        try {
+            gruppoDAO.renameGruppo(groupId, newName);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore rinomina gruppo " + groupId, e);
+            throw new BusinessException("Impossibile rinominare il gruppo", e);
+        }
     }
 
     /**
-     * Elimina un gruppo.
-     * 
-     * @param id ID del gruppo da eliminare.
+     * Elimina definitivamente un gruppo.
+     *
+     * @param id L'ID del gruppo da eliminare.
      */
     public void deleteGroup(int id) {
-        gruppoDAO.deleteGruppo(id);
+        try {
+            gruppoDAO.deleteGruppo(id);
+        } catch (SQLException e) {
+            it.univaq.brewhub.utility.Log.error("Errore eliminazione gruppo " + id, e);
+        }
     }
 }

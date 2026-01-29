@@ -10,16 +10,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per le Recensioni.
- * <p>
- * Gestisce l'inserimento, il recupero e il calcolo della media voti.
- * </p>
+ * Implementazione dell'interfaccia {@link RecensioneDAO}.
+ * Gestisce la persistenza delle recensioni e l'invio di notifiche all'autore
+ * del post recensito.
  */
 public class RecensioneDAOImpl implements RecensioneDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
     private final PostDAOImpl postDAO = new PostDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Se la recensione viene creata con successo e il recensore non è l'autore del
+     * post,
+     * viene inviata una notifica all'autore del post.
+     * </p>
+     */
     @Override
     public void create(Recensione recensione) throws SQLException {
         boolean added = false;
@@ -53,6 +60,11 @@ public class RecensioneDAOImpl implements RecensioneDAO {
         }
     }
 
+    /**
+     * Notifica l'autore del post di una nuova recensione.
+     *
+     * @param r La recensione appena creata.
+     */
     private void sendRecensioneNotification(Recensione r) {
         try {
             it.univaq.brewhub.model.Post p = r.getPost();
@@ -80,6 +92,9 @@ public class RecensioneDAOImpl implements RecensioneDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Recensione> findByPost(int postId) throws SQLException {
         List<Recensione> recensioni = new ArrayList<>();
@@ -116,6 +131,9 @@ public class RecensioneDAOImpl implements RecensioneDAO {
         return recensioni;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM recensioni WHERE id = ?";
@@ -126,6 +144,9 @@ public class RecensioneDAOImpl implements RecensioneDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public double getAverageRating(int postId) throws SQLException {
         String sql = "SELECT AVG(voto) FROM recensioni WHERE post_id = ?";
@@ -141,6 +162,9 @@ public class RecensioneDAOImpl implements RecensioneDAO {
         return 0.0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean hasUserReviewed(int postId, String username) throws SQLException {
         String sql = "SELECT COUNT(*) FROM recensioni WHERE post_id = ? AND username = ?";

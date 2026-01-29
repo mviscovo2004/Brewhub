@@ -14,12 +14,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Componente riutilizzabile per la Sidebar laterale.
- *
- * Mostra le opzioni di navigazione (Home, Esplora, Profilo, ecc.) e evidenzia
- * la sezione attiva.
- * Utilizza una callback per gestire il cambio di vista nel componente padre.
- *
+ * Componente riutilizzabile per la Sidebar laterale di navigazione.
+ * Gestisce la visualizzazione dinamica delle categorie, dei pulsanti di
+ * navigazione
+ * e la gestione dello stato attivo della sezione corrente.
  */
 public class SidebarComponent extends ScrollPane {
 
@@ -34,6 +32,14 @@ public class SidebarComponent extends ScrollPane {
     private final it.univaq.brewhub.business.UserService userService = it.univaq.brewhub.business.UserService
             .getInstance();
 
+    /**
+     * Costruisce la sidebar.
+     *
+     * @param utente       L'utente attualmente loggato (per personalizzare le
+     *                     voci).
+     * @param onNavigation Callback invocato quando l'utente clicca su una voce di
+     *                     menu.
+     */
     public SidebarComponent(Utente utente, Consumer<String> onNavigation) {
         this.utenteLoggato = utente;
         this.onNavigation = onNavigation;
@@ -50,30 +56,42 @@ public class SidebarComponent extends ScrollPane {
         refresh();
     }
 
+    /**
+     * Ricarica il contenuto della sidebar, rigenerando i pulsanti e aggiornando i
+     * conteggi.
+     */
     public void refresh() {
         content.getChildren().clear();
 
         addLabel("FEEDS");
-        addNavButton("\uD83C\uDFE0  Home", "Home");
-        addNavButton("\uD83D\uDD25  Popolari", "Popolari");
+        addNavButton("🏠  Home", "Home");
+        addNavButton("🔥  Popolari", "Popolari");
 
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
-            addNavButton("\uD83D\uDC65  Seguiti", "Followed");
+            addNavButton("👥  Seguiti", "Followed");
         }
 
         addSeparator();
         addLabel("COMMUNITY");
-        addNavButton("\u2615  Torrefattori", "Torrefattori");
+        addNavButton("☕  Torrefattori", "Torrefattori");
+        addNavButton("📖  Guide", "Guide");
+        addNavButton("☕  Miscele", "Miscele");
 
         try {
             List<Categoria> cats = categoriaService.getAllCategories();
             for (Categoria c : cats) {
                 if (c.getNome().equalsIgnoreCase("Torrefattori"))
                     continue;
+                if (c.getNome().equalsIgnoreCase("Guide"))
+                    continue;
+                if (c.getNome().equalsIgnoreCase("Miscele"))
+                    continue;
                 if (c.getNome().equalsIgnoreCase("Eventi"))
-                    continue; // Gestiti separatamente
+                    continue;
+                if (c.getNome().equalsIgnoreCase("Sfide"))
+                    continue;
 
-                String icon = c.getIcona() != null && !c.getIcona().isBlank() ? c.getIcona() : "\uD83D\uDCC2";
+                String icon = c.getIcona() != null && !c.getIcona().isBlank() ? c.getIcona() : "📂";
                 addNavButton(icon + "  " + c.getNome(), c.getNome()); // Usa il nome categoria come chiave sezione
             }
         } catch (Exception e) {
@@ -82,41 +100,52 @@ public class SidebarComponent extends ScrollPane {
 
         addSeparator();
         addLabel("ATTIVITÀ");
-        addNavButton("\uD83C\uDF89  Eventi", "Eventi");
-        addNavButton("\uD83C\uDFC6  Sfide", "Sfide");
+        addNavButton("🎉  Eventi", "Eventi");
+        addNavButton("🏆  Sfide", "Sfide");
 
         if (utenteLoggato.getTipo() != Utente.TipoUtente.OSPITE) {
             addSeparator();
             addLabel("IL TUO PROFILO");
             // Profilo ha logica speciale (navigazione diretta, non refresh feed)
             // Per semplicità qui usiamo la chiave "Profilo" che HomeView dovrà intercettare
-            addNavButton("\uD83D\uDC64  Profilo", "Profilo");
-            addNavButton("\u2764  Mi piace", "MiPiace");
-            addNavButton("\uD83D\uDCAC  Messaggi", "Messaggi");
+            addNavButton("👤  Profilo", "Profilo");
+            addNavButton("❤  Mi piace", "MiPiace");
+            addNavButton("💬  Messaggi", "Messaggi");
 
             try {
                 int savedCount = userService.getSavedPostsCount(utenteLoggato.getUsername());
-                addNavButton("\u2B50  Salvati (" + savedCount + ")", "Salvati");
+                addNavButton("⭐  Salvati (" + savedCount + ")", "Salvati");
             } catch (Exception e) {
-                addNavButton("\u2B50  Salvati", "Salvati");
+                addNavButton("⭐  Salvati", "Salvati");
             }
 
             if (utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
                 addSeparator();
                 addLabel("AMMINISTRAZIONE");
-                addNavButton("\uD83D\uDCCA  Dashboard", "Dashboard");
-                addNavButton("\uD83D\uDC65  Gestione Utenti", "GestioneUtenti");
-                addNavButton("\uD83D\uDCC2  Gestione Categorie", "GestioneCategorie");
-                addNavButton("\uD83D\uDCC1  Gestione Database", "GestioneDB");
+                addNavButton("📊  Dashboard", "Dashboard");
+                addNavButton("👥  Gestione Utenti", "GestioneUtenti");
+                addNavButton("📂  Gestione Categorie", "GestioneCategorie");
+                addNavButton("🗂  Gestione Database", "GestioneDB");
             }
         }
     }
 
+    /**
+     * Imposta la sezione attualmente attiva ed evidenzia il relativo pulsante.
+     *
+     * @param section La chiave della sezione attiva.
+     */
     public void setActiveSection(String section) {
         this.currentSection = section;
         refresh(); // Ridisegna per aggiornare lo stato active
     }
 
+    /**
+     * Aggiunge un pulsante di navigazione alla sidebar.
+     *
+     * @param label      Il testo del pulsante.
+     * @param sectionKey La chiave identificativa della sezione.
+     */
     private void addNavButton(String label, String sectionKey) {
         Button btn = new Button(label);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -134,12 +163,18 @@ public class SidebarComponent extends ScrollPane {
         content.getChildren().add(btn);
     }
 
+    /**
+     * Aggiunge un'etichetta di sezione (header).
+     */
     private void addLabel(String text) {
         Label lbl = new Label(text);
         lbl.getStyleClass().add("sidebar-section-label");
         content.getChildren().add(lbl);
     }
 
+    /**
+     * Aggiunge un separatore visivo.
+     */
     private void addSeparator() {
         Region sep = new Region();
         sep.getStyleClass().add("custom-separator");

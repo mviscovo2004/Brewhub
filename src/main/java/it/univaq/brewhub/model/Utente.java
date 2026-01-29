@@ -4,51 +4,57 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Rappresenta un utente registrato nel sistema BrewHub.
- *
- * Questa classe è un POJO (Plain Old Java Object) che contiene le informazioni
- * anagrafiche,
- * le credenziali di accesso e le relazioni dell'utente (follower, following,
- * post salvati).
- *
+ * Classe che rappresenta un utente all'interno del sistema BrewHub.
+ * Contiene le informazioni personali, le credenziali e le relazioni sociali
+ * (follower, following).
  */
 public class Utente {
 
-  /** URI o percorso relativo dell'immagine del profilo dell'utente. */
+  /**
+   * URI dell'immagine profilo dell'utente.
+   */
   private String fotoProfilo;
 
-  /** Nome dell'utente. */
+  /**
+   * Nome dell'utente.
+   */
   private String nome;
 
-  /** Cognome dell'utente. */
+  /**
+   * Cognome dell'utente.
+   */
   private String cognome;
 
-  /** Username univoco che identifica l'utente nel sistema. */
+  /**
+   * Username univoco per l'accesso e l'identificazione nel sistema.
+   */
   private String username;
 
   /**
-   * Password in chiaro (utilizzata temporaneamente durante registrazione/login).
+   * Password in formato testo (utilizzata in fase di input).
    */
   private String password;
 
-  /** Hash della password (versione cifrata salvata nel database). */
+  /**
+   * Hash crittografico della password (per il salvataggio sicuro).
+   */
   private String pwCrypto;
 
   /**
-   * Enumerazione dei possibili ruoli o tipi di utente nel sistema.
+   * Enumerazione dei ruoli disponibili per gli utenti.
    */
   public enum TipoUtente {
-    /** Utente professionista del bar. */
+    /** Professionista Barista */
     BARISTA("Barista"),
-    /** Utente appassionato di caffè. */
+    /** Appassionato di caffè */
     APPASSIONATO("Appassionato"),
-    /** Azienda di torrefazione. */
+    /** Azienda Torrefattore */
     TORREFATTORE("Torrefattore"),
-    /** Utente generico interessato. */
+    /** Utente curioso */
     CURIOSO("Curioso"),
-    /** Amministratore del sistema. */
+    /** Amministratore */
     ADMIN("Admin"),
-    /** Utente non registrato o con accesso limitato. */
+    /** Utente ospite */
     OSPITE("Ospite");
 
     private final String label;
@@ -63,28 +69,36 @@ public class Utente {
     }
   }
 
-  /** Il ruolo dell'utente nel sistema. */
+  /**
+   * Ruolo dell'utente nel sistema.
+   */
   private TipoUtente tipo;
 
-  /** Lista dei post salvati nell'archivio personale dell'utente. */
+  /**
+   * Lista dei post salvati dall'utente.
+   */
   private List<Post> archivio = new ArrayList<>();
 
-  /** Lista degli utenti che seguono questo utente. */
+  /**
+   * Lista degli utenti che seguono questo utente.
+   */
   private List<Utente> follower = new ArrayList<>();
 
-  /** Lista degli utenti seguiti da questo utente. */
+  /**
+   * Lista degli utenti seguiti da questo utente.
+   */
   private List<Utente> following = new ArrayList<>();
 
   /**
-   * Costruttore vuoto predefinito.
+   * Costruttore predefinito.
    */
   public Utente() {
   }
 
   /**
-   * Costruttore per creare un utente ospite o temporaneo.
+   * Costruttore per utente ospite.
    * 
-   * @param username Lo username dell'utente.
+   * @param username L'username temporaneo.
    */
   public Utente(String username) {
     this.username = username;
@@ -93,13 +107,13 @@ public class Utente {
   }
 
   /**
-   * Costruttore completo per inizializzare un nuovo utente.
+   * Costruttore completo per creare un nuovo utente.
    * 
-   * @param nome        Il nome dell'utente.
-   * @param cognome     Il cognome dell'utente.
-   * @param username    Lo username univoco.
-   * @param password    La password in chiaro.
-   * @param tipo        Il ruolo dell'utente.
+   * @param nome        Il nome.
+   * @param cognome     Il cognome.
+   * @param username    Lo username.
+   * @param password    La password.
+   * @param tipo        Il ruolo.
    * @param fotoProfilo L'URI della foto profilo.
    */
   public Utente(String nome, String cognome, String username, String password, TipoUtente tipo, String fotoProfilo) {
@@ -112,8 +126,8 @@ public class Utente {
   }
 
   /**
-   * Restituisce un nuovo Builder per creare istanze di Utente in modo fluente.
-   * 
+   * Restituisce un Builder per la creazione fluente di oggetti Utente.
+   *
    * @return Un'istanza di {@link Builder}.
    */
   public static Builder builder() {
@@ -121,8 +135,7 @@ public class Utente {
   }
 
   /**
-   * Pattern Builder per la classe Utente.
-   * Permette una costruzione più leggibile e flessibile dell'oggetto.
+   * Pattern Builder per facilitare la creazione di oggetti Utente complessi.
    */
   public static class Builder {
     private String fotoProfilo;
@@ -130,7 +143,7 @@ public class Utente {
     private String cognome;
     private String username;
     private String password;
-    private TipoUtente tipo = TipoUtente.APPASSIONATO; // Default
+    private TipoUtente tipo = TipoUtente.APPASSIONATO; // Valore di default
 
     public Builder withFotoProfilo(String fotoProfilo) {
       this.fotoProfilo = fotoProfilo;
@@ -167,11 +180,11 @@ public class Utente {
     }
   }
 
-  // --- GETTER ---
+  // --- Getter ---
 
   /**
    * Restituisce il nome dell'utente.
-   * 
+   *
    * @return Il nome.
    */
   public String getNome() {
@@ -180,7 +193,7 @@ public class Utente {
 
   /**
    * Restituisce il cognome dell'utente.
-   * 
+   *
    * @return Il cognome.
    */
   public String getCognome() {
@@ -189,7 +202,7 @@ public class Utente {
 
   /**
    * Restituisce lo username dell'utente.
-   * 
+   *
    * @return Lo username.
    */
   public String getUsername() {
@@ -197,17 +210,17 @@ public class Utente {
   }
 
   /**
-   * Restituisce la password in chiaro.
-   * 
-   * @return La password in chiaro.
+   * Restituisce la password in chiaro dell'utente.
+   *
+   * @return La password.
    */
   public String getPassword() {
     return password;
   }
 
   /**
-   * Restituisce l'hash cifrato della password.
-   * 
+   * Restituisce la password in formato hash cifrato.
+   *
    * @return La password cifrata.
    */
   public String getPasswordCrypto() {
@@ -215,37 +228,37 @@ public class Utente {
   }
 
   /**
-   * Restituisce il tipo (ruolo) dell'utente.
-   * 
-   * @return Il {@link TipoUtente}.
+   * Restituisce il ruolo dell'utente.
+   *
+   * @return Il tipo di utente.
    */
   public TipoUtente getTipo() {
     return tipo;
   }
 
   /**
-   * Restituisce la lista completa dei post salvati.
-   * 
-   * @return Lista di {@link Post}.
+   * Restituisce la lista dei post salvati.
+   *
+   * @return La lista dell'archivio.
    */
   public List<Post> getArchivio() {
     return archivio;
   }
 
   /**
-   * Ottiene un singolo post dall'archivio in base all'indice.
-   * 
+   * Restituisce un singolo post dall'archivio.
+   *
    * @param i L'indice del post.
-   * @return Il post corrispondente.
+   * @return Il post.
    */
   public Post getSingoloPost(int i) {
     return archivio.get(i);
   }
 
   /**
-   * Restituisce il numero totale di post salvati.
-   * 
-   * @return Il conteggio dei post.
+   * Restituisce il numero di post salvati.
+   *
+   * @return La dimensione dell'archivio.
    */
   public int getNumPost() {
     return archivio.size();
@@ -253,16 +266,16 @@ public class Utente {
 
   /**
    * Restituisce la lista dei follower.
-   * 
-   * @return Lista di {@link Utente}.
+   *
+   * @return La lista dei follower.
    */
   public List<Utente> getFollower() {
     return follower;
   }
 
   /**
-   * Ottiene un singolo follower in base all'indice.
-   * 
+   * Restituisce un singolo follower.
+   *
    * @param i L'indice.
    * @return L'utente follower.
    */
@@ -271,9 +284,9 @@ public class Utente {
   }
 
   /**
-   * Restituisce il numero totale di follower.
-   * 
-   * @return Il conteggio dei follower.
+   * Restituisce il numero di follower.
+   *
+   * @return La dimensione della lista follower.
    */
   public int getNumFollower() {
     return follower.size();
@@ -281,16 +294,16 @@ public class Utente {
 
   /**
    * Restituisce la lista degli utenti seguiti (following).
-   * 
-   * @return Lista di {@link Utente}.
+   *
+   * @return La lista following.
    */
   public List<Utente> getFollowing() {
     return following;
   }
 
   /**
-   * Ottiene un singolo utente seguito in base all'indice.
-   * 
+   * Restituisce un singolo utente seguito.
+   *
    * @param i L'indice.
    * @return L'utente seguito.
    */
@@ -299,28 +312,28 @@ public class Utente {
   }
 
   /**
-   * Restituisce il numero totale di utenti seguiti.
-   * 
-   * @return Il conteggio dei following.
+   * Restituisce il numero di utenti seguiti.
+   *
+   * @return La dimensione della lista following.
    */
   public int getNumFollowing() {
     return following.size();
   }
 
   /**
-   * Restituisce il percorso della foto profilo.
-   * 
-   * @return URI o path della foto.
+   * Restituisce l'URI della foto profilo.
+   *
+   * @return Il percorso della foto.
    */
   public String getFotoProfilo() {
     return fotoProfilo;
   }
 
-  // --- SETTER ---
+  // --- Setter ---
 
   /**
    * Imposta il nome dell'utente.
-   * 
+   *
    * @param nome Il nuovo nome.
    */
   public void setNome(String nome) {
@@ -329,7 +342,7 @@ public class Utente {
 
   /**
    * Imposta il cognome dell'utente.
-   * 
+   *
    * @param cognome Il nuovo cognome.
    */
   public void setCognome(String cognome) {
@@ -338,7 +351,7 @@ public class Utente {
 
   /**
    * Imposta lo username dell'utente.
-   * 
+   *
    * @param username Il nuovo username.
    */
   public void setUsername(String username) {
@@ -346,8 +359,8 @@ public class Utente {
   }
 
   /**
-   * Imposta la password in chiaro.
-   * 
+   * Imposta la password dell'utente.
+   *
    * @param password La nuova password.
    */
   public void setPassword(String password) {
@@ -355,28 +368,28 @@ public class Utente {
   }
 
   /**
-   * Imposta la password cifrata.
-   * 
-   * @param pwCrypto L'hash della password.
+   * Imposta l'hash della password.
+   *
+   * @param pwCrypto La password cifrata.
    */
   public void setPasswordCrypto(String pwCrypto) {
     this.pwCrypto = pwCrypto;
   }
 
   /**
-   * Imposta l'elenco dei post salvati.
-   * 
-   * @param archivio La nuova lista di post.
+   * Imposta la lista dei post salvati.
+   *
+   * @param archivio La nuova lista.
    */
   public void setArchivio(List<Post> archivio) {
     this.archivio = archivio;
   }
 
   /**
-   * Aggiorna un post specifico nell'archivio.
-   * 
+   * Sostituisce un post nell'archivio.
+   *
    * @param post Il nuovo post.
-   * @param i    L'indice da aggiornare.
+   * @param i    L'indice.
    */
   public void setSingoloPost(Post post, int i) {
     archivio.set(i, post);
@@ -384,55 +397,55 @@ public class Utente {
 
   /**
    * Imposta la lista dei follower.
-   * 
-   * @param follower La nuova lista di follower.
+   *
+   * @param follower La nuova lista.
    */
   public void setFollower(List<Utente> follower) {
     this.follower = follower;
   }
 
   /**
-   * Aggiorna un follower specifico nella lista.
-   * 
-   * @param utente L'utente da inserire.
-   * @param i      L'indice da aggiornare.
+   * Sostituisce un follower nella lista.
+   *
+   * @param utente L'utente.
+   * @param i      L'indice.
    */
   public void setSingoloFollower(Utente utente, int i) {
     follower.set(i, utente);
   }
 
   /**
-   * Imposta la lista degli utenti seguiti.
-   * 
-   * @param following La nuova lista di following.
+   * Imposta la lista dei following.
+   *
+   * @param following La nuova lista.
    */
   public void setFollowing(List<Utente> following) {
     this.following = following;
   }
 
   /**
-   * Aggiorna un utente seguito specifico nella lista.
-   * 
-   * @param utente L'utente da inserire.
-   * @param i      L'indice da aggiornare.
+   * Sostituisce un following nella lista.
+   *
+   * @param utente L'utente.
+   * @param i      L'indice.
    */
   public void setSingoloFollowing(Utente utente, int i) {
     following.set(i, utente);
   }
 
   /**
-   * Imposta il tipo (ruolo) dell'utente.
-   * 
-   * @param tipo Il nuovo {@link TipoUtente}.
+   * Imposta il ruolo dell'utente.
+   *
+   * @param tipo Il nuovo tipo.
    */
   public void setTipo(TipoUtente tipo) {
     this.tipo = tipo;
   }
 
   /**
-   * Imposta la foto profilo.
-   * 
-   * @param fotoProfilo Il percorso della nuova foto.
+   * Imposta l'URI della foto profilo.
+   *
+   * @param fotoProfilo Il nuovo percorso.
    */
   public void setFotoProfilo(String fotoProfilo) {
     this.fotoProfilo = fotoProfilo;

@@ -1,19 +1,36 @@
 package it.univaq.brewhub.model;
 
 /**
- * Modello specifico per l'utente di tipo Torrefattore.
- * Estende {@link Utente} aggiungendo dettagli aziendali.
+ * Modello specifico per l'utente di tipo 'Torrefattore'.
+ * Estende la classe base {@link Utente} aggiungendo informazioni aziendali
+ * come Partita IVA, indirizzo, nome azienda e descrizione.
  */
 public class Torrefattore extends Utente {
 
+    /**
+     * Nome ufficiale dell'azienda di torrefazione.
+     */
     private String nomeAzienda;
+
+    /**
+     * Partita IVA dell'azienda.
+     */
     private String partitaIva;
+
+    /**
+     * Indirizzo fisico della sede aziendale.
+     */
     private String indirizzo;
+
+    /**
+     * Descrizione dell'azienda e delle sue attività.
+     */
     private String descrizione;
 
     /**
-     * Costruttore vuoto.
-     * Imposta automaticamente il tipo a TORREFATTORE.
+     * Costruttore predefinito.
+     * Inizializza automaticamente il tipo di utente a
+     * {@link TipoUtente#TORREFATTORE}.
      */
     public Torrefattore() {
         super();
@@ -21,17 +38,17 @@ public class Torrefattore extends Utente {
     }
 
     /**
-     * Costruttore completo.
+     * Costruttore completo per creare un nuovo profilo Torrefattore.
      * 
-     * @param nome          Nome del referente.
-     * @param cognome       Cognome del referente.
-     * @param username      Username.
-     * @param password      Password.
-     * @param fotoProfilo   Foto profilo.
-     * @param partitaIva    Partita IVA azienda.
-     * @param indirizzo     Indirizzo azienda.
-     * @param descrizione   Descrizione azienda.
-     * @param nomeAzienda   Nome dell'azienda.
+     * @param nome        Nome del referente (personale).
+     * @param cognome     Cognome del referente (personale).
+     * @param username    Username di accesso.
+     * @param password    Password di accesso.
+     * @param fotoProfilo URI della foto profilo.
+     * @param partitaIva  Partita IVA dell'azienda.
+     * @param indirizzo   Indirizzo della sede.
+     * @param descrizione Descrizione aziendale.
+     * @param nomeAzienda Nome dell'azienda.
      */
     public Torrefattore(String nome, String cognome, String username, String password, String fotoProfilo,
             String partitaIva, String indirizzo, String descrizione, String nomeAzienda) {
@@ -43,7 +60,8 @@ public class Torrefattore extends Utente {
     }
 
     /**
-     * Restituisce la Partita IVA.
+     * Restituisce la Partita IVA dell'azienda.
+     *
      * @return La Partita IVA.
      */
     public String getPartitaIva() {
@@ -51,7 +69,8 @@ public class Torrefattore extends Utente {
     }
 
     /**
-     * Imposta la Partita IVA.
+     * Imposta la Partita IVA dell'azienda.
+     *
      * @param partitaIva La nuova Partita IVA.
      */
     public void setPartitaIva(String partitaIva) {
@@ -59,7 +78,8 @@ public class Torrefattore extends Utente {
     }
 
     /**
-     * Restituisce l'indirizzo dell'azienda.
+     * Restituisce l'indirizzo della sede aziendale.
+     *
      * @return L'indirizzo.
      */
     public String getIndirizzo() {
@@ -67,7 +87,8 @@ public class Torrefattore extends Utente {
     }
 
     /**
-     * Imposta l'indirizzo dell'azienda.
+     * Imposta l'indirizzo della sede aziendale.
+     *
      * @param indirizzo Il nuovo indirizzo.
      */
     public void setIndirizzo(String indirizzo) {
@@ -76,7 +97,8 @@ public class Torrefattore extends Utente {
 
     /**
      * Restituisce la descrizione dell'azienda.
-     * @return La descrizione.
+     *
+     * @return Il testo della descrizione.
      */
     public String getDescrizione() {
         return descrizione;
@@ -84,6 +106,7 @@ public class Torrefattore extends Utente {
 
     /**
      * Imposta la descrizione dell'azienda.
+     *
      * @param descrizione La nuova descrizione.
      */
     public void setDescrizione(String descrizione) {
@@ -92,7 +115,8 @@ public class Torrefattore extends Utente {
 
     /**
      * Restituisce il nome dell'azienda.
-     * @return Il nome azienda.
+     *
+     * @return Il nome dell'azienda.
      */
     public String getNomeAzienda() {
         return nomeAzienda;
@@ -100,6 +124,7 @@ public class Torrefattore extends Utente {
 
     /**
      * Imposta il nome dell'azienda.
+     *
      * @param nomeAzienda Il nuovo nome azienda.
      */
     public void setNomeAzienda(String nomeAzienda) {

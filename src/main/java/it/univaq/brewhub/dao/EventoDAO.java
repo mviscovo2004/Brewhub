@@ -5,69 +5,79 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Interfaccia DAO per la gestione degli Eventi.
+ * Interfaccia DAO per la gestione degli {@link Evento}.
+ * Gestisce la creazione degli eventi, il recupero e la gestione delle
+ * partecipazioni degli utenti.
  */
 public interface EventoDAO {
 
     /**
-     * Crea un nuovo evento.
-     * @param evento L'evento da creare.
-     * @throws SQLException Errore SQL.
+     * Crea un nuovo evento nel database.
+     *
+     * @param evento L'oggetto Evento da salvare.
+     * @throws SQLException Se si verifica un errore durante l'inserimento.
      */
     void create(Evento evento) throws SQLException;
 
     /**
-     * Recupera tutti gli eventi disponibili.
-     * @return Lista di eventi.
-     * @throws SQLException Errore SQL.
+     * Recupera la lista di tutti gli eventi disponibili.
+     *
+     * @return Una lista di oggetti Evento.
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     List<Evento> findAll() throws SQLException;
 
     /**
-     * Cerca un evento per ID.
-     * @param id L'ID dell'evento.
-     * @return L'evento trovato o null.
-     * @throws SQLException Errore SQL.
+     * Cerca un evento specifico tramite il suo ID.
+     *
+     * @param id L'identificativo dell'evento.
+     * @return L'oggetto Evento trovato, o null se non esiste.
+     * @throws SQLException Se si verifica un errore durante la ricerca.
      */
     Evento findById(int id) throws SQLException;
 
     /**
-     * Registra un utente come partecipante a un evento.
-     * @param eventoId ID dell'evento.
-     * @param username Username del partecipante.
-     * @throws SQLException Errore SQL.
+     * Aggiunge un utente alla lista dei partecipanti di un evento.
+     *
+     * @param eventoId L'identificativo dell'evento.
+     * @param username L'username dell'utente partecipante.
+     * @throws SQLException Se l'utente è già iscritto o si verifica un errore.
      */
     void addPartecipante(int eventoId, String username) throws SQLException;
 
     /**
-     * Rimuove un utente dai partecipanti di un evento.
-     * @param eventoId ID dell'evento.
-     * @param username Username da rimuovere.
-     * @throws SQLException Errore SQL.
+     * Rimuove un utente dalla lista dei partecipanti di un evento.
+     *
+     * @param eventoId L'identificativo dell'evento.
+     * @param username L'username dell'utente da rimuovere.
+     * @throws SQLException Se si verifica un errore durante l'operazione.
      */
     void removePartecipante(int eventoId, String username) throws SQLException;
 
     /**
-     * Verifica se un utente partecipa a un evento.
-     * @param eventoId ID evento.
-     * @param username Username.
-     * @return true se partecipa, false altrimenti.
-     * @throws SQLException Errore SQL.
+     * Verifica se un utente è iscritto a un determinato evento.
+     *
+     * @param eventoId L'identificativo dell'evento.
+     * @param username L'username dell'utente.
+     * @return true se l'utente partecipa, false altrimenti.
+     * @throws SQLException Se si verifica un errore durante la verifica.
      */
     boolean isPartecipante(int eventoId, String username) throws SQLException;
 
     /**
-     * Conta i partecipanti a un evento.
-     * @param eventoId ID evento.
-     * @return Numero di partecipanti.
-     * @throws SQLException Errore SQL.
+     * Restituisce il numero totale di partecipanti iscritti a un evento.
+     *
+     * @param eventoId L'identificativo dell'evento.
+     * @return Il numero di partecipanti.
+     * @throws SQLException Se si verifica un errore durante il conteggio.
      */
     int getPartecipantiCount(int eventoId) throws SQLException;
 
     /**
-     * Elimina un evento.
-     * @param id ID dell'evento.
-     * @throws SQLException Errore SQL.
+     * Elimina un evento dal sistema.
+     *
+     * @param id L'identificativo dell'evento da eliminare.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione.
      */
     void delete(int id) throws SQLException;
 }

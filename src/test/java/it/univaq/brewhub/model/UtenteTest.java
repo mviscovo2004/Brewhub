@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -207,8 +208,8 @@ public class UtenteTest extends BaseTest {
         String uBot = "test_bot_" + System.currentTimeMillis();
         Utente top = createTestUser(uTop, TipoUtente.CURIOSO);
         createTestUser(uBot, TipoUtente.CURIOSO);
-        createTestPost("T1", top);
-        createTestPost("T2", top);
+        Post p1 = createTestPost("T1", top);
+        Post p2 = createTestPost("T2", top);
         java.util.List<Utente> toplist = utenteDAO.findTopActiveUsers(100);
         int topRank = -1;
         int botRank = -1;
@@ -223,6 +224,8 @@ public class UtenteTest extends BaseTest {
             assertTrue(topRank < botRank,
                     "Top user (2 posts) must be ranked higher/earlier than Bottom user (0 posts)");
         }
+        postDAO.delete(p1.getId());
+        postDAO.delete(p2.getId());
         utenteDAO.delete(uTop);
         utenteDAO.delete(uBot);
     }

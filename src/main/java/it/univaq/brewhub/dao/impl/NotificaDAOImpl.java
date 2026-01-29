@@ -13,10 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per le Notifiche.
+ * Implementazione dell'interfaccia {@link NotificaDAO}.
+ * Gestisce la persistenza delle notifiche e le operazioni di aggiornamento
+ * dello stato di lettura.
  */
 public class NotificaDAOImpl implements NotificaDAO {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(Notifica notifica) throws SQLException {
         String sql = "INSERT INTO notifiche(utente_username, messaggio, letto, data_creazione) VALUES(?, ?, ?, ?)";
@@ -37,10 +42,13 @@ public class NotificaDAOImpl implements NotificaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Notifica> findByUser(String username) throws SQLException {
         List<Notifica> result = new ArrayList<>();
-        String sql = "SELECT * FROM notifiche WHERE utente_username = ? ORDER BY data_creazione DESC"; 
+        String sql = "SELECT * FROM notifiche WHERE utente_username = ? ORDER BY data_creazione DESC";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -61,6 +69,9 @@ public class NotificaDAOImpl implements NotificaDAO {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void markAsRead(int id) throws SQLException {
         String sql = "UPDATE notifiche SET letto = 1 WHERE id = ?";
@@ -71,6 +82,9 @@ public class NotificaDAOImpl implements NotificaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getUnreadCount(String username) throws SQLException {
         String sql = "SELECT COUNT(*) FROM notifiche WHERE utente_username = ? AND letto = 0";
@@ -85,6 +99,9 @@ public class NotificaDAOImpl implements NotificaDAO {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM notifiche WHERE id = ?";
@@ -95,6 +112,9 @@ public class NotificaDAOImpl implements NotificaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAll(String username) throws SQLException {
         String sql = "DELETE FROM notifiche WHERE utente_username = ?";
@@ -105,10 +125,13 @@ public class NotificaDAOImpl implements NotificaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Notifica> findAllUnread(String username) throws SQLException {
         List<Notifica> result = new ArrayList<>();
-        String sql = "SELECT * FROM notifiche WHERE utente_username = ? AND letto = 0 ORDER BY data_creazione DESC"; 
+        String sql = "SELECT * FROM notifiche WHERE utente_username = ? AND letto = 0 ORDER BY data_creazione DESC";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -127,5 +150,18 @@ public class NotificaDAOImpl implements NotificaDAO {
             }
         }
         return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void markAllAsRead(String username) throws SQLException {
+        String sql = "UPDATE notifiche SET letto = 1 WHERE utente_username = ? AND letto = 0";
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+        }
     }
 }

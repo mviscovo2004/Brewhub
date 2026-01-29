@@ -7,21 +7,24 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Utility per eseguire operazioni asincrone in JavaFX.
- * <p>
- * Fornisce metodi helper per eseguire task in background e aggiornare
- * l'UI nel thread JavaFX Application Thread.
- * </p>
+ * Classe di utilità per la gestione della concorrenza in JavaFX.
+ * Permette di eseguire operazioni lunghe in un thread di background per non
+ * bloccare
+ * l'interfaccia utente (UI Thread), e di gestire i risultati o gli errori
+ * nuovamente nel thread principale dell'UI.
  */
 public class AsyncTaskHelper {
 
     /**
-     * Esegue un'operazione in background e gestisce il risultato nell'UI thread.
-     * 
-     * @param <T>            Tipo del risultato
-     * @param backgroundTask Operazione da eseguire in background
-     * @param onSuccess      Callback eseguito in caso di successo (UI thread)
-     * @param onError        Callback eseguito in caso di errore (UI thread)
+     * Esegue un task asincrono che restituisce un risultato.
+     *
+     * @param <T>            Il tipo del risultato restituito dal task.
+     * @param backgroundTask La logica da eseguire in un thread separato
+     *                       (background).
+     * @param onSuccess      Il callback da eseguire nel thread UI se l'operazione
+     *                       ha successo.
+     * @param onError        Il callback da eseguire nel thread UI se si verifica
+     *                       un'eccezione.
      */
     public static <T> void runAsync(
             Supplier<T> backgroundTask,
@@ -55,11 +58,13 @@ public class AsyncTaskHelper {
     }
 
     /**
-     * Esegue un'operazione in background senza risultato.
-     * 
-     * @param backgroundTask Operazione da eseguire in background
-     * @param onSuccess      Callback eseguito in caso di successo (UI thread)
-     * @param onError        Callback eseguito in caso di errore (UI thread)
+     * Esegue un task asincrono che non restituisce alcun risultato (void).
+     *
+     * @param backgroundTask La logica da eseguire in background.
+     * @param onSuccess      Il callback da eseguire nel thread UI al termine
+     *                       dell'operazione.
+     * @param onError        Il callback da eseguire nel thread UI in caso di
+     *                       errore.
      */
     public static void runAsync(
             Runnable backgroundTask,
@@ -76,12 +81,13 @@ public class AsyncTaskHelper {
     }
 
     /**
-     * Esegue un'operazione in background con solo gestione successo.
-     * Gli errori vengono loggati ma non gestiti.
-     * 
-     * @param <T>            Tipo del risultato
-     * @param backgroundTask Operazione da eseguire in background
-     * @param onSuccess      Callback eseguito in caso di successo (UI thread)
+     * Esegue un task asincrono gestendo solo il caso di successo.
+     * Gli errori vengono loggati ma non gestiti esplicitamente dal chiamante.
+     *
+     * @param <T>            Il tipo del risultato.
+     * @param backgroundTask La logica da eseguire in background.
+     * @param onSuccess      Il callback da eseguire nel thread UI in caso di
+     *                       successo.
      */
     public static <T> void runAsync(
             Supplier<T> backgroundTask,
@@ -90,6 +96,6 @@ public class AsyncTaskHelper {
         runAsync(
                 backgroundTask,
                 onSuccess,
-                error -> Log.error("Errore in operazione asincrona", error));
+                error -> Log.error("Errore generico in operazione asincrona", error));
     }
 }

@@ -1,6 +1,5 @@
 package it.univaq.brewhub.utility;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.sql.Connection;
@@ -18,6 +17,39 @@ import org.junit.jupiter.api.io.TempDir;
 public class DatabaseManagerTest {
     @TempDir
     File tempDir;
+
+    @org.junit.jupiter.api.AfterEach
+    public void tearDown() {
+        DatabaseManager.shutdown();
+        System.gc();
+
+        // Pulizia file specifici creati dai test
+        String[] testDbs = { "temp_test_db_config.db", "temp_test_db_init.db" };
+        for (String name : testDbs) {
+            File f = new File(tempDir, name);
+            if (f.exists()) {
+                deleteWithRetry(f);
+                deleteWithRetry(new File(f.getAbsolutePath() + "-shm"));
+                deleteWithRetry(new File(f.getAbsolutePath() + "-wal"));
+            }
+        }
+    }
+
+    private void deleteWithRetry(File file) {
+        if (!file.exists())
+            return;
+        for (int i = 0; i < 10; i++) {
+            if (file.delete())
+                return;
+            try {
+                System.gc();
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
 
     @Test
     public void testConfigureTestDatabase() {

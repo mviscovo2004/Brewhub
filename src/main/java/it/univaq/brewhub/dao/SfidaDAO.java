@@ -5,69 +5,78 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Interfaccia DAO per la gestione delle Sfide.
+ * Interfaccia DAO per la gestione delle {@link Sfida} (contest) tra utenti.
+ * Gestisce la creazione delle sfide e le iscrizioni dei partecipanti.
  */
 public interface SfidaDAO {
 
     /**
      * Crea una nuova sfida.
-     * @param sfida La sfida da creare.
-     * @throws SQLException Errore SQL.
+     *
+     * @param sfida L'oggetto Sfida da salvare.
+     * @throws SQLException Se si verifica un errore durante la creazione.
      */
     void create(Sfida sfida) throws SQLException;
 
     /**
-     * Recupera tutte le sfide.
-     * @return Lista di sfide.
-     * @throws SQLException Errore SQL.
+     * Recupera l'elenco di tutte le sfide presenti nel sistema.
+     *
+     * @return Una lista di sfide.
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     List<Sfida> findAll() throws SQLException;
 
     /**
-     * Cerca una sfida per ID.
-     * @param id ID sfida.
-     * @return Sfida trovata o null.
-     * @throws SQLException Errore SQL.
+     * Cerca una sfida specifica tramite il suo ID.
+     *
+     * @param id L'identificativo della sfida.
+     * @return La sfida trovata, oppure null se non esiste.
+     * @throws SQLException Se si verifica un errore durante la ricerca.
      */
     Sfida findById(int id) throws SQLException;
 
     /**
-     * Iscrive un utente a una sfida.
-     * @param sfidaId ID sfida.
-     * @param username Username partecipante.
-     * @throws SQLException Errore SQL.
+     * Aggiunge un utente alla lista dei partecipanti di una sfida.
+     *
+     * @param sfidaId  L'identificativo della sfida.
+     * @param username L'username del partecipante.
+     * @throws SQLException Se l'utente è già iscritto o si verifica un errore.
      */
     void addPartecipante(int sfidaId, String username) throws SQLException;
 
     /**
-     * Rimuove un partecipante dalla sfida.
-     * @param sfidaId ID sfida.
-     * @param username Username.
-     * @throws SQLException Errore SQL.
+     * Rimuove un utente dalla lista dei partecipanti di una sfida.
+     *
+     * @param sfidaId  L'identificativo della sfida.
+     * @param username L'username del partecipante da rimuovere.
+     * @throws SQLException Se si verifica un errore durante l'operazione.
      */
     void removePartecipante(int sfidaId, String username) throws SQLException;
 
     /**
-     * Verifica partecipazione.
-     * @param sfidaId ID sfida.
-     * @param username Username.
-     * @return true se partecipa.
-     * @throws SQLException Errore SQL.
+     * Verifica se un utente è iscritto a una determinata sfida.
+     *
+     * @param sfidaId  L'identificativo della sfida.
+     * @param username L'username dell'utente.
+     * @return true se l'utente partecipa, false altrimenti.
+     * @throws SQLException Se si verifica un errore durante la verifica.
      */
     boolean isPartecipante(int sfidaId, String username) throws SQLException;
 
     /**
-     * Conta partecipanti.
-     * @param sfidaId ID sfida.
-     * @return Numero partecipanti.
-     * @throws SQLException Errore SQL.
+     * Calcola il numero totale di partecipanti a una sfida.
+     *
+     * @param sfidaId L'identificativo della sfida.
+     * @return Il numero di partecipanti.
+     * @throws SQLException Se si verifica un errore durante il conteggio.
      */
     int getPartecipantiCount(int sfidaId) throws SQLException;
 
     /**
-     * Elimina sfida.
-     * @param id ID sfida.
-     * @throws SQLException Errore SQL.
+     * Elimina una sfida dal sistema.
+     *
+     * @param id L'identificativo della sfida da eliminare.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione.
      */
     void delete(int id) throws SQLException;
 }

@@ -1,31 +1,55 @@
 package it.univaq.brewhub.model;
 
 /**
- * Rappresenta una recensione lasciata su un post.
+ * Classe che rappresenta una recensione (voto e commento) lasciata su un post.
+ * Le recensioni permettono di valutare contenuti come miscele o eventi.
  */
 public class Recensione {
 
+    /**
+     * Identificativo univoco della recensione.
+     */
     private int id;
+
+    /**
+     * Il post oggetto della recensione.
+     */
     private Post post;
+
+    /**
+     * L'utente che ha scritto la recensione.
+     */
     private Utente autore;
+
+    /**
+     * Il voto assegnato (tipicamente in una scala da 1 a 5).
+     */
     private int voto;
+
+    /**
+     * Il testo opzionale della recensione.
+     */
     private String testo;
+
+    /**
+     * La data di creazione della recensione (formato stringa).
+     */
     private String dataCreazione;
 
     /**
-     * Costruttore vuoto.
+     * Costruttore predefinito.
      */
     public Recensione() {
     }
 
     /**
-     * Costruttore completo.
+     * Costruttore completo per creare una recensione.
      * 
-     * @param post          Il post recensito.
-     * @param autore        L'autore della recensione.
-     * @param voto          Il voto (da 1 a 5).
+     * @param post          Il post a cui si riferisce la recensione.
+     * @param autore        L'utente autore della recensione.
+     * @param voto          Il voto numerico assegnato.
      * @param testo         Il commento testuale.
-     * @param dataCreazione La data di creazione.
+     * @param dataCreazione La data di creazione come stringa.
      */
     public Recensione(Post post, Utente autore, int voto, String testo, String dataCreazione) {
         this.post = post;
@@ -37,7 +61,7 @@ public class Recensione {
 
     /**
      * Restituisce l'ID della recensione.
-     * 
+     *
      * @return L'identificativo.
      */
     public int getId() {
@@ -46,8 +70,8 @@ public class Recensione {
 
     /**
      * Imposta l'ID della recensione.
-     * 
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
@@ -55,8 +79,8 @@ public class Recensione {
 
     /**
      * Restituisce il post recensito.
-     * 
-     * @return L'oggetto {@link Post}.
+     *
+     * @return L'oggetto Post.
      */
     public Post getPost() {
         return post;
@@ -64,7 +88,7 @@ public class Recensione {
 
     /**
      * Imposta il post recensito.
-     * 
+     *
      * @param post Il nuovo post.
      */
     public void setPost(Post post) {
@@ -73,8 +97,8 @@ public class Recensione {
 
     /**
      * Restituisce l'autore della recensione.
-     * 
-     * @return L'oggetto {@link Utente}.
+     *
+     * @return L'oggetto Utente.
      */
     public Utente getAutore() {
         return autore;
@@ -82,7 +106,7 @@ public class Recensione {
 
     /**
      * Imposta l'autore della recensione.
-     * 
+     *
      * @param autore Il nuovo autore.
      */
     public void setAutore(Utente autore) {
@@ -91,16 +115,16 @@ public class Recensione {
 
     /**
      * Restituisce il voto assegnato.
-     * 
-     * @return Il voto (intero).
+     *
+     * @return Il valore del voto.
      */
     public int getVoto() {
         return voto;
     }
 
     /**
-     * Imposta il voto.
-     * 
+     * Imposta il voto della recensione.
+     *
      * @param voto Il nuovo voto.
      */
     public void setVoto(int voto) {
@@ -109,8 +133,8 @@ public class Recensione {
 
     /**
      * Restituisce il testo della recensione.
-     * 
-     * @return Il commento.
+     *
+     * @return Il commento testuale.
      */
     public String getTesto() {
         return testo;
@@ -118,8 +142,8 @@ public class Recensione {
 
     /**
      * Imposta il testo della recensione.
-     * 
-     * @param testo Il nuovo commento.
+     *
+     * @param testo Il nuovo testo.
      */
     public void setTesto(String testo) {
         this.testo = testo;
@@ -127,7 +151,7 @@ public class Recensione {
 
     /**
      * Restituisce la data di creazione.
-     * 
+     *
      * @return La data come stringa.
      */
     public String getDataCreazione() {
@@ -136,7 +160,7 @@ public class Recensione {
 
     /**
      * Imposta la data di creazione.
-     * 
+     *
      * @param dataCreazione La nuova data.
      */
     public void setDataCreazione(String dataCreazione) {

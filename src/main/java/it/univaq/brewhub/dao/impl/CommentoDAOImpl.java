@@ -15,13 +15,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per i Commenti.
- * <p>Gestisce anche l'invio automatico delle notifiche all'autore del post.</p>
+ * Implementazione dell'interfaccia {@link CommentoDAO}.
+ * Gestisce la persistenza dei commenti e l'invio automatico delle notifiche
+ * agli autori dei post.
  */
 public class CommentoDAOImpl implements CommentoDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Questo metodo si occupa anche di generare una notifica per l'autore del post
+     * commentato.
+     * </p>
+     */
     @Override
     public void create(Commento commento) throws SQLException {
         if (commento.getPost() == null || commento.getPost().getId() == 0) {
@@ -84,6 +92,9 @@ public class CommentoDAOImpl implements CommentoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Commento> findByPostId(int postId) throws SQLException {
         Post dummyPost = new Post();
@@ -92,7 +103,11 @@ public class CommentoDAOImpl implements CommentoDAO {
     }
 
     /**
-     * Metodo helper (o overloaded) per trovare commenti dato un oggetto Post.
+     * Recupera i commenti per un dato post.
+     *
+     * @param post L'oggetto Post.
+     * @return La lista dei commenti.
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     public List<Commento> findByPost(Post post) throws SQLException {
         List<Commento> commenti = new ArrayList<>();
@@ -110,12 +125,12 @@ public class CommentoDAOImpl implements CommentoDAO {
                     c.setPost(post);
                     c.setContenuto(rs.getString("contenuto"));
                     c.setDataCreazione(LocalDateTime.parse(rs.getString("data_creazione")));
-                    
+
                     // Mappa l'utente in modo lazy (solo username)
                     Utente u = new Utente();
                     u.setUsername(rs.getString("username"));
                     c.setUtente(u);
-                    
+
                     commenti.add(c);
                 }
             }
@@ -123,6 +138,9 @@ public class CommentoDAOImpl implements CommentoDAO {
         return commenti;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM commenti WHERE id = ?";
@@ -133,6 +151,9 @@ public class CommentoDAOImpl implements CommentoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void update(Commento commento) throws SQLException {
         String sql = "UPDATE commenti SET contenuto = ? WHERE id = ?";

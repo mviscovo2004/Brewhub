@@ -8,30 +8,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per i Messaggi.
- * <p>Gestisce sia messaggi privati (1-to-1) che di gruppo, incluse le notifiche.</p>
+ * Implementazione DAO per i {@link Messaggio}.
+ * <p>
+ * Gestisce la persistenza e il recupero dei messaggi per chat private e di
+ * gruppo,
+ * incluse le notifiche push per i nuovi messaggi privati.
+ * </p>
  */
 public class MessaggioDAOImpl implements MessaggioDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void create(Messaggio messaggio) {
+    public void create(Messaggio messaggio) throws SQLException {
         String sql = "INSERT INTO messaggi(sender, receiver, contenuto, timestamp, letto, id_gruppo) VALUES(?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, messaggio.getSender());
-            
+
             if (messaggio.getReceiver() != null) {
                 pstmt.setString(2, messaggio.getReceiver());
             } else {
                 pstmt.setNull(2, java.sql.Types.VARCHAR);
             }
-            
+
             pstmt.setString(3, messaggio.getContenuto());
             pstmt.setString(4, messaggio.getTimestamp());
             pstmt.setBoolean(5, messaggio.isLetto());
-            
+
             if (messaggio.getIdGruppo() != null) {
                 pstmt.setInt(6, messaggio.getIdGruppo());
             } else {
@@ -46,7 +53,8 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     }
                 }
 
-                // Invia notifica se è un messaggio privato e il mittente non è il destinatario (es. auto-invio)
+                // Invia notifica se è un messaggio privato e il mittente non è il destinatario
+                // (es. auto-invio)
                 if (messaggio.getReceiver() != null && !messaggio.getSender().equals(messaggio.getReceiver())) {
                     it.univaq.brewhub.model.Utente u = new it.univaq.brewhub.model.Utente();
                     u.setUsername(messaggio.getReceiver());
@@ -58,17 +66,18 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     try {
                         notificaDAO.create(n);
                     } catch (SQLException ex) {
-                        System.err.println("Errore creazione notifica messaggio: " + ex.getMessage());
+                        it.univaq.brewhub.utility.Log.error("Errore creazione notifica messaggio", ex);
                     }
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<Messaggio> getConversazione(String user1, String user2) {
+    public List<Messaggio> getConversazione(String user1, String user2) throws SQLException {
         List<Messaggio> chat = new ArrayList<>();
         String sql = "SELECT * FROM messaggi WHERE id_gruppo IS NULL AND ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)) ORDER BY timestamp ASC, id ASC";
         try (Connection conn = DatabaseManager.getConnection();
@@ -82,16 +91,18 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     chat.add(mapResultSetToMessaggio(rs));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return chat;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<String> getUtentiConversazioni(String user) {
+    public List<String> getUtentiConversazioni(String user) throws SQLException {
         List<String> utenti = new ArrayList<>();
-        // Unione di chi ha inviato messaggi all'utente e di chi ne ha ricevuti dall'utente
+        // Unione di chi ha inviato messaggi all'utente e di chi ne ha ricevuti
+        // dall'utente
         String sql = "SELECT DISTINCT other_user FROM (" +
                 "  SELECT receiver as other_user FROM messaggi WHERE sender = ? AND id_gruppo IS NULL " +
                 "  UNION " +
@@ -106,26 +117,28 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     utenti.add(rs.getString("other_user"));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return utenti;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void segnaComeLetto(int id) {
+    public void segnaComeLetto(int id) throws SQLException {
         String sql = "UPDATE messaggi SET letto = 1 WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public int contaNonLetti(String receiver) {
+    public int contaNonLetti(String receiver) throws SQLException {
         String sql = "SELECT COUNT(*) FROM messaggi WHERE receiver = ? AND letto = 0";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -135,14 +148,15 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     return rs.getInt(1);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<Messaggio> getMessaggiGruppo(int idGruppo) {
+    public List<Messaggio> getMessaggiGruppo(int idGruppo) throws SQLException {
         List<Messaggio> chat = new ArrayList<>();
         String sql = "SELECT * FROM messaggi WHERE id_gruppo = ? ORDER BY timestamp ASC, id ASC";
         try (Connection conn = DatabaseManager.getConnection();
@@ -153,12 +167,13 @@ public class MessaggioDAOImpl implements MessaggioDAO {
                     chat.add(mapResultSetToMessaggio(rs));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return chat;
     }
 
+    /**
+     * Mappa un ResultSet in un oggetto Messaggio.
+     */
     private Messaggio mapResultSetToMessaggio(ResultSet rs) throws SQLException {
         Messaggio m = new Messaggio();
         m.setId(rs.getInt("id"));
@@ -174,8 +189,11 @@ public class MessaggioDAOImpl implements MessaggioDAO {
         return m;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void deleteConversazione(String user1, String user2) {
+    public void deleteConversazione(String user1, String user2) throws SQLException {
         String sql = "DELETE FROM messaggi WHERE id_gruppo IS NULL AND ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?))";
         try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -184,8 +202,6 @@ public class MessaggioDAOImpl implements MessaggioDAO {
             pstmt.setString(3, user2);
             pstmt.setString(4, user1);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

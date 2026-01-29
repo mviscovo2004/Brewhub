@@ -8,15 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per le Categorie.
- * <p>Gestisce le operazioni CRUD per le categorie dei post.</p>
+ * Implementazione dell'interfaccia {@link CategoriaDAO}.
+ * Gestisce l'interazione con il database per le operazioni CRUD sulle
+ * categorie.
  */
 public class CategoriaDAOImpl implements CategoriaDAO {
 
     /**
-     * Crea una nuova categoria nel database.
-     * @param c La categoria da creare.
-     * @throws SQLException Errore SQL o se la creazione fallisce.
+     * {@inheritDoc}
      */
     @Override
     public void create(Categoria c) throws SQLException {
@@ -27,7 +26,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
             pstmt.setString(2, c.getIcona());
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Creating category failed, no rows affected.");
+                throw new SQLException("Creazione categoria fallita, nessuna riga modificata.");
             }
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
@@ -38,9 +37,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     /**
-     * Recupera tutte le categorie presenti nel database.
-     * @return Lista di categorie.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public List<Categoria> findAll() throws SQLException {
@@ -57,9 +54,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     /**
-     * Aggiorna i dati di una categoria esistente.
-     * @param c La categoria con i dati aggiornati.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public void update(Categoria c) throws SQLException {
@@ -74,9 +69,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     /**
-     * Elimina una categoria dal database in base all'ID.
-     * @param id L'ID della categoria da eliminare.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public void delete(int id) throws SQLException {
@@ -89,10 +82,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     /**
-     * Cerca una categoria tramite il suo ID.
-     * @param id L'ID della categoria.
-     * @return La categoria trovata o null se non esiste.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public Categoria findById(int id) throws SQLException {
@@ -110,10 +100,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     /**
-     * Cerca una categoria tramite il suo nome esatto.
-     * @param name Il nome della categoria.
-     * @return La categoria trovata o null se non esiste.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public Categoria findByName(String name) throws SQLException {

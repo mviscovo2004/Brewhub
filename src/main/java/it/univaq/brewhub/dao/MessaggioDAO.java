@@ -1,58 +1,69 @@
 package it.univaq.brewhub.dao;
 
 import it.univaq.brewhub.model.Messaggio;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Interfaccia DAO per la gestione dei Messaggi (Chat privata e di gruppo).
+ * Interfaccia DAO per la gestione dei {@link Messaggio}.
+ * Supporta sia le chat private (1-to-1) che le chat di gruppo.
  */
 public interface MessaggioDAO {
 
     /**
-     * Invia un nuovo messaggio.
-     * @param messaggio Il messaggio da salvare.
+     * Salva un nuovo messaggio nel database.
+     *
+     * @param messaggio L'oggetto Messaggio da persistere.
      */
-    void create(Messaggio messaggio);
+    void create(Messaggio messaggio) throws SQLException;
 
     /**
-     * Recupera la cronologia messaggi tra due utenti.
-     * @param user1 Primo utente.
-     * @param user2 Secondo utente.
-     * @return Lista dei messaggi scambiati.
+     * Recupera lo storico della conversazione privata tra due utenti.
+     *
+     * @param user1 Username del primo utente.
+     * @param user2 Username del secondo utente.
+     * @return Una lista di messaggi ordinati cronologicamente.
      */
-    List<Messaggio> getConversazione(String user1, String user2);
+    List<Messaggio> getConversazione(String user1, String user2) throws SQLException;
 
     /**
-     * Recupera i messaggi di un gruppo.
-     * @param idGruppo ID del gruppo.
-     * @return Lista dei messaggi.
+     * Recupera tutti i messaggi inviati in un determinato gruppo.
+     *
+     * @param idGruppo L'identificativo del gruppo.
+     * @return Una lista di messaggi del gruppo.
      */
-    List<Messaggio> getMessaggiGruppo(int idGruppo);
+    List<Messaggio> getMessaggiGruppo(int idGruppo) throws SQLException;
 
     /**
-     * Ottiene la lista di utenti con cui l'utente corrente ha una conversazione attiva.
-     * @param user L'utente corrente.
-     * @return Lista di username.
+     * Ottiene la lista degli username con cui l'utente specificato ha scambiato
+     * messaggi.
+     *
+     * @param user L'username dell'utente.
+     * @return Una lista di username unici corrispondenti alle chat attive.
      */
-    List<String> getUtentiConversazioni(String user);
+    List<String> getUtentiConversazioni(String user) throws SQLException;
 
     /**
-     * Segna un messaggio come letto.
-     * @param id ID del messaggio.
+     * Segna un messaggio specifico come "letto".
+     *
+     * @param id L'identificativo del messaggio.
      */
-    void segnaComeLetto(int id);
+    void segnaComeLetto(int id) throws SQLException;
 
     /**
-     * Conta i messaggi non letti per un utente.
-     * @param receiver Username del destinatario.
-     * @return Numero di messaggi non letti.
+     * Conta il numero totale di messaggi non letti destinati a un utente.
+     *
+     * @param receiver L'username del destinatario.
+     * @return Il numero di messaggi non letti.
      */
-    int contaNonLetti(String receiver);
+    int contaNonLetti(String receiver) throws SQLException;
 
     /**
-     * Elimina l'intera conversazione tra due utenti.
-     * @param user1 Primo utente.
-     * @param user2 Secondo utente.
+     * Elimina interamente la conversazione privata (storico messaggi) tra due
+     * utenti.
+     *
+     * @param user1 Username del primo utente.
+     * @param user2 Username del secondo utente.
      */
-    void deleteConversazione(String user1, String user2);
+    void deleteConversazione(String user1, String user2) throws SQLException;
 }

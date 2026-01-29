@@ -4,36 +4,43 @@ import it.univaq.brewhub.model.Torrefattore;
 import java.sql.SQLException;
 
 /**
- * Interfaccia DAO per la gestione specifica dei Torrefattori.
+ * Interfaccia DAO per la gestione specifica dei dati relativi ai
+ * {@link Torrefattore}.
+ * Si occupa della persistenza delle informazioni aziendali aggiuntive.
  */
 public interface TorrefattoreDAO {
 
     /**
-     * Crea un nuovo torrefattore.
-     * @param torrefattore Dati del torrefattore.
-     * @throws SQLException Errore SQL.
+     * Salva i dettagli di un nuovo torrefattore.
+     *
+     * @param torrefattore L'oggetto Torrefattore contenente i dati aziendali.
+     * @throws SQLException Se si verifica un errore durante l'inserimento.
      */
     void create(Torrefattore torrefattore) throws SQLException;
 
     /**
-     * Cerca un torrefattore per username.
-     * @param username Username.
-     * @return Torrefattore trovato o null.
-     * @throws SQLException Errore SQL.
+     * Recupera i dettagli completi di un torrefattore dato il suo username.
+     *
+     * @param username L'username del torrefattore.
+     * @return L'oggetto Torrefattore, o null se non trovato.
+     * @throws SQLException Se si verifica un errore durante la ricerca.
      */
     Torrefattore findByUsername(String username) throws SQLException;
 
     /**
-     * Aggiorna i dati di un torrefattore.
-     * @param torrefattore Dati aggiornati.
-     * @throws SQLException Errore SQL.
+     * Aggiorna i dati aziendali di un torrefattore esistente.
+     *
+     * @param torrefattore L'oggetto con i dati aggiornati.
+     * @throws SQLException Se si verifica un errore durante l'aggiornamento.
      */
     void update(Torrefattore torrefattore) throws SQLException;
 
     /**
-     * Elimina un torrefattore.
-     * @param username Username.
-     * @throws SQLException Errore SQL.
+     * Elimina i dati specifici del torrefattore.
+     * (Nota: L'eliminazione dell'utente base avviene tramite {@link UtenteDAO}).
+     *
+     * @param username L'username del torrefattore da eliminare.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione.
      */
     void delete(String username) throws SQLException;
 }

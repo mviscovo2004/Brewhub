@@ -1,6 +1,5 @@
 package it.univaq.brewhub.view;
 
-
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -121,7 +120,7 @@ class RegisterViewTest extends BaseUITest {
         robot.clickOn("#btnFoto");
         robot.clickOn("#btnRegistrati");
         verifyThat("#lblErrore", isVisible());
-        verifyThat("#lblErrore", hasText("✗ Username già esistente!"));
+        verifyThat("#lblErrore", hasText("✗ Username già in uso"));
     }
 
     @Test

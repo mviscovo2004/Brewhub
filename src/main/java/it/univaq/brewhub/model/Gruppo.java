@@ -3,34 +3,45 @@ package it.univaq.brewhub.model;
 import java.util.List;
 
 /**
- * Rappresenta un gruppo di utenti per chat o attività comuni.
+ * Classe che rappresenta un gruppo di utenti.
+ * I gruppi permettono agli utenti di aggregarsi per conversazioni (chat di
+ * gruppo)
+ * o altre attività collaborative.
  */
 public class Gruppo {
 
-    /** ID univoco del gruppo. */
+    /**
+     * Identificativo univoco del gruppo.
+     */
     private int id;
 
-    /** Nome del gruppo. */
+    /**
+     * Nome del gruppo.
+     */
     private String nome;
 
-    /** Username del creatore del gruppo. */
+    /**
+     * Username dell'utente che ha creato il gruppo.
+     */
     private String creatore;
 
-    /** Lista degli username dei membri. */
-    private List<String> membri; 
+    /**
+     * Lista degli username degli utenti che fanno parte del gruppo.
+     */
+    private List<String> membri;
 
     /**
-     * Costruttore vuoto.
+     * Costruttore predefinito.
      */
     public Gruppo() {
     }
 
     /**
-     * Costruttore completo.
+     * Costruttore per creare un gruppo con informazioni di base.
      * 
-     * @param id ID del gruppo.
-     * @param nome Nome del gruppo.
-     * @param creatore Username del creatore.
+     * @param id       L'ID del gruppo.
+     * @param nome     Il nome del gruppo.
+     * @param creatore L'username del creatore.
      */
     public Gruppo(int id, String nome, String creatore) {
         this.id = id;
@@ -40,7 +51,8 @@ public class Gruppo {
 
     /**
      * Restituisce l'ID del gruppo.
-     * @return L'identificativo.
+     *
+     * @return L'identificativo del gruppo.
      */
     public int getId() {
         return id;
@@ -48,7 +60,8 @@ public class Gruppo {
 
     /**
      * Imposta l'ID del gruppo.
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
@@ -56,7 +69,8 @@ public class Gruppo {
 
     /**
      * Restituisce il nome del gruppo.
-     * @return Il nome.
+     *
+     * @return Il nome del gruppo.
      */
     public String getNome() {
         return nome;
@@ -64,39 +78,44 @@ public class Gruppo {
 
     /**
      * Imposta il nome del gruppo.
-     * @param nome Il nuovo nome.
+     *
+     * @param nome Il nuovo nome da assegnare.
      */
     public void setNome(String nome) {
         this.nome = nome;
     }
 
     /**
-     * Restituisce l'username del creatore.
-     * @return L'username.
+     * Restituisce l'username del creatore del gruppo.
+     *
+     * @return L'username del creatore.
      */
     public String getCreatore() {
         return creatore;
     }
 
     /**
-     * Imposta l'username del creatore.
-     * @param creatore Il nuovo creatore.
+     * Imposta l'username del creatore del gruppo.
+     *
+     * @param creatore Il nuovo username del creatore.
      */
     public void setCreatore(String creatore) {
         this.creatore = creatore;
     }
 
     /**
-     * Restituisce la lista dei membri (username).
-     * @return Lista di stringhe.
+     * Restituisce la lista dei membri del gruppo.
+     *
+     * @return Una lista di stringhe contenente gli username dei membri.
      */
     public List<String> getMembri() {
         return membri;
     }
 
     /**
-     * Imposta la lista dei membri.
-     * @param membri La nuova lista di username.
+     * Imposta la lista dei membri del gruppo.
+     *
+     * @param membri La nuova lista di username dei membri.
      */
     public void setMembri(List<String> membri) {
         this.membri = membri;

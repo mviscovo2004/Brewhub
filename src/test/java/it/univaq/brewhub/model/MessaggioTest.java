@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -96,6 +97,8 @@ public class MessaggioTest extends BaseTest {
         List<Messaggio> gMsgs = messaggioDAO.getMessaggiGruppo(grpId);
         assertFalse(gMsgs.isEmpty());
         assertEquals("Msg Gruppo", gMsgs.get(0).getContenuto());
+        gruppoDAO.deleteGruppo(grpId);
+        messaggioDAO.deleteConversazione(u1, u2);
         utenteDAO.delete(u1);
         utenteDAO.delete(u2);
     }

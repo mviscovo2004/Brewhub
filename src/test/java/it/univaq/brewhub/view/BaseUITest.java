@@ -54,12 +54,18 @@ public abstract class BaseUITest extends BaseTest {
 
     /**
      * Pulizia dopo ogni test UI.
-     * Attende che tutti gli eventi JavaFX siano completati.
+     * Attende che tutti gli eventi JavaFX siano completati e procede alla pulizia
+     * base.
      * 
      * @throws TimeoutException se l'attesa supera il tempo limite.
      */
     @AfterEach
     public void uiTearDown() throws TimeoutException {
-        WaitForAsyncUtils.waitForFxEvents();
+        try {
+            WaitForAsyncUtils.waitForFxEvents();
+        } finally {
+            super.baseTearDown();
+            dbInitialized = false;
+        }
     }
 }

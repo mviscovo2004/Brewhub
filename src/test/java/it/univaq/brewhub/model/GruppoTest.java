@@ -1,4 +1,5 @@
 package it.univaq.brewhub.model;
+
 import it.univaq.brewhub.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,6 +91,7 @@ public class GruppoTest extends BaseTest {
         gruppiUser = gruppoDAO.getGruppiUtente(memberUser);
         assertFalse(gruppiUser.stream().anyMatch(g -> g.getId() == groupId),
                 "Il membro rimosso non deve più vedere il gruppo");
+        gruppoDAO.deleteGruppo(groupId);
         utenteDAO.delete(creatorUser);
         utenteDAO.delete(memberUser);
         utenteDAO.delete(member2);

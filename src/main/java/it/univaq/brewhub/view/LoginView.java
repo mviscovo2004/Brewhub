@@ -1,7 +1,9 @@
 package it.univaq.brewhub.view;
 
-import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.business.BusinessException;
 import it.univaq.brewhub.business.SessionManager;
+import it.univaq.brewhub.business.UserService;
+import it.univaq.brewhub.model.Utente;
 import it.univaq.brewhub.utility.Log;
 import it.univaq.brewhub.view.components.PasswordFieldWithToggler;
 import javafx.geometry.Pos;
@@ -23,8 +25,8 @@ public class LoginView {
     private final Stage stage;
 
     /**
-     * Costruttore.
-     * 
+     * Costruisce la vista di Login.
+     *
      * @param stage Lo stage principale dell'applicazione.
      */
     public LoginView(Stage stage) {
@@ -34,7 +36,7 @@ public class LoginView {
     /**
      * Costruisce e restituisce il nodo radice della vista di Login.
      * Configura inoltre le dimensioni e il titolo dello stage.
-     * 
+     *
      * @return Il nodo {@link Parent} contenente l'interfaccia.
      */
     public Parent getView() {
@@ -46,7 +48,11 @@ public class LoginView {
         stage.centerOnScreen();
 
         StackPane root = new StackPane();
-        root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        try {
+            root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+            // Ignora se CSS non trovato
+        }
         root.getStyleClass().add("login-root");
 
         VBox loginCard = new VBox(20);
@@ -105,16 +111,15 @@ public class LoginView {
             lblErrore.setVisible(false);
 
             if (user.isBlank() || pw.isBlank()) {
-                lblErrore.setText("\u26A0 Inserisci username e password");
+                lblErrore.setText("⚠ Inserisci username e password");
                 lblErrore.setVisible(true);
             } else {
-                it.univaq.brewhub.business.UserService userService = it.univaq.brewhub.business.UserService
-                        .getInstance();
+                UserService userService = UserService.getInstance();
                 try {
                     Utente profilo = userService.login(user, pw);
 
                     if (profilo == null) {
-                        lblErrore.setText("\u2717 Credenziali non valide");
+                        lblErrore.setText("✗ Credenziali non valide");
                         lblErrore.setVisible(true);
                         fldPassword.setText("");
                     } else {
@@ -122,12 +127,12 @@ public class LoginView {
                         HomeView home = new HomeView(stage, profilo);
                         stage.getScene().setRoot(home.getView());
                     }
-                } catch (it.univaq.brewhub.business.BusinessException ex) {
-                    lblErrore.setText("\u2717 Errore Login: " + ex.getMessage());
+                } catch (BusinessException ex) {
+                    lblErrore.setText("✗ Errore Login: " + ex.getMessage());
                     lblErrore.setVisible(true);
                     Log.error("Errore durante il login", ex);
                 } catch (Exception ex) {
-                    lblErrore.setText("\u2717 Errore di sistema: " + ex.getMessage());
+                    lblErrore.setText("✗ Errore di sistema: " + ex.getMessage());
                     lblErrore.setVisible(true);
                     Log.error("Errore generico login", ex);
                 }

@@ -12,21 +12,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Implementazione concreta del Data Access Object (DAO) per l'entità Utente.
+ * Implementazione dell'interfaccia {@link UtenteDAO}.
  * <p>
- * Gestisce tutte le operazioni CRUD (Create, Read, Update, Delete) verso il database SQLite,
- * oltre alla gestione delle relazioni (follower/following), archivio post e autenticazione.
- * Utilizza BCrypt per l'hashing sicuro delle password.
+ * Gestisce le operazioni CRUD sugli utenti, l'autenticazione sicura tramite
+ * BCrypt,
+ * le relazioni sociali (follower/following) e l'archivio dei post salvati.
  * </p>
  */
 public class UtenteDAOImpl implements UtenteDAO {
 
     /**
-     * Crea un nuovo utente nel database.
-     * <p>La password viene automaticamente cifrata con BCrypt prima del salvataggio.</p>
-     * 
-     * @param u L'oggetto Utente da persistere.
-     * @throws SQLException Se lo username esiste già o per altri errori SQL.
+     * {@inheritDoc}
+     * <p>
+     * La password viene hashata con BCrypt prima di essere salvata nel database.
+     * </p>
      */
     @Override
     public void create(Utente u) throws SQLException {
@@ -53,12 +52,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Verifica le credenziali di accesso.
-     * 
-     * @param username Lo username fornito.
-     * @param passwordInserita La password in chiaro fornita.
-     * @return L'oggetto {@link Utente} se le credenziali sono valide, altrimenti null.
-     * @throws SQLException In caso di errore durante la query.
+     * {@inheritDoc}
      */
     @Override
     public Utente login(String username, String passwordInserita) throws SQLException {
@@ -80,11 +74,11 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Aggiorna i dati di un utente esistente.
-     * <p>Gestisce automaticamente l'aggiornamento della password (con nuovo hash) se modificata.</p>
-     * 
-     * @param u L'oggetto Utente con i dati aggiornati.
-     * @throws SQLException In caso di errore SQL.
+     * {@inheritDoc}
+     * <p>
+     * Se l'oggetto Utente contiene una password diversa dall'hash memorizzato,
+     * viene generato un nuovo hash e aggiornato nel database.
+     * </p>
      */
     @Override
     public void update(Utente u) throws SQLException {
@@ -119,17 +113,17 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Elimina logicamente (Soft Delete) o fisicamente un utente.
+     * {@inheritDoc}
      * <p>
-     * Esegue le seguenti operazioni in transazione:
-     * 1. Elimina Like e Relazioni (Follower/Following).
-     * 2. Elimina i post salvati.
-     * 3. Anonimizza i post e i commenti dell'utente (assegnandoli a un utente 'deleted_...').
-     * 4. Anonimizza il record utente stesso rendendolo inattivo.
+     * Esegue una cancellazione logica "Soft Delete" e anonimizzazione dei dati per
+     * mantenere l'integrità referenziale.
      * </p>
-     * 
-     * @param username Lo username dell'utente da eliminare.
-     * @throws SQLException In caso di errore durante la transazione.
+     * <ol>
+     * <li>Elimina relazioni, like e post salvati.</li>
+     * <li>Anonimizza post e commenti assegnandoli a un utente fittizio
+     * ('deleted_...').</li>
+     * <li>Anonimizza i dati personali dell'utente rendendolo inattivo.</li>
+     * </ol>
      */
     @Override
     public void delete(String username) throws SQLException {
@@ -167,7 +161,7 @@ public class UtenteDAOImpl implements UtenteDAO {
                 }
 
                 String newUsername = "deleted_" + java.util.UUID.randomUUID().toString().substring(0, 8);
-                
+
                 // 2. Anonimizzazione contenuti
                 try (PreparedStatement ps = conn.prepareStatement(updatePosts)) {
                     ps.setString(1, newUsername);
@@ -182,7 +176,8 @@ public class UtenteDAOImpl implements UtenteDAO {
 
                 // 3. Anonimizzazione utente
                 try (PreparedStatement ps = conn.prepareStatement(anonymizeUser)) {
-                    // Generiamo un hash valido casuale per impedire login ma evitare errori di formato
+                    // Generiamo un hash valido casuale per impedire login ma evitare errori di
+                    // formato
                     String dummyHash = BCrypt.hashpw(java.util.UUID.randomUUID().toString(), BCrypt.gensalt());
 
                     ps.setString(1, newUsername);
@@ -204,11 +199,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Cerca un utente tramite username esatto.
-     * 
-     * @param username Lo username da cercare.
-     * @return L'oggetto Utente se trovato, null altrimenti.
-     * @throws SQLException Errore SQL.
+     * {@inheritDoc}
      */
     @Override
     public Utente findByUsername(String username) throws SQLException {
@@ -253,8 +244,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
     /**
-     * Gestisce l'operazione di 'follow' tra due utenti.
-     * <p>Crea inoltre una notifica per l'utente seguito.</p>
+     * {@inheritDoc}
      */
     @Override
     public void follow(String follower, String followed) throws SQLException {
@@ -285,7 +275,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Rimuove il follow tra due utenti.
+     * {@inheritDoc}
      */
     @Override
     public void unfollow(String follower, String followed) throws SQLException {
@@ -299,7 +289,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Verifica se un utente ne segue un altro.
+     * {@inheritDoc}
      */
     @Override
     public boolean isFollowing(String follower, String followed) throws SQLException {
@@ -315,7 +305,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Conta il numero di follower di un utente.
+     * {@inheritDoc}
      */
     @Override
     public int getFollowersCount(String username) throws SQLException {
@@ -332,7 +322,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Conta il numero di utenti seguiti (following) da un utente.
+     * {@inheritDoc}
      */
     @Override
     public int getFollowingCount(String username) throws SQLException {
@@ -349,7 +339,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Recupera la lista completa dei follower.
+     * {@inheritDoc}
      */
     @Override
     public java.util.List<Utente> getFollowers(String username) throws SQLException {
@@ -368,7 +358,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Recupera la lista completa degli utenti seguiti.
+     * {@inheritDoc}
      */
     @Override
     public java.util.List<Utente> getFollowing(String username) throws SQLException {
@@ -387,7 +377,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Salva un post nell'archivio dell'utente.
+     * {@inheritDoc}
      */
     @Override
     public void addToArchive(String username, int postId) throws SQLException {
@@ -401,7 +391,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Rimuove un post dall'archivio dell'utente.
+     * {@inheritDoc}
      */
     @Override
     public void removeFromArchive(String username, int postId) throws SQLException {
@@ -415,7 +405,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Verifica se un post è nell'archivio.
+     * {@inheritDoc}
      */
     @Override
     public boolean isArchived(String username, int postId) throws SQLException {
@@ -431,7 +421,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Conta i post salvati.
+     * {@inheritDoc}
      */
     @Override
     public int getNumSavedPosts(String username) throws SQLException {
@@ -448,34 +438,16 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Recupera l'intero archivio dei post salvati.
+     * {@inheritDoc}
      */
     @Override
     public java.util.List<it.univaq.brewhub.model.Post> getArchive(String username) throws SQLException {
-        java.util.List<Integer> ids = new java.util.ArrayList<>();
-        String sql = "SELECT post_id FROM saved_posts WHERE username = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next())
-                    ids.add(rs.getInt("post_id"));
-            }
-        }
-
-        java.util.List<it.univaq.brewhub.model.Post> posts = new java.util.ArrayList<>();
         it.univaq.brewhub.dao.PostDAO postDAO = new it.univaq.brewhub.dao.impl.PostDAOImpl();
-        for (int id : ids) {
-            it.univaq.brewhub.model.Post p = postDAO.findById(id);
-            if (p != null)
-                posts.add(p);
-        }
-        return posts;
+        return postDAO.findSavedBy(username);
     }
 
     /**
-     * Cerca utenti tramite corrispondenza parziale dello username.
-     * <p>Esclude automaticamente gli utenti eliminati logicamente.</p>
+     * {@inheritDoc}
      */
     @Override
     public java.util.List<Utente> searchByUsername(String partialUsername) throws SQLException {
@@ -496,6 +468,9 @@ public class UtenteDAOImpl implements UtenteDAO {
         return results;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int countAll() throws SQLException {
         String sql = "SELECT COUNT(*) FROM utenti";
@@ -510,10 +485,7 @@ public class UtenteDAOImpl implements UtenteDAO {
     }
 
     /**
-     * Trova gli utenti più attivi basandosi sul numero di post pubblicati.
-     * 
-     * @param limit Numero massimo di utenti da restituire.
-     * @return Lista degli utenti top contributors.
+     * {@inheritDoc}
      */
     @Override
     public java.util.List<Utente> findTopActiveUsers(int limit) throws SQLException {

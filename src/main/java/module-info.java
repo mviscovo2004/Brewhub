@@ -19,6 +19,7 @@
     requires javafx.graphics;
     requires javafx.media;
     requires javafx.base;
+    requires com.zaxxer.hikari;
 
     opens it.univaq.brewhub;
     opens it.univaq.brewhub.view;
@@ -36,6 +37,10 @@
     exports it.univaq.brewhub.dao.impl;
     exports it.univaq.brewhub.utility;
     exports it.univaq.brewhub.model;
+
+    opens it.univaq.brewhub.view.utils;
+
+    exports it.univaq.brewhub.view.utils;
 
     opens it.univaq.brewhub.model;
 }

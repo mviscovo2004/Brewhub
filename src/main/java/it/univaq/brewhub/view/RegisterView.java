@@ -1,35 +1,37 @@
 package it.univaq.brewhub.view;
 
-import java.io.File;
-import it.univaq.brewhub.model.Utente;
-import it.univaq.brewhub.business.SessionManager;
-import it.univaq.brewhub.utility.Log;
-import it.univaq.brewhub.model.Utente.TipoUtente;
-import it.univaq.brewhub.model.Torrefattore;
-import it.univaq.brewhub.utility.MediaManager;
-import it.univaq.brewhub.business.UserService;
 import it.univaq.brewhub.business.BusinessException;
+import it.univaq.brewhub.business.SessionManager;
+import it.univaq.brewhub.business.UserService;
+import it.univaq.brewhub.model.Torrefattore;
+import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.model.Utente.TipoUtente;
+import it.univaq.brewhub.utility.Log;
+import it.univaq.brewhub.utility.MediaManager;
 import it.univaq.brewhub.view.components.PasswordFieldWithToggler;
+import it.univaq.brewhub.view.utils.UiUtils;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import java.io.File;
 
 /**
  * Gestisce l'interfaccia grafica per la Registrazione di nuovi utenti.
  *
- * Supporta la registrazione di utenti standard e di Torrefattori (con campi
- * aggiuntivi).
- * Gestisce la validazione dei campi e il caricamento della foto profilo.
- *
+ * <p>
+ * Funzionalità principali:
+ * <ul>
+ * <li>Registrazione utenti standard (Curiosi, Esperti, ecc.).</li>
+ * <li>Registrazione Torrefattori con campi specifici (Azienda, P.IVA,
+ * ecc.).</li>
+ * <li>Validazione dei campi input.</li>
+ * <li>Caricamento foto profilo.</li>
+ * </ul>
  */
 public class RegisterView {
 
@@ -37,8 +39,8 @@ public class RegisterView {
     private String immagine = null;
 
     /**
-     * Costruttore.
-     * 
+     * Costruisce la vista di Registrazione.
+     *
      * @param stage Lo stage principale.
      */
     public RegisterView(Stage stage) {
@@ -46,9 +48,9 @@ public class RegisterView {
     }
 
     /**
-     * Costruisce la vista di registrazione.
-     * 
-     * @return Il nodo root della vista.
+     * Costruisce e restituisce il nodo root della vista.
+     *
+     * @return Il nodo {@link Parent}.
      */
     public Parent getView() {
         stage.setResizable(false);
@@ -57,7 +59,11 @@ public class RegisterView {
         stage.setHeight(800);
 
         StackPane root = new StackPane();
-        root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        try {
+            root.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+            // Ignora se CSS non trovato
+        }
         root.getStyleClass().add("login-root");
 
         VBox formBox = new VBox(8);
@@ -126,7 +132,7 @@ public class RegisterView {
         fotoBox.setAlignment(Pos.CENTER_LEFT);
         fotoBox.setPrefWidth(315);
 
-        Button btnFoto = new Button("\uD83D\uDCF7 Scegli foto");
+        Button btnFoto = new Button("📷 Scegli foto");
         btnFoto.getStyleClass().add("button-accent");
         btnFoto.setId("btnFoto");
 
@@ -134,7 +140,6 @@ public class RegisterView {
         lblFile.setStyle("-fx-font-style: italic; -fx-font-size: 11px;");
 
         fotoBox.getChildren().addAll(btnFoto, lblFile);
-
         tipoFotoBox.getChildren().addAll(cbxTipo, fotoBox);
 
         // Bottoni Azione
@@ -167,7 +172,6 @@ public class RegisterView {
         torrefattoreBox.setVisible(false);
         torrefattoreBox.setManaged(false);
 
-        // Dati Azienda in Riga
         HBox aziendaRow = new HBox(10);
         aziendaRow.setAlignment(Pos.CENTER);
 
@@ -199,22 +203,18 @@ public class RegisterView {
 
         torrefattoreBox.getChildren().addAll(aziendaRow, fldIndirizzo, fldDescrizione);
         formBox.getChildren().add(torrefattoreBox);
-
-        // Aggiungo bottoni alla fine
         formBox.getChildren().add(bottoni);
 
         root.getChildren().add(formBox);
 
-        // --- LOGICA EVENTI ---
+        // --- LOGICA ---
 
-        // Listener Cambio Tipo Utente
         cbxTipo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             boolean isTorrefattore = (newVal == TipoUtente.TORREFATTORE);
             torrefattoreBox.setVisible(isTorrefattore);
             torrefattoreBox.setManaged(isTorrefattore);
         });
 
-        // Navigazione a Login
         btnAccedi.setOnAction(e -> {
             LoginView login = new LoginView(stage);
             stage.getScene().setRoot(login.getView());
@@ -237,7 +237,6 @@ public class RegisterView {
             }
         });
 
-        // Submit Registrazione
         btnRegistrati.setOnAction(e -> {
             lblErrore.setVisible(false);
 
@@ -247,30 +246,29 @@ public class RegisterView {
             String user = fldUsername.getText();
             String pw = fldPassword.getText();
 
-            // Validazione Base
+            // Validazione
             boolean baseValid = !nome.isBlank() && !cognome.isBlank() && !user.isBlank() && !pw.isBlank()
                     && immagine != null;
             if (!baseValid) {
-                lblErrore.setText("\u26A0 Completa tutti i campi standard e carica una foto");
+                lblErrore.setText("⚠ Completa tutti i campi standard e carica una foto");
                 lblErrore.setVisible(true);
-                return; // Stop
+                return;
             }
             if (pw.length() < 8) {
-                lblErrore.setText("\u2717 Password troppo corta (minimo 8 caratteri)");
+                lblErrore.setText("✗ Password troppo corta (minimo 8 caratteri)");
                 lblErrore.setVisible(true);
-                return; // Stop
+                return;
             }
 
             try {
                 if (tipo == TipoUtente.TORREFATTORE) {
-                    // Validazione Torrefattore
                     String nomeAz = fldNomeAzienda.getText();
                     String piva = fldPartitaIva.getText();
                     String ind = fldIndirizzo.getText();
                     String desc = fldDescrizione.getText();
 
                     if (nomeAz.isBlank() || piva.isBlank() || ind.isBlank() || desc.isBlank()) {
-                        lblErrore.setText("\u26A0 Completa tutti i campi del Torrefattore");
+                        lblErrore.setText("⚠ Completa tutti i campi del Torrefattore");
                         lblErrore.setVisible(true);
                         return;
                     }
@@ -278,35 +276,29 @@ public class RegisterView {
                     Torrefattore t = new Torrefattore(nome, cognome, user, pw, immagine, piva, ind, desc, nomeAz);
                     UserService.getInstance().registerTorrefattore(t);
 
-                    // Login automatico
                     SessionManager.getInstance().login(t);
                     HomeView home = new HomeView(stage, t);
                     stage.getScene().setRoot(home.getView());
 
                 } else {
-                    // Utente Standard
                     Utente nuovoUtente = new Utente(nome, cognome, user, pw, tipo, immagine);
                     UserService.getInstance().registerUser(nuovoUtente);
 
-                    // Login automatico post-registrazione in Sessione
                     SessionManager.getInstance().login(nuovoUtente);
-
-                    // Navigazione
                     HomeView home = new HomeView(stage, nuovoUtente);
                     stage.getScene().setRoot(home.getView());
                 }
             } catch (BusinessException ex) {
-                lblErrore.setText("\u2717 " + ex.getMessage());
+                lblErrore.setText("✗ " + ex.getMessage());
                 lblErrore.setVisible(true);
                 Log.error("Errore durante la registrazione", ex);
             } catch (Exception ex) {
-                lblErrore.setText("\u2717 Errore generico: " + ex.getMessage());
+                lblErrore.setText("✗ Errore generico: " + ex.getMessage());
                 lblErrore.setVisible(true);
                 Log.error("Errore durante la registrazione", ex);
             }
         });
 
-        // Accesso come ospite
         linkOspite.setOnAction(e -> {
             Utente profilo = new Utente("guest");
             HomeView home = new HomeView(stage, profilo);
@@ -317,17 +309,13 @@ public class RegisterView {
     }
 
     /**
-     * Apre il selettore file per l'immagine del profilo.
-     * Metodo protected per permettere l'override nei test.
-     * 
-     * @param stage Lo stage principale per la modale.
-     * @return Il file selezionato o null.
+     * Apre il selettore di immagini.
+     * Metodo protetto per permettere il mocking nei test.
+     *
+     * @param stage Lo stage su cui aprire il dialogo.
+     * @return Il file immagine selezionato o null.
      */
     protected File openFileChooser(Stage stage) {
-        FileChooser fileFoto = new FileChooser();
-        fileFoto.getExtensionFilters()
-                .add(new FileChooser.ExtensionFilter("Immagini", "*.jpg", "*.png", "*.gif", "*.jpeg"));
-        fileFoto.setTitle("Seleziona una foto");
-        return fileFoto.showOpenDialog(stage);
+        return UiUtils.chooseImage(stage);
     }
 }

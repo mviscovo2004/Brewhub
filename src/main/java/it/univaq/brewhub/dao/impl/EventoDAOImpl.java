@@ -8,13 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per gli Eventi.
- * <p>Gestisce la creazione, ricerca e partecipazione agli eventi, incluse le notifiche agli organizzatori.</p>
+ * Implementazione dell'interfaccia {@link EventoDAO}.
+ * Gestisce la persistenza degli eventi, le iscrizioni dei partecipanti e
+ * l'invio di notifiche agli organizzatori.
  */
 public class EventoDAOImpl implements EventoDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(Evento evento) throws SQLException {
         String sql = "INSERT INTO eventi (nome, descrizione, data, luogo, organizzatore) VALUES (?, ?, ?, ?, ?)";
@@ -25,21 +29,24 @@ public class EventoDAOImpl implements EventoDAO {
             pstmt.setString(3, evento.getData());
             pstmt.setString(4, evento.getLuogo());
             pstmt.setString(5, evento.getOrganizzatore());
-            
+
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Creating event failed, no rows affected.");
+                throw new SQLException("Creazione evento fallita, nessuna riga modificata.");
             }
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     evento.setId(generatedKeys.getInt(1));
                 } else {
-                    throw new SQLException("Creating event failed, no ID obtained.");
+                    throw new SQLException("Creazione evento fallita, nessun ID ottenuto.");
                 }
             }
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Evento> findAll() throws SQLException {
         String sql = "SELECT * FROM eventi ORDER BY data ASC";
@@ -55,13 +62,16 @@ public class EventoDAOImpl implements EventoDAO {
                 e.setData(rs.getString("data"));
                 e.setLuogo(rs.getString("luogo"));
                 e.setOrganizzatore(rs.getString("organizzatore"));
-                e.setPartecipantiCount(getPartecipantiCount(e.getId())); 
+                e.setPartecipantiCount(getPartecipantiCount(e.getId()));
                 eventi.add(e);
             }
         }
         return eventi;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Evento findById(int id) throws SQLException {
         String sql = "SELECT * FROM eventi WHERE id = ?";
@@ -85,6 +95,13 @@ public class EventoDAOImpl implements EventoDAO {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Se l'iscrizione avviene con successo, viene inviata una notifica
+     * all'organizzatore dell'evento.
+     * </p>
+     */
     @Override
     public void addPartecipante(int eventoId, String username) throws SQLException {
         boolean added = false;
@@ -104,7 +121,10 @@ public class EventoDAOImpl implements EventoDAO {
     }
 
     /**
-     * Invia una notifica all'organizzatore quando un utente si iscrive.
+     * Helper per inviare la notifica di nuova partecipazione all'organizzatore.
+     *
+     * @param eventoId L'ID dell'evento.
+     * @param username L'username del nuovo partecipante.
      */
     private void sendPartecipazioneNotification(int eventoId, String username) {
         String owner = null;
@@ -120,7 +140,7 @@ public class EventoDAOImpl implements EventoDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Errore fetch evento per notifica: " + e.getMessage());
+            System.err.println("Errore recupero evento per notifica: " + e.getMessage());
         }
         if (owner != null && nomeEvento != null && !owner.equals(username)) {
             try {
@@ -134,6 +154,9 @@ public class EventoDAOImpl implements EventoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removePartecipante(int eventoId, String username) throws SQLException {
         String sql = "DELETE FROM partecipazioni WHERE evento_id = ? AND utente_username = ?";
@@ -145,6 +168,9 @@ public class EventoDAOImpl implements EventoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isPartecipante(int eventoId, String username) throws SQLException {
         String sql = "SELECT 1 FROM partecipazioni WHERE evento_id = ? AND utente_username = ?";
@@ -158,6 +184,9 @@ public class EventoDAOImpl implements EventoDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getPartecipantiCount(int eventoId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM partecipazioni WHERE evento_id = ?";
@@ -173,6 +202,9 @@ public class EventoDAOImpl implements EventoDAO {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM eventi WHERE id = ?";

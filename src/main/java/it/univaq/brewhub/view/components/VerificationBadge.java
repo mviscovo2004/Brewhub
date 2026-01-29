@@ -5,19 +5,15 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.control.Tooltip;
 
 /**
- * Badge di verifica per utenti verificati.
- *
- * Componente UI che mostra un'icona di spunta sovrapposta a un sigillo
- * per indicare che un utente è verificato (tipicamente un Torrefattore).
- * Il badge è personalizzabile in dimensione e include un tooltip esplicativo.
- *
+ * Badge di verifica per utenti verificati (es. Torrefattori).
+ * Componente UI che mostra un'icona SVG vettoriale scalabile.
  */
 public class VerificationBadge extends StackPane {
     private static final String SEAL_PATH = "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z";
     private static final String CHECK_PATH = "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z";
 
     /**
-     * Costruttore con dimensione predefinita (14 pixel).
+     * Costruttore predefinito. Crea un badge di dimensione 14px.
      */
     public VerificationBadge() {
         this(14);
@@ -26,11 +22,7 @@ public class VerificationBadge extends StackPane {
     /**
      * Costruttore con dimensione personalizzata.
      *
-     * Crea un badge composto da un sigillo circolare e una spunta,
-     * scalati proporzionalmente alla dimensione specificata.
-     *
-     * 
-     * @param size Dimensione del badge in pixel
+     * @param size La dimensione in pixel (larghezza e altezza).
      */
     public VerificationBadge(double size) {
         SVGPath seal = new SVGPath();

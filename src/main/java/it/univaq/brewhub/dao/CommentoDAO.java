@@ -5,36 +5,41 @@ import java.util.List;
 import java.sql.SQLException;
 
 /**
- * Interfaccia DAO per la gestione dei Commenti.
+ * Interfaccia DAO per la gestione delle entità {@link Commento}.
+ * Gestisce le operazioni CRUD relative ai commenti sui post.
  */
 public interface CommentoDAO {
 
     /**
-     * Crea un nuovo commento.
-     * @param commento Il commento da persistere.
-     * @throws SQLException Errore SQL.
+     * Crea un nuovo commento nel database.
+     *
+     * @param commento L'oggetto Commento da salvare.
+     * @throws SQLException Se si verifica un errore durante l'inserimento.
      */
     void create(Commento commento) throws SQLException;
 
     /**
-     * Trova tutti i commenti associati a un post specifico.
-     * @param postId L'ID del post.
-     * @return Lista di commenti.
-     * @throws SQLException Errore SQL.
+     * Recupera tutti i commenti associati a uno specifico post.
+     *
+     * @param postId L'identificativo del post.
+     * @return Una lista di oggetti Commento associati al post.
+     * @throws SQLException Se si verifica un errore durante il recupero.
      */
     List<Commento> findByPostId(int postId) throws SQLException;
 
     /**
-     * Elimina un commento per ID.
-     * @param id L'ID del commento.
-     * @throws SQLException Errore SQL.
+     * Elimina un commento dal database.
+     *
+     * @param id L'identificativo del commento da eliminare.
+     * @throws SQLException Se si verifica un errore durante l'eliminazione.
      */
     void delete(int id) throws SQLException;
 
     /**
-     * Aggiorna il contenuto di un commento.
-     * @param commento Il commento con i dati aggiornati.
-     * @throws SQLException Errore SQL.
+     * Aggiorna il contenuto di un commento esistente.
+     *
+     * @param commento L'oggetto Commento con i dati aggiornati.
+     * @throws SQLException Se si verifica un errore durante l'aggiornamento.
      */
     void update(Commento commento) throws SQLException;
 }

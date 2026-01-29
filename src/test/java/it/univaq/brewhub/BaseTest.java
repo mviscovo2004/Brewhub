@@ -43,9 +43,15 @@ public abstract class BaseTest {
      */
     @BeforeEach
     public void baseSetUp() throws SQLException {
-        testDbName = "test_" + UUID.randomUUID().toString() + ".db";
+        File testDir = new File("test_dbs");
+        if (!testDir.exists()) {
+            testDir.mkdirs();
+        }
+        testDbName = "test_dbs/test_" + UUID.randomUUID().toString() + ".db";
         DatabaseManager.configureTestDatabase(testDbName);
         DatabaseManager.init();
+
+        // DAO initialization (remains same)
         utenteDAO = new it.univaq.brewhub.dao.impl.UtenteDAOImpl();
         torrefattoreDAO = new it.univaq.brewhub.dao.impl.TorrefattoreDAOImpl();
         postDAO = new it.univaq.brewhub.dao.impl.PostDAOImpl();
@@ -157,7 +163,11 @@ public abstract class BaseTest {
         Gruppo g = new Gruppo();
         g.setNome(nome);
         g.setCreatore(creatore);
-        gruppoDAO.createGruppo(nome, creatore, java.util.List.of());
+        try {
+            gruppoDAO.createGruppo(nome, creatore, java.util.List.of());
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
         return g;
     }
 
@@ -199,32 +209,52 @@ public abstract class BaseTest {
     @AfterEach
     public void baseTearDown() {
         if (testDbName != null) {
+            // Chiude il pool di connessioni e rilascia i lock sui file
+            DatabaseManager.shutdown();
+
             File dbFile = new File(testDbName);
-            if (dbFile.exists()) {
-                System.gc(); // Primo tentativo di rilascio risorse
-                boolean deleted = false;
-                // Aumentato a 30 tentativi per evitare lock su Windows (3 secondi max)
-                for (int i = 0; i < 30 && !deleted; i++) {
+            File shmFile = new File(testDbName + "-shm");
+            File walFile = new File(testDbName + "-wal");
+
+            System.gc(); // Primo tentativo di rilascio risorse
+
+            deleteFileWithRetry(dbFile);
+            deleteFileWithRetry(shmFile);
+            deleteFileWithRetry(walFile);
+        }
+    }
+
+    /**
+     * Tenta di eliminare un file con un meccanismo di retry per gestire i lock di
+     * Windows.
+     * 
+     * @param file Il file da eliminare.
+     */
+    private void deleteFileWithRetry(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+
+        boolean deleted = false;
+        for (int i = 0; i < 30 && !deleted; i++) {
+            try {
+                java.nio.file.Files.deleteIfExists(file.toPath());
+                deleted = true;
+            } catch (java.io.IOException e) {
+                if (i < 29) {
                     try {
-                        java.nio.file.Files.deleteIfExists(dbFile.toPath());
-                        deleted = true;
-                    } catch (java.io.IOException e) {
-                        if (i < 29) { // Solo se non è l'ultimo tentativo
-                            try {
-                                Thread.sleep(100);
-                                System.gc(); // GC ripetuto in caso di handle persistenti
-                            } catch (InterruptedException ex) {
-                                Thread.currentThread().interrupt();
-                                break;
-                            }
-                        }
+                        Thread.sleep(100);
+                        System.gc();
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        break;
                     }
                 }
-                if (!deleted) {
-                    System.err.println("WARNING: Failed to delete test database: " + testDbName);
-                    dbFile.deleteOnExit();
-                }
             }
+        }
+        if (!deleted) {
+            System.err.println("WARNING: Failed to delete test file: " + file.getAbsolutePath());
+            file.deleteOnExit();
         }
     }
 }

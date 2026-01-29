@@ -1,33 +1,69 @@
 package it.univaq.brewhub.model;
 
 /**
- * Rappresenta una sfida (contest) lanciata da un Torrefattore.
+ * Classe che rappresenta una "Sfida" (o contest) lanciata all'interno della
+ * piattaforma.
+ * Le sfide sono tipicamente create dai Torrefattori e prevedono premi per i
+ * partecipanti.
  */
 public class Sfida {
 
+    /**
+     * Identificativo univoco della sfida.
+     */
     private int id;
-    private String titolo;
-    private String descrizione;
-    private String premio;
-    private String scadenza; 
-    private String creatore; 
-    private int partecipantiCount;
-    private boolean isPartecipante; 
 
     /**
-     * Costruttore vuoto.
+     * Titolo della sfida.
+     */
+    private String titolo;
+
+    /**
+     * Descrizione dettagliata della sfida e delle sue regole.
+     */
+    private String descrizione;
+
+    /**
+     * Descrizione del premio in palio.
+     */
+    private String premio;
+
+    /**
+     * Data di scadenza della sfida (formato stringa).
+     */
+    private String scadenza;
+
+    /**
+     * Username del creatore della sfida (solitamente un Torrefattore).
+     */
+    private String creatore;
+
+    /**
+     * Numero attuale di partecipanti alla sfida.
+     */
+    private int partecipantiCount;
+
+    /**
+     * Flag transitorio usato nella UI per indicare se l'utente corrente sta
+     * partecipando.
+     */
+    private boolean isPartecipante;
+
+    /**
+     * Costruttore predefinito.
      */
     public Sfida() {
     }
 
     /**
-     * Costruttore completo.
+     * Costruttore completo per creare una nuova sfida.
+     * Inizializza il numero di partecipanti a 0.
      * 
-     * @param titolo Titolo della sfida.
-     * @param descrizione Descrizione e regole.
-     * @param premio Premio in palio.
-     * @param scadenza Data di scadenza.
-     * @param creatore Username del creatore (Torrefattore).
+     * @param titolo      Il titolo della sfida.
+     * @param descrizione La descrizione e le regole.
+     * @param premio      Il premio in palio.
+     * @param scadenza    La data di scadenza.
+     * @param creatore    L'username dell'organizzatore.
      */
     public Sfida(String titolo, String descrizione, String premio, String scadenza, String creatore) {
         this.titolo = titolo;
@@ -40,6 +76,7 @@ public class Sfida {
 
     /**
      * Restituisce l'ID della sfida.
+     *
      * @return L'identificativo.
      */
     public int getId() {
@@ -48,7 +85,8 @@ public class Sfida {
 
     /**
      * Imposta l'ID della sfida.
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
@@ -56,6 +94,7 @@ public class Sfida {
 
     /**
      * Restituisce il titolo della sfida.
+     *
      * @return Il titolo.
      */
     public String getTitolo() {
@@ -64,6 +103,7 @@ public class Sfida {
 
     /**
      * Imposta il titolo della sfida.
+     *
      * @param titolo Il nuovo titolo.
      */
     public void setTitolo(String titolo) {
@@ -71,7 +111,8 @@ public class Sfida {
     }
 
     /**
-     * Restituisce la descrizione.
+     * Restituisce la descrizione della sfida.
+     *
      * @return La descrizione.
      */
     public String getDescrizione() {
@@ -79,7 +120,8 @@ public class Sfida {
     }
 
     /**
-     * Imposta la descrizione.
+     * Imposta la descrizione della sfida.
+     *
      * @param descrizione La nuova descrizione.
      */
     public void setDescrizione(String descrizione) {
@@ -88,14 +130,16 @@ public class Sfida {
 
     /**
      * Restituisce il premio in palio.
-     * @return Il premio.
+     *
+     * @return La descrizione del premio.
      */
     public String getPremio() {
         return premio;
     }
 
     /**
-     * Imposta il premio.
+     * Imposta il premio della sfida.
+     *
      * @param premio Il nuovo premio.
      */
     public void setPremio(String premio) {
@@ -103,8 +147,9 @@ public class Sfida {
     }
 
     /**
-     * Restituisce la data di scadenza.
-     * @return La scadenza come stringa.
+     * Restituisce la data di scadenza della sfida.
+     *
+     * @return La data di scadenza.
      */
     public String getScadenza() {
         return scadenza;
@@ -112,31 +157,35 @@ public class Sfida {
 
     /**
      * Imposta la data di scadenza.
-     * @param scadenza La nuova scadenza.
+     *
+     * @param scadenza La nuova data.
      */
     public void setScadenza(String scadenza) {
         this.scadenza = scadenza;
     }
 
     /**
-     * Restituisce l'username del creatore.
-     * @return L'username.
+     * Restituisce l'username del creatore della sfida.
+     *
+     * @return L'username del creatore.
      */
     public String getCreatore() {
         return creatore;
     }
 
     /**
-     * Imposta l'username del creatore.
-     * @param creatore Il nuovo creatore.
+     * Imposta l'username del creatore della sfida.
+     *
+     * @param creatore Il nuovo username.
      */
     public void setCreatore(String creatore) {
         this.creatore = creatore;
     }
 
     /**
-     * Restituisce il numero di partecipanti.
-     * @return Il conteggio.
+     * Restituisce il numero di partecipanti attuali.
+     *
+     * @return Il conteggio dei partecipanti.
      */
     public int getPartecipantiCount() {
         return partecipantiCount;
@@ -144,6 +193,7 @@ public class Sfida {
 
     /**
      * Imposta il numero di partecipanti.
+     *
      * @param partecipantiCount Il nuovo conteggio.
      */
     public void setPartecipantiCount(int partecipantiCount) {
@@ -151,8 +201,10 @@ public class Sfida {
     }
 
     /**
-     * Verifica se l'utente corrente partecipa alla sfida.
-     * @return true se partecipante, false altrimenti.
+     * Verifica se l'utente corrente partecipa a questa sfida.
+     * Metodo di utilità per la UI.
+     *
+     * @return true se l'utente partecipa, false altrimenti.
      */
     public boolean isPartecipante() {
         return isPartecipante;
@@ -160,7 +212,8 @@ public class Sfida {
 
     /**
      * Imposta lo stato di partecipazione dell'utente corrente.
-     * @param isPartecipante true se partecipa.
+     *
+     * @param isPartecipante true se l'utente partecipa.
      */
     public void setPartecipante(boolean isPartecipante) {
         this.isPartecipante = isPartecipante;

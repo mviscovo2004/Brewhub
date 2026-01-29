@@ -8,13 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per le Sfide.
- * <p>Gestisce la creazione di contest, l'adesione dei partecipanti e le relative notifiche.</p>
+ * Implementazione dell'interfaccia {@link SfidaDAO}.
+ * Gestisce i contest/sfide, inclusa la gestione dei partecipanti e le notifiche
+ * di adesione.
  */
 public class SfidaDAOImpl implements SfidaDAO {
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(Sfida sfida) throws SQLException {
         String sql = "INSERT INTO sfide (titolo, descrizione, premio, scadenza, creatore, partecipanti_count) VALUES (?, ?, ?, ?, ?, 0)";
@@ -27,18 +31,21 @@ public class SfidaDAOImpl implements SfidaDAO {
             pstmt.setString(5, sfida.getCreatore());
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Creating challenge failed, no rows affected.");
+                throw new SQLException("Creazione sfida fallita, nessuna riga modificata.");
             }
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     sfida.setId(generatedKeys.getInt(1));
                 } else {
-                    throw new SQLException("Creating challenge failed, no ID obtained.");
+                    throw new SQLException("Creazione sfida fallita, nessun ID ottenuto.");
                 }
             }
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Sfida> findAll() throws SQLException {
         String sql = "SELECT * FROM sfide ORDER BY scadenza ASC";
@@ -61,6 +68,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         return sfide;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Sfida findById(int id) throws SQLException {
         String sql = "SELECT * FROM sfide WHERE id = ?";
@@ -84,6 +94,13 @@ public class SfidaDAOImpl implements SfidaDAO {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Se l'utente si iscrive con successo, viene inviata una notifica al creatore
+     * della sfida.
+     * </p>
+     */
     @Override
     public void addPartecipante(int sfidaId, String username) throws SQLException {
         boolean added = false;
@@ -102,6 +119,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         }
     }
 
+    /**
+     * Notifica il creatore della sfida dell'iscrizione di un nuovo partecipante.
+     */
     private void sendPartecipazioneNotification(int sfidaId, String username) {
         String owner = null;
         String title = null;
@@ -130,6 +150,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removePartecipante(int sfidaId, String username) throws SQLException {
         String sql = "DELETE FROM partecipazioni_sfide WHERE sfida_id = ? AND utente_username = ?";
@@ -141,6 +164,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isPartecipante(int sfidaId, String username) throws SQLException {
         String sql = "SELECT 1 FROM partecipazioni_sfide WHERE sfida_id = ? AND utente_username = ?";
@@ -154,6 +180,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getPartecipantiCount(int sfidaId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM partecipazioni_sfide WHERE sfida_id = ?";
@@ -169,6 +198,9 @@ public class SfidaDAOImpl implements SfidaDAO {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM sfide WHERE id = ?";

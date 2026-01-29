@@ -1,45 +1,62 @@
 package it.univaq.brewhub.model;
 
 /**
- * Rappresenta un evento organizzato (es. degustazione, corso).
+ * Classe che rappresenta un evento all'interno della piattaforma.
+ * Gli eventi possono essere creati da utenti specifici (es. Torrefattori) e
+ * contengono dettagli come data, luogo e numero di partecipanti.
  */
 public class Evento {
 
-    /** ID univoco dell'evento. */
+    /**
+     * Identificativo univoco dell'evento.
+     */
     private int id;
 
-    /** Nome dell'evento. */
+    /**
+     * Nome o titolo dell'evento.
+     */
     private String nome;
 
-    /** Descrizione dettagliata. */
+    /**
+     * Descrizione dettagliata dell'evento.
+     */
     private String descrizione;
 
-    /** Data dell'evento (formato stringa). */
+    /**
+     * Data e ora dell'evento, memorizzata come stringa.
+     */
     private String data;
 
-    /** Luogo dell'evento. */
+    /**
+     * Luogo in cui si svolge l'evento.
+     */
     private String luogo;
 
-    /** Username dell'organizzatore. */
-    private String organizzatore; 
+    /**
+     * Username dell'utente che organizza l'evento.
+     */
+    private String organizzatore;
 
-    /** Numero di partecipanti confermati. */
+    /**
+     * Numero attuale di partecipanti iscritti all'evento.
+     */
     private int partecipantiCount;
 
     /**
-     * Costruttore vuoto.
+     * Costruttore predefinito.
      */
     public Evento() {
     }
 
     /**
-     * Costruttore completo.
+     * Costruttore per creare un nuovo evento con le informazioni principali.
+     * Il conteggio dei partecipanti viene inizializzato a 0.
      * 
-     * @param nome Nome evento.
-     * @param descrizione Descrizione.
-     * @param data Data evento.
-     * @param luogo Luogo evento.
-     * @param organizzatore Username organizzatore.
+     * @param nome          Il nome dell'evento.
+     * @param descrizione   La descrizione dell'evento.
+     * @param data          La data dell'evento (come stringa).
+     * @param luogo         Il luogo dell'evento.
+     * @param organizzatore L'username dell'organizzatore.
      */
     public Evento(String nome, String descrizione, String data, String luogo, String organizzatore) {
         this.nome = nome;
@@ -52,7 +69,8 @@ public class Evento {
 
     /**
      * Restituisce l'ID dell'evento.
-     * @return L'identificativo.
+     *
+     * @return L'identificativo dell'evento.
      */
     public int getId() {
         return id;
@@ -60,7 +78,8 @@ public class Evento {
 
     /**
      * Imposta l'ID dell'evento.
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
@@ -68,7 +87,8 @@ public class Evento {
 
     /**
      * Restituisce il nome dell'evento.
-     * @return Il nome.
+     *
+     * @return Il nome dell'evento.
      */
     public String getNome() {
         return nome;
@@ -76,7 +96,8 @@ public class Evento {
 
     /**
      * Imposta il nome dell'evento.
-     * @param nome Il nuovo nome.
+     *
+     * @param nome Il nuovo nome da assegnare.
      */
     public void setNome(String nome) {
         this.nome = nome;
@@ -84,6 +105,7 @@ public class Evento {
 
     /**
      * Restituisce la descrizione dell'evento.
+     *
      * @return La descrizione.
      */
     public String getDescrizione() {
@@ -92,7 +114,8 @@ public class Evento {
 
     /**
      * Imposta la descrizione dell'evento.
-     * @param descrizione La nuova descrizione.
+     *
+     * @param descrizione La nuova descrizione da assegnare.
      */
     public void setDescrizione(String descrizione) {
         this.descrizione = descrizione;
@@ -100,7 +123,8 @@ public class Evento {
 
     /**
      * Restituisce la data dell'evento.
-     * @return La data come stringa.
+     *
+     * @return La stringa rappresentante la data.
      */
     public String getData() {
         return data;
@@ -108,7 +132,8 @@ public class Evento {
 
     /**
      * Imposta la data dell'evento.
-     * @param data La nuova data.
+     *
+     * @param data La nuova data da assegnare.
      */
     public void setData(String data) {
         this.data = data;
@@ -116,6 +141,7 @@ public class Evento {
 
     /**
      * Restituisce il luogo dell'evento.
+     *
      * @return Il luogo.
      */
     public String getLuogo() {
@@ -124,7 +150,8 @@ public class Evento {
 
     /**
      * Imposta il luogo dell'evento.
-     * @param luogo Il nuovo luogo.
+     *
+     * @param luogo Il nuovo luogo da assegnare.
      */
     public void setLuogo(String luogo) {
         this.luogo = luogo;
@@ -132,15 +159,17 @@ public class Evento {
 
     /**
      * Restituisce l'username dell'organizzatore.
-     * @return L'username.
+     *
+     * @return L'username dell'organizzatore.
      */
     public String getOrganizzatore() {
         return organizzatore;
     }
 
     /**
-     * Imposta l'organizzatore.
-     * @param organizzatore L'username dell'organizzatore.
+     * Imposta l'organizzatore dell'evento.
+     *
+     * @param organizzatore L'username del nuovo organizzatore.
      */
     public void setOrganizzatore(String organizzatore) {
         this.organizzatore = organizzatore;
@@ -148,7 +177,8 @@ public class Evento {
 
     /**
      * Restituisce il numero di partecipanti.
-     * @return Il conteggio partecipanti.
+     *
+     * @return Il conteggio dei partecipanti.
      */
     public int getPartecipantiCount() {
         return partecipantiCount;
@@ -156,6 +186,7 @@ public class Evento {
 
     /**
      * Imposta il numero di partecipanti.
+     *
      * @param partecipantiCount Il nuovo conteggio.
      */
     public void setPartecipantiCount(int partecipantiCount) {

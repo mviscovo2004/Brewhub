@@ -1,47 +1,66 @@
 package it.univaq.brewhub.model;
 
 /**
- * Rappresenta un messaggio scambiato tra utenti (chat privata o di gruppo).
+ * Classe che rappresenta un messaggio all'interno del sistema di chat.
+ * Un messaggio può essere diretto a un singolo utente (chat privata)
+ * o a un gruppo (chat di gruppo).
  */
 public class Messaggio {
 
-    /** Identificativo univoco del messaggio. */
+    /**
+     * Identificativo univoco del messaggio.
+     */
     private int id;
 
-    /** Username del mittente. */
+    /**
+     * Username dell'utente mittente.
+     */
     private String sender;
 
-    /** Username del destinatario (null se è un messaggio di gruppo). */
+    /**
+     * Username dell'utente destinatario.
+     * È valorizzato solo se il messaggio è privato, altrimenti è null.
+     */
     private String receiver;
 
-    /** Contenuto del messaggio. */
+    /**
+     * Il contenuto testuale del messaggio.
+     */
     private String contenuto;
 
-    /** Timestamp di invio come stringa. */
-    private String timestamp; 
-
-    /** Stato di lettura del messaggio. */
-    private boolean letto;
-
-    /** ID del gruppo di destinazione (null se è un messaggio privato). */
-    private Integer idGruppo; 
+    /**
+     * Timestamp che indica quando il messaggio è stato inviato (formato stringa).
+     */
+    private String timestamp;
 
     /**
-     * Costruttore vuoto.
+     * Flag che indica se il messaggio è stato letto dal destinatario.
+     */
+    private boolean letto;
+
+    /**
+     * Identificativo del gruppo di destinazione.
+     * È valorizzato solo se il messaggio è inviato in una chat di gruppo,
+     * altrimenti è null.
+     */
+    private Integer idGruppo;
+
+    /**
+     * Costruttore predefinito.
      */
     public Messaggio() {
     }
 
     /**
-     * Costruttore completo (usato tipicamente dal DAO).
+     * Costruttore completo per inizializzare un messaggio recuperato dal database.
      * 
-     * @param id        ID messaggio.
-     * @param sender    Mittente.
-     * @param receiver  Destinatario.
-     * @param contenuto Testo.
-     * @param timestamp Orario.
-     * @param letto     Stato lettura.
-     * @param idGruppo  ID Gruppo.
+     * @param id        L'ID del messaggio.
+     * @param sender    Il mittente.
+     * @param receiver  Il destinatario (o null per gruppi).
+     * @param contenuto Il testo del messaggio.
+     * @param timestamp L'orario di invio.
+     * @param letto     Stato di lettura.
+     * @param idGruppo  L'ID del gruppo (o null per privati).
      */
     public Messaggio(int id, String sender, String receiver, String contenuto, String timestamp, boolean letto,
             Integer idGruppo) {
@@ -55,12 +74,13 @@ public class Messaggio {
     }
 
     /**
-     * Costruttore semplificato per la creazione di nuovi messaggi privati.
+     * Costruttore semplificato per creare nuovi messaggi privati da inviare.
+     * Imposta di default 'letto' a false e 'idGruppo' a null.
      * 
-     * @param sender    Mittente.
-     * @param receiver  Destinatario.
-     * @param contenuto Testo.
-     * @param timestamp Orario.
+     * @param sender    Il mittente.
+     * @param receiver  Il destinatario.
+     * @param contenuto Il testo del messaggio.
+     * @param timestamp L'orario di invio.
      */
     public Messaggio(String sender, String receiver, String contenuto, String timestamp) {
         this.sender = sender;
@@ -73,6 +93,7 @@ public class Messaggio {
 
     /**
      * Restituisce l'ID del messaggio.
+     *
      * @return L'identificativo.
      */
     public int getId() {
@@ -81,47 +102,53 @@ public class Messaggio {
 
     /**
      * Imposta l'ID del messaggio.
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
     }
 
     /**
-     * Restituisce il mittente.
-     * @return Username del mittente.
+     * Restituisce lo username del mittente.
+     *
+     * @return Il mittente.
      */
     public String getSender() {
         return sender;
     }
 
     /**
-     * Imposta il mittente.
-     * @param sender Username del mittente.
+     * Imposta il mittente del messaggio.
+     *
+     * @param sender Lo username del nuovo mittente.
      */
     public void setSender(String sender) {
         this.sender = sender;
     }
 
     /**
-     * Restituisce il destinatario (se messaggio privato).
-     * @return Username del destinatario o null.
+     * Restituisce lo username del destinatario (per messaggi privati).
+     *
+     * @return Il destinatario o null se è un messaggio di gruppo.
      */
     public String getReceiver() {
         return receiver;
     }
 
     /**
-     * Imposta il destinatario.
-     * @param receiver Username del destinatario.
+     * Imposta il destinatario del messaggio.
+     *
+     * @param receiver Lo username del destinatario.
      */
     public void setReceiver(String receiver) {
         this.receiver = receiver;
     }
 
     /**
-     * Restituisce il contenuto del messaggio.
-     * @return Il testo.
+     * Restituisce il contenuto testuale del messaggio.
+     *
+     * @return Il testo del messaggio.
      */
     public String getContenuto() {
         return contenuto;
@@ -129,6 +156,7 @@ public class Messaggio {
 
     /**
      * Imposta il contenuto del messaggio.
+     *
      * @param contenuto Il nuovo testo.
      */
     public void setContenuto(String contenuto) {
@@ -136,15 +164,17 @@ public class Messaggio {
     }
 
     /**
-     * Restituisce il timestamp di invio.
-     * @return La data/ora come stringa.
+     * Restituisce il timestamp di invio del messaggio.
+     *
+     * @return La data/ora di invio.
      */
     public String getTimestamp() {
         return timestamp;
     }
 
     /**
-     * Imposta il timestamp.
+     * Imposta il timestamp di invio.
+     *
      * @param timestamp La nuova data/ora.
      */
     public void setTimestamp(String timestamp) {
@@ -152,15 +182,17 @@ public class Messaggio {
     }
 
     /**
-     * Restituisce l'ID del gruppo (se messaggio di gruppo).
-     * @return ID gruppo o null.
+     * Restituisce l'ID del gruppo di destinazione.
+     *
+     * @return L'ID del gruppo o null se è un messaggio privato.
      */
     public Integer getIdGruppo() {
         return idGruppo;
     }
 
     /**
-     * Imposta l'ID del gruppo.
+     * Imposta l'ID del gruppo di destinazione.
+     *
      * @param idGruppo Il nuovo ID gruppo.
      */
     public void setIdGruppo(Integer idGruppo) {
@@ -168,16 +200,18 @@ public class Messaggio {
     }
 
     /**
-     * Verifica se il messaggio è stato letto.
-     * @return true se letto, false altrimenti.
+     * Verifica se il messaggio è stato contrassegnato come letto.
+     *
+     * @return true se il messaggio è stato letto, altrimenti false.
      */
     public boolean isLetto() {
         return letto;
     }
 
     /**
-     * Imposta lo stato di lettura.
-     * @param letto true se letto.
+     * Imposta lo stato di lettura del messaggio.
+     *
+     * @param letto true per segnare come letto, false altrimenti.
      */
     public void setLetto(boolean letto) {
         this.letto = letto;

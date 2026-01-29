@@ -15,17 +15,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementazione DAO per i Post.
- * <p>Gestisce la persistenza dei post, le ricerche, i like e il recupero del feed.</p>
+ * Implementazione dell'interfaccia {@link PostDAO}.
+ * Gestisce la persistenza dei Post, le ricerche, i like e la generazione dei
+ * feed.
  */
 public class PostDAOImpl implements PostDAO {
 
-    private CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
+    private final CommentoDAOImpl commentoDAO = new CommentoDAOImpl();
     private static final java.time.format.DateTimeFormatter DB_DATE_FORMATTER = java.time.format.DateTimeFormatter
             .ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final it.univaq.brewhub.dao.impl.NotificaDAOImpl notificaDAO = new it.univaq.brewhub.dao.impl.NotificaDAOImpl();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(Post post) throws SQLException {
         String sql = "INSERT INTO post(autore_username, titolo, contenuto, tipo, data_creazione, media_uri, category_id) VALUES(?,?,?,?,?,?,?)";
@@ -37,7 +41,7 @@ public class PostDAOImpl implements PostDAO {
             pstmt.setString(4, post.getTipo().name());
             pstmt.setString(5, post.getDataCreazione().format(DB_DATE_FORMATTER));
             pstmt.setString(6, post.getMedia() != null ? post.getMedia().replace('\\', '/') : null);
-            
+
             if (post.getCategoria() != null) {
                 pstmt.setInt(7, post.getCategoria().getId());
             } else {
@@ -59,6 +63,14 @@ public class PostDAOImpl implements PostDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Esegue l'eliminazione a cascata manuale di salvataggi, like e commenti prima
+     * di eliminare il post,
+     * all'interno di una transazione per garantire la consistenza dei dati.
+     * </p>
+     */
     @Override
     public void delete(int id) throws SQLException {
         if (id > 0) {
@@ -98,6 +110,9 @@ public class PostDAOImpl implements PostDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findAll() throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -108,6 +123,9 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> search(String query) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -120,6 +138,14 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, p, p);
     }
 
+    /**
+     * Metodo helper per eseguire query che restituiscono liste di Post.
+     *
+     * @param sql    La query SQL da eseguire.
+     * @param params I parametri per la PreparedStatement.
+     * @return Una lista di Post popolati.
+     * @throws SQLException Se si verifica un errore durante l'esecuzione.
+     */
     private List<Post> executeQuery(String sql, Object... params) throws SQLException {
         List<Post> posts = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -138,6 +164,14 @@ public class PostDAOImpl implements PostDAO {
         return posts;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Se il like viene aggiunto con successo e l'autore del like non è l'autore del
+     * post,
+     * viene inviata una notifica all'autore del post.
+     * </p>
+     */
     @Override
     public void addLike(int postId, String username) throws SQLException {
         it.univaq.brewhub.model.Notifica notificationToSend = null;
@@ -154,7 +188,7 @@ public class PostDAOImpl implements PostDAO {
                     try (ResultSet rs = psSel.executeQuery()) {
                         if (rs.next()) {
                             String author = rs.getString("autore_username");
-                            if (!author.equals(username)) { 
+                            if (!author.equals(username)) {
                                 Utente ricevente = new Utente();
                                 ricevente.setUsername(author);
                                 notificationToSend = new it.univaq.brewhub.model.Notifica(ricevente,
@@ -170,6 +204,9 @@ public class PostDAOImpl implements PostDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeLike(int postId, String username) throws SQLException {
         String sql = "DELETE FROM likes WHERE post_id = ? AND username = ?";
@@ -181,6 +218,9 @@ public class PostDAOImpl implements PostDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isLiked(int postId, String username) throws SQLException {
         String sql = "SELECT 1 FROM likes WHERE post_id = ? AND username = ?";
@@ -194,6 +234,9 @@ public class PostDAOImpl implements PostDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getLikesCount(int postId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM likes WHERE post_id = ?";
@@ -209,6 +252,9 @@ public class PostDAOImpl implements PostDAO {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findByAuthor(String username) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -219,6 +265,9 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, username);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Post findById(int id) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -230,6 +279,9 @@ public class PostDAOImpl implements PostDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findByCategory(int categoryId) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -240,6 +292,9 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, categoryId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findByUserType(String userType) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -250,6 +305,9 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, userType);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findPopular() throws SQLException {
         // Popolarità basata sui Like
@@ -265,6 +323,9 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findLikedBy(String username) throws SQLException {
         String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
@@ -277,6 +338,24 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, username);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Post> findSavedBy(String username) throws SQLException {
+        String sql = "SELECT p.*, u.tipo as user_type, u.foto_uri as user_foto, c.nome as cat_nome " +
+                "FROM post p " +
+                "JOIN utenti u ON p.autore_username = u.username " +
+                "LEFT JOIN categorie c ON p.category_id = c.id " +
+                "JOIN saved_posts s ON p.id = s.post_id " +
+                "WHERE s.username = ? " +
+                "ORDER BY p.data_creazione DESC";
+        return executeQuery(sql, username);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Post> findFeedForUser(String username) throws SQLException {
         // Post degli utenti seguiti
@@ -290,13 +369,20 @@ public class PostDAOImpl implements PostDAO {
         return executeQuery(sql, username);
     }
 
+    /**
+     * Mappa i risultati di una query SQL in un oggetto {@link Post}.
+     *
+     * @param rs Il ResultSet da mappare.
+     * @return L'oggetto Post popolato.
+     * @throws SQLException Se si verifica un errore durante la mappatura.
+     */
     private Post mapResultSetToPost(ResultSet rs) throws SQLException {
         Post post = new Post();
         post.setId(rs.getInt("id"));
-        
+
         Utente autore = new Utente();
         autore.setUsername(rs.getString("autore_username"));
-        
+
         try {
             String typeStr = rs.getString("user_type");
             if (typeStr != null) {
@@ -307,22 +393,22 @@ public class PostDAOImpl implements PostDAO {
         } catch (SQLException | IllegalArgumentException e) {
             autore.setTipo(Utente.TipoUtente.APPASSIONATO);
         }
-        
+
         try {
             autore.setFotoProfilo(rs.getString("user_foto"));
         } catch (SQLException e) {
         }
         post.setAutore(autore);
-        
+
         post.setTitolo(rs.getString("titolo"));
         post.setContenuto(rs.getString("contenuto"));
-        
+
         try {
             post.setTipo(TipoPost.valueOf(rs.getString("tipo")));
         } catch (IllegalArgumentException e) {
             post.setTipo(TipoPost.TESTO);
         }
-        
+
         try {
             String dateStr = rs.getString("data_creazione");
             if (dateStr.contains("T")) {
@@ -333,9 +419,9 @@ public class PostDAOImpl implements PostDAO {
         } catch (Exception e) {
             post.setDataCreazione(LocalDateTime.now());
         }
-        
+
         post.setMedia(rs.getString("media_uri"));
-        
+
         int catId = rs.getInt("category_id");
         if (!rs.wasNull() && catId > 0) {
             it.univaq.brewhub.model.Categoria c = new it.univaq.brewhub.model.Categoria();
@@ -347,12 +433,15 @@ public class PostDAOImpl implements PostDAO {
             }
             post.setCategoria(c);
         }
-        
+
         // Caricamento commenti
         post.setCommenti(commentoDAO.findByPost(post));
         return post;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int countAll() throws SQLException {
         String sql = "SELECT COUNT(*) FROM post";
@@ -366,6 +455,9 @@ public class PostDAOImpl implements PostDAO {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int countPostsLast24h() throws SQLException {
         // Sintassi SQLite per tempo

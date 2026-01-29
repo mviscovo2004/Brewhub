@@ -3,36 +3,50 @@ package it.univaq.brewhub.model;
 import java.time.LocalDateTime;
 
 /**
- * Rappresenta una notifica inviata a un utente.
+ * Classe che rappresenta una notifica destinata a un utente del sistema.
+ * Le notifiche informano gli utenti di attività rilevanti (es. like, commenti,
+ * nuovi follower).
  */
 public class Notifica {
 
-    /** ID univoco della notifica. */
+    /**
+     * Identificativo univoco della notifica.
+     */
     private int id;
 
-    /** Utente destinatario della notifica. */
+    /**
+     * L'utente destinatario della notifica.
+     */
     private Utente utente;
 
-    /** Testo del messaggio di notifica. */
+    /**
+     * Il testo del messaggio di notifica.
+     */
     private String messaggio;
 
-    /** Stato di lettura. */
+    /**
+     * Flag che indica se la notifica è stata visualizzata dall'utente.
+     */
     private boolean letto;
 
-    /** Data e ora di creazione. */
+    /**
+     * Data e ora in cui la notifica è stata generata.
+     */
     private LocalDateTime dataCreazione;
 
     /**
-     * Costruttore vuoto.
+     * Costruttore predefinito.
      */
     public Notifica() {
     }
 
     /**
-     * Costruttore per nuova notifica.
+     * Costruttore per creare una nuova notifica da inviare.
+     * Imposta di default lo stato 'letto' a false e la data di creazione al momento
+     * attuale.
      * 
-     * @param utente    Destinatario.
-     * @param messaggio Testo.
+     * @param utente    L'utente destinatario della notifica.
+     * @param messaggio Il contenuto testuale della notifica.
      */
     public Notifica(Utente utente, String messaggio) {
         this.utente = utente;
@@ -43,6 +57,7 @@ public class Notifica {
 
     /**
      * Restituisce l'ID della notifica.
+     *
      * @return L'identificativo.
      */
     public int getId() {
@@ -51,22 +66,25 @@ public class Notifica {
 
     /**
      * Imposta l'ID della notifica.
-     * @param id Il nuovo ID.
+     *
+     * @param id Il nuovo ID da assegnare.
      */
     public void setId(int id) {
         this.id = id;
     }
 
     /**
-     * Restituisce l'utente destinatario.
-     * @return L'oggetto {@link Utente}.
+     * Restituisce l'utente a cui è destinata la notifica.
+     *
+     * @return L'oggetto Utente destinatario.
      */
     public Utente getUtente() {
         return utente;
     }
 
     /**
-     * Imposta l'utente destinatario.
+     * Imposta l'utente destinatario della notifica.
+     *
      * @param utente Il nuovo destinatario.
      */
     public void setUtente(Utente utente) {
@@ -75,7 +93,8 @@ public class Notifica {
 
     /**
      * Restituisce il messaggio della notifica.
-     * @return Il testo.
+     *
+     * @return Il testo della notifica.
      */
     public String getMessaggio() {
         return messaggio;
@@ -83,6 +102,7 @@ public class Notifica {
 
     /**
      * Imposta il messaggio della notifica.
+     *
      * @param messaggio Il nuovo testo.
      */
     public void setMessaggio(String messaggio) {
@@ -90,32 +110,36 @@ public class Notifica {
     }
 
     /**
-     * Verifica se la notifica è stata letta.
-     * @return true se letta, false altrimenti.
+     * Verifica se la notifica è già stata letta.
+     *
+     * @return true se la notifica è letta, false altrimenti.
      */
     public boolean isLetto() {
         return letto;
     }
 
     /**
-     * Imposta lo stato di lettura.
-     * @param letto true se letta.
+     * Modifica lo stato di lettura della notifica.
+     *
+     * @param letto true per segnare come letta.
      */
     public void setLetto(boolean letto) {
         this.letto = letto;
     }
 
     /**
-     * Restituisce la data di creazione.
-     * @return {@link LocalDateTime} di creazione.
+     * Restituisce la data e ora di creazione della notifica.
+     *
+     * @return L'oggetto LocalDateTime di creazione.
      */
     public LocalDateTime getDataCreazione() {
         return dataCreazione;
     }
 
     /**
-     * Imposta la data di creazione.
-     * @param dataCreazione La nuova data.
+     * Imposta la data e ora di creazione della notifica.
+     *
+     * @param dataCreazione La nuova data di creazione.
      */
     public void setDataCreazione(LocalDateTime dataCreazione) {
         this.dataCreazione = dataCreazione;
