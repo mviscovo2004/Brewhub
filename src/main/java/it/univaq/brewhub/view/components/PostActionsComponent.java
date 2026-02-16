@@ -4,6 +4,7 @@ import it.univaq.brewhub.business.BusinessException;
 import it.univaq.brewhub.business.ChatService;
 import it.univaq.brewhub.business.PostService;
 import it.univaq.brewhub.business.UserService;
+import it.univaq.brewhub.model.Gruppo;
 import it.univaq.brewhub.model.Messaggio;
 import it.univaq.brewhub.model.Post;
 import it.univaq.brewhub.model.Utente;
@@ -160,7 +161,7 @@ public class PostActionsComponent extends HBox {
 
     /**
      * Mostra una finestra di dialogo modale per condividere il post con un altro
-     * utente tramite chat.
+     * utente o un gruppo tramite chat.
      */
     private void showShareDialog() {
         Stage stage = new Stage();
@@ -189,19 +190,29 @@ public class PostActionsComponent extends HBox {
         Label lblDest = new Label("Invia questo post a:");
         lblDest.setStyle("-fx-font-weight: bold; -fx-text-fill: #5D4037;");
 
-        ComboBox<String> userCombo = new ComboBox<>();
-        userCombo.setEditable(true);
-        userCombo.setPromptText("Cerca utente o seleziona...");
-        userCombo.setMaxWidth(Double.MAX_VALUE);
-        userCombo.getStyleClass().add("choice-box");
+        ComboBox<ShareTarget> targetCombo = new ComboBox<>();
+        targetCombo.setEditable(false);
+        targetCombo.setPromptText("Seleziona utente o gruppo...");
+        targetCombo.setMaxWidth(Double.MAX_VALUE);
+        targetCombo.getStyleClass().add("choice-box");
 
         try {
-            List<String> recent = chatService.getActiveConversations(utenteLoggato.getUsername());
-            userCombo.getItems().setAll(recent);
+            // Add active private conversations
+            List<String> recentUsers = chatService.getActiveConversations(utenteLoggato.getUsername());
+            for (String user : recentUsers) {
+                targetCombo.getItems().add(new ShareTarget(user));
+            }
+
+            // Add user groups
+            List<Gruppo> groups = chatService.getUserGroups(utenteLoggato.getUsername());
+            for (Gruppo g : groups) {
+                targetCombo.getItems().add(new ShareTarget(g));
+            }
         } catch (Exception e) {
+            Log.error("Errore caricamento destinatari condivisione", e);
         }
 
-        content.getChildren().addAll(lblDest, userCombo);
+        content.getChildren().addAll(lblDest, targetCombo);
         root.setCenter(content);
 
         // Actions
@@ -216,18 +227,24 @@ public class PostActionsComponent extends HBox {
         Button btnSend = new Button("Invia");
         btnSend.getStyleClass().add("button-primary");
         btnSend.setOnAction(e -> {
-            String receiver = userCombo.getValue();
-            if (receiver != null && !receiver.isBlank()) {
+            ShareTarget selected = targetCombo.getValue();
+            if (selected != null) {
                 try {
                     Messaggio m = new Messaggio();
                     m.setSender(utenteLoggato.getUsername());
-                    m.setReceiver(receiver.trim());
                     m.setContenuto("[POST:::" + post.getId() + "]");
                     m.setTimestamp(LocalDateTime.now().toString());
                     m.setLetto(false);
+
+                    if (selected.isGroup) {
+                        m.setIdGruppo(selected.groupId);
+                    } else {
+                        m.setReceiver(selected.username);
+                    }
+
                     chatService.sendMessage(m);
                     stage.close();
-                    DialogUtils.showInfo("Condiviso", "Post inviato a " + receiver, this.getScene().getWindow());
+                    DialogUtils.showInfo("Condiviso", "Post inviato a " + selected.label, this.getScene().getWindow());
                 } catch (Exception ex) {
                     DialogUtils.showError("Errore", "Impossibile inviare: " + ex.getMessage(),
                             this.getScene().getWindow());
@@ -247,5 +264,37 @@ public class PostActionsComponent extends HBox {
         }
         stage.setScene(scene);
         stage.showAndWait();
+
+    }
+
+    /**
+     * Classe helper per gestire la selezione mista (Utente/Gruppo) nel ComboBox.
+     */
+    private static class ShareTarget {
+        final String label;
+        final String username;
+        final Integer groupId;
+        final boolean isGroup;
+
+        // Costruttore per utente (chat privata)
+        public ShareTarget(String username) {
+            this.label = "👤 " + username;
+            this.username = username;
+            this.groupId = null;
+            this.isGroup = false;
+        }
+
+        // Costruttore per gruppo
+        public ShareTarget(Gruppo gruppo) {
+            this.label = "👥 " + gruppo.getNome();
+            this.username = null;
+            this.groupId = gruppo.getId();
+            this.isGroup = true;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 }
