@@ -1,1 +1,7 @@
 target/
+
+# Database SQLite locale
+brewhub.db
+brewhub.db
+brewhub.db-shm
+brewhub.db-wal
