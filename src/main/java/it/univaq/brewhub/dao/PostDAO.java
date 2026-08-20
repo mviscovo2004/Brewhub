@@ -1,8 +1,9 @@
 package it.univaq.brewhub.dao;
 
-import it.univaq.brewhub.model.Post;
-import java.util.List;
 import java.sql.SQLException;
+import java.util.List;
+
+import it.univaq.brewhub.model.Post;
 
 /**
  * Interfaccia DAO per la gestione dei {@link Post}.
@@ -19,12 +20,21 @@ public interface PostDAO {
      */
     void create(Post post) throws SQLException;
 
-    /**
-     * Elimina un post e tutti i dati correlati (commenti, like) dal database.
-     *
-     * @param id L'identificativo del post.
-     * @throws SQLException Se si verifica un errore durante l'eliminazione.
-     */
+/**
+ * Aggiorna i dati di un post esistente nel database.
+ *
+ * @param post Il post contenente i dati aggiornati.
+ * @throws SQLException Se si verifica un errore durante l'aggiornamento.
+ */
+void update(Post post) throws SQLException;
+
+/**
+ * Elimina un post e tutti i dati correlati (commenti, like) dal database.
+ *
+ * @param id L'identificativo del post.
+ * @throws SQLException Se si verifica un errore durante l'eliminazione.
+ */
+
     void delete(int id) throws SQLException;
 
     /**

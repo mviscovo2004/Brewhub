@@ -1,10 +1,5 @@
 package it.univaq.brewhub.dao.impl;
 
-import it.univaq.brewhub.utility.DatabaseManager;
-import it.univaq.brewhub.model.Post;
-import it.univaq.brewhub.model.Post.TipoPost;
-import it.univaq.brewhub.model.Utente;
-import it.univaq.brewhub.dao.PostDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +8,12 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.univaq.brewhub.dao.PostDAO;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Post.TipoPost;
+import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.utility.DatabaseManager;
 
 /**
  * Implementazione dell'interfaccia {@link PostDAO}.
@@ -61,6 +62,39 @@ public class PostDAOImpl implements PostDAO {
                 }
             }
         }
+    }
+    @Override
+    public void update (Post post) throws SQLException{
+        String sql = " UPDATE post " + " SET titolo = ?, contenuto = ?, tipo = ?, media_uri = ?, category_id = ? " 
+        + " WHERE id = ? ";
+        
+        try (Connection conn =DatabaseManager.getConnection(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, post.getTitolo());
+            pstmt.setString(2, post.getContenuto());
+            pstmt.setString(3, post.getTipo().name());
+            pstmt.setString(4, post.getMedia() != null ? post.getMedia().replace('\\', '/') : null);
+
+            if (post.getCategoria() != null) {
+                pstmt.setInt(5, post.getCategoria().getId());
+            
+            }else {
+                pstmt.setNull(5, java.sql.Types.INTEGER);
+            }
+
+                pstmt.setInt(5, post.getId());
+
+                int affectedRows = pstmt.executeUpdate();
+
+                if (affectedRows==0) {
+                    throw new SQLException("Aggiornamento del post falliato, nessuna riga modificata :( ");
+                }
+
+
+        }
+
+
     }
 
     /**
