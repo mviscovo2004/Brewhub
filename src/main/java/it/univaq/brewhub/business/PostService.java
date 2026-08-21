@@ -1,13 +1,13 @@
 package it.univaq.brewhub.business;
 
-import it.univaq.brewhub.model.Post;
-import it.univaq.brewhub.dao.PostDAO;
-import it.univaq.brewhub.dao.impl.PostDAOImpl;
-import it.univaq.brewhub.utility.Log;
-
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+
+import it.univaq.brewhub.dao.PostDAO;
+import it.univaq.brewhub.dao.impl.PostDAOImpl;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.utility.Log;
 
 /**
  * Service Layer per la gestione dei Post e delle relative interazioni (Like,
@@ -62,6 +62,36 @@ public class PostService {
             throw new BusinessException("Impossibile pubblicare il post.", e);
         }
     }
+
+    /**
+ * Modifica un post esistente
+ *
+ * @param post                  L'oggetto Post contenente i dati aggiornati.
+ * @throws BusinessException    nel caso  post non valido o si verifica un errore
+ *                              durante l'aggiornamento.
+ */
+public void updatePost(Post post) throws BusinessException {
+    if (post == null) {
+        throw new BusinessException("Il post da modificare non può essere nullo.");
+    }
+
+    if (post.getId() <= 0) {
+        throw new BusinessException("ID del post non valido.");
+    }
+
+    if (post.getTitolo() == null || post.getTitolo().isBlank()) {
+        throw new BusinessException("Il titolo del post è obbligatorio.");
+    }
+
+    try {
+        postDAO.update(post);
+    } catch (SQLException e) {
+        Log.error("Errore durante la modifica del post", e);
+        throw new BusinessException("Impossibile modificare il post.", e);
+    }
+}
+
+
 
     /**
      * Recupera il feed principale contenente tutti i post.
