@@ -64,11 +64,12 @@ public class PostDAOImpl implements PostDAO {
         }
     }
     @Override
-    public void update (Post post) throws SQLException{
-        String sql = " UPDATE post " + " SET titolo = ?, contenuto = ?, tipo = ?, media_uri = ?, category_id = ? " 
-        + " WHERE id = ? ";
-        
-        try (Connection conn =DatabaseManager.getConnection(); 
+    public void update(Post post) throws SQLException {
+        String sql = "UPDATE post " +
+                "SET titolo = ?, contenuto = ?, tipo = ?, media_uri = ?, category_id = ? " +
+                "WHERE id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, post.getTitolo());
@@ -78,23 +79,19 @@ public class PostDAOImpl implements PostDAO {
 
             if (post.getCategoria() != null) {
                 pstmt.setInt(5, post.getCategoria().getId());
-            
-            }else {
+            } else {
                 pstmt.setNull(5, java.sql.Types.INTEGER);
             }
 
-                pstmt.setInt(5, post.getId());
+            pstmt.setInt(6, post.getId());
 
-                int affectedRows = pstmt.executeUpdate();
+            int affectedRows = pstmt.executeUpdate();
 
-                if (affectedRows==0) {
-                    throw new SQLException("Aggiornamento del post falliato, nessuna riga modificata :( ");
-                }
-
-
+            if (affectedRows == 0) {
+                throw new SQLException(
+                        "Aggiornamento del post fallito, nessuna riga modificata.");
+            }
         }
-
-
     }
 
     /**

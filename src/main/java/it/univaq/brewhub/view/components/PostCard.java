@@ -1,21 +1,31 @@
 package it.univaq.brewhub.view.components;
 
-import it.univaq.brewhub.model.Post;
-import it.univaq.brewhub.model.Utente;
-import it.univaq.brewhub.view.DialogUtils;
-import it.univaq.brewhub.utility.MediaManager;
-import it.univaq.brewhub.business.PostService;
-import it.univaq.brewhub.business.BusinessException;
-import it.univaq.brewhub.utility.Log;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.layout.*;
-import javafx.scene.shape.Circle;
-
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import it.univaq.brewhub.business.BusinessException;
+import it.univaq.brewhub.business.PostService;
+import it.univaq.brewhub.model.Post;
+import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.utility.Log;
+import it.univaq.brewhub.utility.MediaManager;
+import it.univaq.brewhub.view.DialogUtils;
+import it.univaq.brewhub.view.utils.PostEditDialog;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
+
 
 /**
  * Componente UI che rappresenta un singolo post nel feed.
@@ -190,6 +200,7 @@ public class PostCard extends BaseCard {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // delate button
         Button btnDelete = null;
         if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())
                 || utenteLoggato.getTipo() == Utente.TipoUtente.ADMIN) {
@@ -209,6 +220,21 @@ public class PostCard extends BaseCard {
                 }
             });
         }
+        
+        // edit button
+        Button btnEdit = null;
+        if (post.getAutore().getUsername().equals(utenteLoggato.getUsername())) {
+            btnEdit = new Button("✏️");
+            btnEdit.getStyleClass().addAll("button", "post-edit-btn");
+
+            btnEdit.setOnAction(e -> {
+                PostEditDialog.show(
+                        (Stage) this.getScene().getWindow(),
+                        post,
+                        onRefreshNeeded
+                );
+            });
+        }
 
         header.getChildren().addAll(avatarContainer, authorBox);
         if (userTypeBadge != null) {
@@ -217,8 +243,13 @@ public class PostCard extends BaseCard {
         if (categoryBadge != null) {
             header.getChildren().add(categoryBadge);
         }
+
         header.getChildren().add(dateLbl);
         header.getChildren().add(spacer);
+
+        if (btnEdit != null) {
+            header.getChildren().add(btnEdit);
+        }
         if (btnDelete != null) {
             header.getChildren().add(btnDelete);
         }

@@ -222,4 +222,65 @@ public class PostServiceTest extends BaseTest {
 
         assertNotNull(posts);
     }
+
+
+    /**
+     * Verifica la modifica corretta di un post esistente direttamente nel DB.
+     *
+     * @throws BusinessException se si verifica un errore di business.
+     * @throws SQLException      se si verifica un errore durante l'accesso al DB.
+     */
+
+    @Test
+    public void testModificaPostSuccesso() throws BusinessException, SQLException {
+        // Creazione del post iniziale
+        Post post = new Post(
+                "Titolo originale",
+                "Contenuto originale",
+                autoreTest,
+                Post.TipoPost.TESTO,
+                null);
+
+        postService.createPost(post);
+
+        assertTrue(post.getId() > 0);
+
+        // Modifica dei dati
+        post.setTitolo("Titolo modificato");
+        post.setContenuto("Contenuto modificato");
+
+        postService.updatePost(post);
+
+        // Recupero dal database per verificare che la modifica sia persistita
+        Post aggiornato = postDAO.findById(post.getId());
+
+        assertNotNull(aggiornato);
+        assertEquals("Titolo modificato", aggiornato.getTitolo());
+        assertEquals("Contenuto modificato", aggiornato.getContenuto());
+        assertEquals(post.getId(), aggiornato.getId());
+    }
+
+    /**
+     * Verifica del post per evitaare caso di titolo vuoto.
+     */
+    @Test
+    public void testModificaPostTitoloVuoto() throws BusinessException {
+        Post post = new Post(
+                "Titolo originale",
+                "Contenuto originale",
+                autoreTest,
+                Post.TipoPost.TESTO,
+                null);
+
+        postService.createPost(post);
+
+        post.setTitolo("   ");
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> postService.updatePost(post));
+
+        assertTrue(exception.getMessage().contains("titolo")
+                || exception.getMessage().contains("obbligatorio"));
+    }
 }
