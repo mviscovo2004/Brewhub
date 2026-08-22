@@ -1,4 +1,6 @@
 target/
+media/
+test_dbs/
 
 # Database SQLite locale
 brewhub.db
