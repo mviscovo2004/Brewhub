@@ -19,6 +19,15 @@ public interface RecensioneDAO {
     void create(Recensione recensione) throws SQLException;
 
     /**
+     * Aggiorna il voto e testo di una recensione esistente
+     *
+     * @param recensione La recensione contenente i dati aggiornati
+     * @throws SQLException Se si verifica un errore durante l'aggiornamento
+     */
+
+void update(Recensione recensione) throws SQLException;
+
+    /**
      * Recupera tutte le recensioni associate a un post.
      *
      * @param postId L'identificativo del post.

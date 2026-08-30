@@ -391,6 +391,33 @@ public void updatePost(Post post) throws BusinessException {
     }
 
     /**
+    * Modifica di una recensione esistente.
+    *
+    * @param recensione recensione contenente voto e testo aggiornati.
+    * @throws BusinessException Se la recensione non è valida o si verifica un errore.
+    */
+    public void updateReview(it.univaq.brewhub.model.Recensione recensione) throws BusinessException {
+        if (recensione == null) {
+            throw new BusinessException("La recensione da modificare non può essere nulla.");
+        }
+
+        if (recensione.getId() <= 0) {
+            throw new BusinessException("ID della recensione non valido.");
+        }
+
+        if (recensione.getVoto() < 1 || recensione.getVoto() > 5) {
+            throw new BusinessException("Voto non valido (deve essere compreso tra 1 e 5).");
+        }
+
+        try {
+            recensioneDAO.update(recensione);
+        } catch (SQLException e) {
+            Log.error("Errore durante la modifica della recensione", e);
+            throw new BusinessException("Impossibile modificare la recensione.", e);
+        }
+    }
+
+    /**
      * Recupera tutte le recensioni di un post.
      *
      * @param postId L'ID del post.

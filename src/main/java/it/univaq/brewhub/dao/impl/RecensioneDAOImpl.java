@@ -61,9 +61,33 @@ public class RecensioneDAOImpl implements RecensioneDAO {
     }
 
     /**
+    * {@inheritDoc}
+    */
+
+    @Override
+    public void update(Recensione recensione) throws SQLException {
+        String sql = "UPDATE recensioni SET voto = ?, testo = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, recensione.getVoto());
+            pstmt.setString(2, recensione.getTesto());
+            pstmt.setInt(3, recensione.getId());
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException(
+                        "Aggiornamento della recensione fallito, nessuna riga modificata.");
+            }
+        }
+    }
+
+    /**
      * Notifica l'autore del post di una nuova recensione.
      *
-     * @param r La recensione appena creata.
+     * @param r recensione appena creata.
      */
     private void sendRecensioneNotification(Recensione r) {
         try {

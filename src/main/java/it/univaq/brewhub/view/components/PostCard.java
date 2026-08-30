@@ -12,6 +12,7 @@ import it.univaq.brewhub.utility.Log;
 import it.univaq.brewhub.utility.MediaManager;
 import it.univaq.brewhub.view.DialogUtils;
 import it.univaq.brewhub.view.utils.PostEditDialog;
+import it.univaq.brewhub.view.utils.ReviewDialogManager;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -380,6 +381,32 @@ public class PostCard extends BaseCard {
                 rVote.getStyleClass().add("review-stars");
                 metaBox.getChildren().addAll(rUser, rVote);
                 rHeader.getChildren().addAll(avatar, metaBox);
+
+                // Spazio tra i dati della recensione e il pulsante modifica
+                Region reviewSpacer = new Region();
+                HBox.setHgrow(reviewSpacer, Priority.ALWAYS);
+                rHeader.getChildren().add(reviewSpacer);
+
+                // Il pulsante Modifica è visibile solo all'autore della recensione
+                if (r.getAutore() != null
+                        && r.getAutore().getUsername().equals(utenteLoggato.getUsername())) {
+
+                    Button btnEditReview = new Button("✏️");
+                    btnEditReview.getStyleClass().addAll("button", "review-edit-btn");
+
+                    btnEditReview.setOnAction(e -> {
+                        ReviewDialogManager.showEditReviewDialog(
+                                this.getScene().getWindow(),
+                                r,
+                                () -> {
+                                    if (onRefreshNeeded != null) {
+                                        onRefreshNeeded.run();
+                                    }
+                                });
+                    });
+
+                    rHeader.getChildren().add(btnEditReview);
+                }
                 Label rText = new Label(r.getTesto());
                 rText.setWrapText(true);
                 rText.getStyleClass().add("review-text");

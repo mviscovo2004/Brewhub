@@ -148,4 +148,160 @@ public class ReviewDialogManager {
         stage.setScene(scene);
         stage.showAndWait();
     }
+
+    /*
+    -permette di cambiare testo e voto attuale mostrato.
+    -chiama postService.updateReview(recensione).
+    esegue refresh con onSuccess.
+    */
+
+    public static void showEditReviewDialog(
+        Window ownerWindow,
+        Recensione recensione,
+        Runnable onSuccess) {
+
+        Stage stage = new Stage();
+
+        if (ownerWindow instanceof Stage) {
+            stage.initOwner((Stage) ownerWindow);
+        }
+
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Modifica Recensione");
+
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(20));
+        root.setAlignment(Pos.CENTER);
+        root.setPrefWidth(350);
+        root.setStyle("-fx-background-color: #FFF8E1;");
+
+        Label lblTitle = new Label("Modifica la tua Recensione");
+        lblTitle.setStyle(
+                "-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3E2723;");
+
+        // Rating
+        HBox starsBox = new HBox(5);
+        starsBox.setAlignment(Pos.CENTER);
+
+        final int[] currentVote = { recensione.getVoto() };
+        Label[] stars = new Label[5];
+
+        for (int i = 0; i < 5; i++) {
+            final int starVal = i + 1;
+
+            Label star = new Label("\u2B50");
+            star.getStyleClass().add("star-icon");
+
+            if (i < currentVote[0]) {
+                star.getStyleClass().add("text-score-" + currentVote[0]);
+                star.setOpacity(1.0);
+            } else {
+                star.getStyleClass().add("text-score-0");
+                star.setOpacity(0.3);
+            }
+
+            star.setOnMouseEntered(mouseEvent -> {
+                for (int j = 0; j < 5; j++) {
+                    Label s = stars[j];
+
+                    s.getStyleClass().removeAll(
+                            "text-score-0",
+                            "text-score-1",
+                            "text-score-2",
+                            "text-score-3",
+                            "text-score-4",
+                            "text-score-5");
+
+                    if (j < starVal) {
+                        s.getStyleClass().add("text-score-" + starVal);
+                        s.setOpacity(1.0);
+                    } else {
+                        s.getStyleClass().add("text-score-0");
+                        s.setOpacity(0.3);
+                    }
+                }
+            });
+
+            star.setOnMouseClicked(mouseEvent -> {
+                currentVote[0] = starVal;
+            });
+
+            stars[i] = star;
+            starsBox.getChildren().add(star);
+        }
+
+        starsBox.setOnMouseExited(mouseEvent -> {
+            int vote = currentVote[0];
+
+            for (int j = 0; j < 5; j++) {
+                Label s = stars[j];
+
+                s.getStyleClass().removeAll(
+                        "text-score-0",
+                        "text-score-1",
+                        "text-score-2",
+                        "text-score-3",
+                        "text-score-4",
+                        "text-score-5");
+
+                if (j < vote) {
+                    s.getStyleClass().add("text-score-" + vote);
+                    s.setOpacity(1.0);
+                } else {
+                    s.getStyleClass().add("text-score-0");
+                    s.setOpacity(0.3);
+                }
+            }
+        });
+
+        TextArea txtReview = new TextArea();
+        txtReview.setPromptText("Scrivi una recensione (opzionale)...");
+        txtReview.setText(
+                recensione.getTesto() != null ? recensione.getTesto() : "");
+        txtReview.setWrapText(true);
+        txtReview.setPrefHeight(100);
+
+        Button btnSave = new Button("Salva Modifiche");
+        btnSave.getStyleClass().add("button-primary");
+
+        btnSave.setOnAction(e -> {
+            recensione.setVoto(currentVote[0]);
+            recensione.setTesto(txtReview.getText().trim());
+
+            try {
+                postService.updateReview(recensione);
+
+                stage.close();
+
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+
+            } catch (BusinessException ex) {
+                DialogUtils.showError(
+                        "Errore Modifica",
+                        ex.getMessage(),
+                        stage);
+            }
+        });
+
+        root.getChildren().addAll(
+                lblTitle,
+                starsBox,
+                txtReview,
+                btnSave);
+
+        Scene scene = new Scene(root);
+
+        try {
+            scene.getStylesheets().add(
+                    ReviewDialogManager.class
+                            .getResource("/style.css")
+                            .toExternalForm());
+        } catch (Exception e) {
+        }
+
+        stage.setScene(scene);
+        stage.showAndWait();
+    }
 }
