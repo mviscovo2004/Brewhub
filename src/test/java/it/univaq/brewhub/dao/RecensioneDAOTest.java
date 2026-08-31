@@ -68,7 +68,7 @@ public class RecensioneDAOTest extends BaseTest {
 
     /**
      * Verifica se un utente ha già recensito un determinato post.
-     * 
+     *
      * @throws SQLException se si verifica un errore durante l'interazione con il
      *                      database.
      */
@@ -84,5 +84,65 @@ public class RecensioneDAOTest extends BaseTest {
         Recensione r = new Recensione(p, u, 4, "Good", "2023-10-27");
         recensioneDAO.create(r);
         assertTrue(recensioneDAO.hasUserReviewed(p.getId(), "u_check"));
+    }
+     
+    /**
+     * Verifica la modifica di una recensione esistente
+     * e la corretta persistenza di voto e testo nel DB.
+     *
+     * @throws SQLException se si verifica un errore durante l'interazione con il database.
+     */
+    @Test
+    public void testUpdateRecensione() throws SQLException {
+        Utente u = new Utente(
+            "User",
+            "Test",
+            "u_update",
+            "pass",
+            Utente.TipoUtente.APPASSIONATO,
+            null);
+
+        utenteDAO.create(u);
+
+        Post p = new Post(
+            "Titolo",
+            "Contenuto",
+            u,
+            Post.TipoPost.TESTO,
+            null);
+
+        postDAO.create(p);
+
+        List<Post> posts = postDAO.findAll();
+        p = posts.get(0);
+
+        Recensione r = new Recensione(
+            p,
+            u,
+            3,
+            "Recensione iniziale",
+            "2023-10-27");
+
+        recensioneDAO.create(r);
+
+
+        // Recupero la recensione creata per ottenere l'ID assegnato dal database
+        List<Recensione> recensioni = recensioneDAO.findByPost(p.getId());
+        r = recensioni.get(0);
+
+        
+        // Modifica dei dati
+        r.setVoto(5);
+        r.setTesto("Recensione modificata");
+
+        recensioneDAO.update(r);
+
+        // Recupero dal database per verificare che la modifica sia persistita
+        List<Recensione> aggiornate = recensioneDAO.findByPost(p.getId());
+
+        assertEquals(1, aggiornate.size());
+        assertEquals(5, aggiornate.get(0).getVoto());
+        assertEquals("Recensione modificata", aggiornate.get(0).getTesto());
+        assertEquals(r.getId(), aggiornate.get(0).getId());
     }
 }
