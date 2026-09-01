@@ -5,6 +5,8 @@ import it.univaq.brewhub.business.UserService;
 import it.univaq.brewhub.model.Post;
 import it.univaq.brewhub.model.Torrefattore;
 import it.univaq.brewhub.model.Utente;
+import it.univaq.brewhub.utility.Log;
+import it.univaq.brewhub.utility.MediaManager;
 import it.univaq.brewhub.view.components.PostCard;
 import it.univaq.brewhub.view.components.VerificationBadge;
 import javafx.geometry.Insets;
@@ -121,10 +123,26 @@ public class UserProfileView {
         StackPane profileHeader = new StackPane();
         profileHeader.setAlignment(Pos.BOTTOM_CENTER);
 
-        Region cover = new Region();
-        cover.setPrefHeight(200);
-        cover.setMaxWidth(800);
+        // Copertina del profilo
+        StackPane cover = new StackPane();
+        cover.setPrefSize(800, 200);
+        cover.setMinSize(800, 200);
+        cover.setMaxSize(800, 200);
         cover.getStyleClass().add("profile-cover");
+
+        Image coverImage = loadProfileImage(profileUser.getFotoProfilo());
+
+        if (coverImage != null) {
+            ImageView coverImageView = new ImageView(coverImage);
+
+            coverImageView.setFitWidth(800);
+            coverImageView.setFitHeight(200);
+
+            // La foto occupa completamente il rettangolo della copertina
+            coverImageView.setPreserveRatio(false);
+
+            cover.getChildren().add(coverImageView);
+        }
 
         VBox infoContainer = new VBox(10);
         infoContainer.getStyleClass().add("profile-info-container");
@@ -158,13 +176,13 @@ public class UserProfileView {
                     }
                 } else {
                     lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
-                }
-            } catch (Exception e) {
+                    }
+                } catch (Exception e) {
                 lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
-            }
+                }
         } else {
             lblName.setText(profileUser.getNome() + " " + profileUser.getCognome());
-        }
+    }
 
         // Statistiche
         HBox statsBox = new HBox(30);
@@ -247,7 +265,7 @@ public class UserProfileView {
         ImageView avatarIv = new ImageView();
         avatarIv.setFitWidth(120);
         avatarIv.setFitHeight(120);
-        avatarIv.setPreserveRatio(true);
+        avatarIv.setPreserveRatio(false);
         avatarIv.setClip(avatarClip);
         Image img = loadProfileImage(profileUser.getFotoProfilo());
         avatarIv.setImage(img);
@@ -271,22 +289,34 @@ public class UserProfileView {
     private Image loadProfileImage(String foto) {
         if (foto != null && !foto.isBlank()) {
             try {
-                if (foto.startsWith("http") || foto.startsWith("file:"))
+                if (foto.startsWith("http") || foto.startsWith("file:")) {
                     return new Image(foto, true);
-                File f = new File(foto);
-                if (f.exists())
-                    return new Image(f.toURI().toString(), true);
+                }
+
+                File mediaFile = MediaManager.getMediaFile(foto);
+
+                if (mediaFile != null && mediaFile.exists()) {
+                    return new Image(mediaFile.toURI().toString(), true);
+                }
+
                 java.net.URL res = getClass().getResource(foto);
-                if (res != null)
+
+                if (res != null) {
                     return new Image(res.toString(), true);
-            } catch (Exception ignored) {
-            }
+                }
+
+            } catch (Exception e) {
+                Log.error("Errore durante il caricamento della foto profilo", e);
+                }
         }
+
         try {
-            return new Image(getClass().getResource("/media/default-profile.png").toString(), true);
+            return new Image(
+                    getClass().getResource("/media/default-profile.png").toString(),
+                    true);
         } catch (Exception e) {
             return null;
-        }
+            }
     }
 
     private void updateProfileLogic(Button followBtn, Label lblFoll, Label lblFollng) {
