@@ -1,7 +1,10 @@
 package it.univaq.brewhub.view.utils;
 
+import java.util.List;
+
 import it.univaq.brewhub.business.BusinessException;
 import it.univaq.brewhub.business.PostService;
+import it.univaq.brewhub.business.CategoriaService;
 import it.univaq.brewhub.model.Categoria;
 import it.univaq.brewhub.model.Post;
 import it.univaq.brewhub.view.DialogUtils;
@@ -72,21 +75,21 @@ public class PostEditDialog {
         ComboBox<Categoria> comboCategory = new ComboBox<>();
         comboCategory.setMaxWidth(Double.MAX_VALUE);
 
-        /*
-         * Per ora carichiamo la categoria già presente nel post.
-         * In un secondo momento possiamo popolare il ComboBox con tutte
-         * le categorie disponibili tramite CategoriaService.
-         */
-        comboCategory.getItems().add(null);
+        CategoriaService categoriaService = CategoriaService.getInstance();
+
+        List<Categoria> categorie = categoriaService.getAllCategories();
+        comboCategory.getItems().addAll(categorie);
 
         if (post.getCategoria() != null) {
-            comboCategory.getItems().add(post.getCategoria());
-            comboCategory.setValue(post.getCategoria());
-        } else {
-            comboCategory.setValue(null);
+            for (Categoria categoria : categorie) {
+                if (categoria.getId() == post.getCategoria().getId()) {
+                    comboCategory.setValue(categoria);
+                    break;
+                }
+            }
         }
 
-        comboCategory.setPromptText("Categoria");
+        comboCategory.setPromptText("Seleziona categoria");
 
         centerBox.getChildren().addAll(
                 txtTitle,
